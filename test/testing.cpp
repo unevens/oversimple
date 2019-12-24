@@ -83,10 +83,10 @@ TestFirOversampler(int numChannels,
   cout << "NumSamplesBeforeUpsamplingStarts = " << upsamplePadding << "\n";
   cout << "NumSamplesBeforeDownsamplingStarts  = " << downsamplePadding << "\n";
 
-  avec::ScalarBuffer<Scalar> input(numChannels, samplesPerBlock + padding);
-  avec::ScalarBuffer<Scalar> inputCopy(numChannels, samplesPerBlock + padding);
-  avec::ScalarBuffer<Scalar> output(numChannels, samplesPerBlock + padding);
-  avec::ScalarBuffer<Scalar> upsampled(
+  ScalarBuffer<Scalar> input(numChannels, samplesPerBlock + padding);
+  ScalarBuffer<Scalar> inputCopy(numChannels, samplesPerBlock + padding);
+  ScalarBuffer<Scalar> output(numChannels, samplesPerBlock + padding);
+  ScalarBuffer<Scalar> upsampled(
     numChannels, samplesPerBlock * oversamplingFactor + padding);
   input.Fill(0.0);
   inputCopy.Fill(0.0);
@@ -176,7 +176,7 @@ InspectIirOversampling(int numChannels,
   upsampling->SetOrder(order);
   downsampling->SetOrder(order);
   auto buffer =
-    avec::InterleavedBuffer<Scalar>(numChannels, factor * samplesPerBlock);
+    InterleavedBuffer<Scalar>(numChannels, factor * samplesPerBlock);
   CHECK_MEMORY;
   upsampling->ProcessBlock(in, samplesPerBlock, buffer);
   CHECK_MEMORY;
@@ -210,7 +210,7 @@ InspectIirOversampling(int numChannels,
 int
 main()
 {
-  cout << "avx? " << avec::AVX_AVAILABLE << "\n";
+  cout << "avx? " << AVX_AVAILABLE << "\n";
 
   InspectIirOversampling<double>(2, 1024, 4, 128);
   InspectIirOversampling<float>(2, 1024, 4, 128);

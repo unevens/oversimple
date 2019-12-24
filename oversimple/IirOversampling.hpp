@@ -16,8 +16,7 @@ limitations under the License.
 
 #pragma once
 
-#include "avec/InterleavedBuffer.hpp"
-#include "avec/ScalarBuffer.hpp"
+#include "avec/Avec.hpp"
 #include "hiir/Downsampler2x2SseDouble.h"
 #include "hiir/Downsampler2x4Sse.h"
 #include "hiir/Upsampler2x2SseDouble.h"
@@ -102,22 +101,22 @@ class IirUpsampler : public virtual IirOversampler
 public:
   /**
    * Upsamples the input.
-   * @param input a avec::ScalarBuffer that holds the input samples
-   * @param output an avec::InterleavedBuffer to hold the upsampled samples
+   * @param input a ScalarBuffer that holds the input samples
+   * @param output an InterleavedBuffer to hold the upsampled samples
    */
-  virtual void ProcessBlock(avec::ScalarBuffer<Scalar> const& input,
-                            avec::InterleavedBuffer<Scalar>& output) = 0;
+  virtual void ProcessBlock(ScalarBuffer<Scalar> const& input,
+                            InterleavedBuffer<Scalar>& output) = 0;
 
   /**
    * Upsamples the input.
    * @param input a pointer to the memory holding the input samples
    * @param numInputSamples the number of samples in each channel of the input
    * buffer
-   * @param output an avec::InterleavedBuffer to hold the upsampled samples
+   * @param output an InterleavedBuffer to hold the upsampled samples
    */
   virtual void ProcessBlock(Scalar* const* input,
                             int numInputSamples,
-                            avec::InterleavedBuffer<Scalar>& output) = 0;
+                            InterleavedBuffer<Scalar>& output) = 0;
 };
 
 /**
@@ -129,18 +128,18 @@ class IirDownsampler : public virtual IirOversampler
 public:
   /**
    * Downsamples the input.
-   * @param input avec::InterleavedBuffer holding the interleaved input samples.
+   * @param input InterleavedBuffer holding the interleaved input samples.
    * @param numSamples the number of samples to donwsample from each channel of
    * the input
    */
-  virtual void ProcessBlock(avec::InterleavedBuffer<Scalar>& input,
+  virtual void ProcessBlock(InterleavedBuffer<Scalar>& input,
                             int numSamples) = 0;
 
   /**
-   * @return a reference to the avec::InterleavedBuffer holding the donwsampled
+   * @return a reference to the InterleavedBuffer holding the donwsampled
    * samples.
    */
-  virtual avec::InterleavedBuffer<Scalar>& GetOutput() = 0;
+  virtual InterleavedBuffer<Scalar>& GetOutput() = 0;
 };
 
 // implementations
@@ -161,14 +160,12 @@ template<typename Scalar,
 class IirOversamplingChain : public virtual IirOversampler
 {
 protected:
-  static constexpr bool VEC8_AVAILABLE =
-    avec::SimdTypes<Scalar>::VEC8_AVAILABLE;
+  static constexpr bool VEC8_AVAILABLE = SimdTypes<Scalar>::VEC8_AVAILABLE;
 
-  static constexpr bool VEC4_AVAILABLE =
-    avec::SimdTypes<Scalar>::VEC4_AVAILABLE;
+  static constexpr bool VEC4_AVAILABLE = SimdTypes<Scalar>::VEC4_AVAILABLE;
 
   template<class T>
-  using aligned_vector = avec::aligned_vector<T>;
+  using aligned_vector = aligned_vector<T>;
 
   aligned_vector<StageVec8<numCoefsStage0>> stage8_0;
   aligned_vector<StageVec8<numCoefsStage1>> stage8_1;
@@ -190,7 +187,7 @@ protected:
   int order;
   int factor;
   int samplesPerBlock;
-  avec::InterleavedBuffer<Scalar> buffer[2];
+  InterleavedBuffer<Scalar> buffer[2];
 
   IirOversamplingChain(IirOversamplingDesigner designer_, int numChannels_)
     : designer(designer_)
@@ -330,8 +327,8 @@ protected:
     SetupStages();
   }
 
-  void ApplyStage0(avec::InterleavedBuffer<Scalar>& output,
-                   avec::InterleavedBuffer<Scalar>& input,
+  void ApplyStage0(InterleavedBuffer<Scalar>& output,
+                   InterleavedBuffer<Scalar>& input,
                    int numSamples)
   {
     if constexpr (VEC8_AVAILABLE) {
@@ -363,8 +360,8 @@ protected:
     }
   }
 
-  void ApplyStage1(avec::InterleavedBuffer<Scalar>& output,
-                   avec::InterleavedBuffer<Scalar>& input,
+  void ApplyStage1(InterleavedBuffer<Scalar>& output,
+                   InterleavedBuffer<Scalar>& input,
                    int numSamples)
   {
     if constexpr (VEC8_AVAILABLE) {
@@ -396,8 +393,8 @@ protected:
     }
   }
 
-  void ApplyStage2(avec::InterleavedBuffer<Scalar>& output,
-                   avec::InterleavedBuffer<Scalar>& input,
+  void ApplyStage2(InterleavedBuffer<Scalar>& output,
+                   InterleavedBuffer<Scalar>& input,
                    int numSamples)
   {
 
@@ -430,8 +427,8 @@ protected:
     }
   }
 
-  void ApplyStage3(avec::InterleavedBuffer<Scalar>& output,
-                   avec::InterleavedBuffer<Scalar>& input,
+  void ApplyStage3(InterleavedBuffer<Scalar>& output,
+                   InterleavedBuffer<Scalar>& input,
                    int numSamples)
   {
     if constexpr (VEC8_AVAILABLE) {
@@ -531,7 +528,7 @@ class TIirDownsampler final
                                 StageVec4,
                                 StageVec2>
 {
-  avec::InterleavedBuffer<Scalar>* output = nullptr;
+  InterleavedBuffer<Scalar>* output = nullptr;
 
 public:
   /**
@@ -552,8 +549,7 @@ public:
                            StageVec2>(designer, numChannels)
   {}
 
-  void ProcessBlock(avec::InterleavedBuffer<Scalar>& input,
-                    int numSamples) override
+  void ProcessBlock(InterleavedBuffer<Scalar>& input, int numSamples) override
   {
     assert(this->numChannels <= input.GetNumChannels());
     this->PrepareBuffer(numSamples);
@@ -587,7 +583,7 @@ public:
     }
   }
 
-  avec::InterleavedBuffer<Scalar>& GetOutput() override
+  InterleavedBuffer<Scalar>& GetOutput() override
   {
     assert(output);
     return *output;
@@ -641,7 +637,7 @@ public:
 
   void ProcessBlock(Scalar* const* inputs,
                     int numInputSamples,
-                    avec::InterleavedBuffer<Scalar>& output) override
+                    InterleavedBuffer<Scalar>& output) override
   {
     output.SetNumSamples(numInputSamples * this->factor);
     this->PrepareBuffer(numInputSamples);
@@ -680,8 +676,8 @@ public:
     }
   }
 
-  void ProcessBlock(avec::ScalarBuffer<Scalar> const& input,
-                    avec::InterleavedBuffer<Scalar>& output) override
+  void ProcessBlock(ScalarBuffer<Scalar> const& input,
+                    InterleavedBuffer<Scalar>& output) override
   {
     ProcessBlock(input.Get(), input.GetSize(), output);
   }

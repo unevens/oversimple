@@ -32,16 +32,16 @@ DEBUG_MESSAGE(char const* message)
 namespace oversimple {
 
 int
-FirUpsampler::ProcessBlock(avec::ScalarBuffer<double> const& input,
-                           avec::ScalarBuffer<double>& output)
+FirUpsampler::ProcessBlock(ScalarBuffer<double> const& input,
+                           ScalarBuffer<double>& output)
 {
   return ProcessBlock(
     input.Get(), input.GetNumChannels(), input.GetSize(), output);
 }
 
 void
-FirDownsampler::ProcessBlock(avec::ScalarBuffer<double> const& input,
-                             avec::ScalarBuffer<double>& output,
+FirDownsampler::ProcessBlock(ScalarBuffer<double> const& input,
+                             ScalarBuffer<double>& output,
                              int requiredSamples)
 {
   output.SetNumChannelsAndSize(input.GetNumChannels(), input.GetSize());
@@ -52,7 +52,7 @@ int
 FirUpsampler::ProcessBlock(double* const* input,
                            int numInputChannels,
                            int numSamples,
-                           avec::ScalarBuffer<double>& output)
+                           ScalarBuffer<double>& output)
 {
   assert(numInputChannels == numChannels);
   int numOutputSamples = numSamples * oversamplingFactor;
@@ -88,7 +88,7 @@ FirUpsampler::ProcessBlock(double* const* input,
 }
 
 void
-FirDownsampler::ProcessBlock(avec::ScalarBuffer<double> const& input,
+FirDownsampler::ProcessBlock(ScalarBuffer<double> const& input,
                              double** output,
                              int numOutputChannels,
                              int requiredSamples)

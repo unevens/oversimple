@@ -17,10 +17,10 @@ limitations under the License.
 #pragma once
 
 #include "hiir/PolyphaseIir2Designer.h"
-#include <vector>
-#include <string>
-#include <numeric>
 #include <cassert>
+#include <numeric>
+#include <string>
+#include <vector>
 
 namespace oversimple {
 
@@ -301,4 +301,4 @@ IirOversamplingDesigner::GroupDelayGraph::GetMean() const
          (double)graph.size();
 }
 
-} // namespace unevens
+} // namespace oversimple

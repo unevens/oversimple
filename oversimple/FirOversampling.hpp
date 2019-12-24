@@ -17,7 +17,7 @@ limitations under the License.
 #pragma once
 #define NOMINMAX
 #include "CDSPResampler.h"
-#include "avec/ScalarBuffer.hpp"
+#include "avec/Avec.hpp"
 
 namespace oversimple {
 
@@ -144,16 +144,16 @@ public:
   int ProcessBlock(double* const* input,
                    int numChannels,
                    int numSamples,
-                   avec::ScalarBuffer<double>& output);
+                   ScalarBuffer<double>& output);
 
   /**
    * Upsamples a multi channel input buffer.
-   * @param input avec::ScalarBuffer that holds the input buffer.
+   * @param input ScalarBuffer that holds the input buffer.
    * @param output ScalarBufffer to hold the upsampled data.
    * @return number of upsampled samples
    */
-  int ProcessBlock(avec::ScalarBuffer<double> const& input,
-                   avec::ScalarBuffer<double>& output);
+  int ProcessBlock(ScalarBuffer<double> const& input,
+                   ScalarBuffer<double>& output);
 };
 
 /**
@@ -164,7 +164,7 @@ public:
 class FirDownsampler : public FirResampler
 {
   void Setup() override;
-  avec::ScalarBuffer<double> buffer;
+  ScalarBuffer<double> buffer;
   int bufferCounter = 0;
   int maxRequiredOutputLength;
 
@@ -186,24 +186,24 @@ public:
 
   /**
    * Downsamples a multi channel input buffer.
-   * @param avec::ScalarBuffer that holds the input buffer.
+   * @param ScalarBuffer that holds the input buffer.
    * @param output pointer to the memory in which to store the downsampled data.
    * @param numChannels number of channels of the output buffer
    * @param requiredSamples the number of samples needed as output
    */
-  void ProcessBlock(avec::ScalarBuffer<double> const& input,
+  void ProcessBlock(ScalarBuffer<double> const& input,
                     double** output,
                     int numChannels,
                     int requiredSamples);
 
   /**
    * Downsamples a multi channel input buffer.
-   * @param avec::ScalarBuffer that holds the input buffer.
+   * @param ScalarBuffer that holds the input buffer.
    * @param output ScalarBufffer to hold the downsampled data.
    * @param requiredSamples the number of samples needed as output
    */
-  void ProcessBlock(avec::ScalarBuffer<double> const& input,
-                    avec::ScalarBuffer<double>& output,
+  void ProcessBlock(ScalarBuffer<double> const& input,
+                    ScalarBuffer<double>& output,
                     int requiredSamples);
 
   void PrepareBuffers(int numInputSamples, int requiredOutputSamples);
@@ -241,8 +241,8 @@ public:
 template<>
 class TFirUpsampler<float> final : public FirUpsampler
 {
-  avec::ScalarBuffer<double> floatToDoubleBuffer;
-  avec::ScalarBuffer<double> doubleToFloatBuffer;
+  ScalarBuffer<double> floatToDoubleBuffer;
+  ScalarBuffer<double> doubleToFloatBuffer;
 
 public:
   /**
@@ -277,7 +277,7 @@ public:
   int ProcessBlock(float* const* input,
                    int numChannels,
                    int numSamples,
-                   avec::ScalarBuffer<float>& output)
+                   ScalarBuffer<float>& output)
   {
     floatToDoubleBuffer.SetNumChannelsAndSize(numChannels, numSamples);
     doubleToFloatBuffer.SetNumChannelsAndSize(numChannels,
@@ -295,12 +295,12 @@ public:
 
   /**
    * Upsamples a multi channel input buffer.
-   * @param input avec::ScalarBuffer that holds the input buffer.
+   * @param input ScalarBuffer that holds the input buffer.
    * @param output ScalarBufffer to hold the upsampled data.
    * @return number of upsampled samples
    */
-  int ProcessBlock(avec::ScalarBuffer<float> const& input,
-                   avec::ScalarBuffer<float>& output)
+  int ProcessBlock(ScalarBuffer<float> const& input,
+                   ScalarBuffer<float>& output)
   {
     return ProcessBlock(
       input.Get(), input.GetNumChannels(), input.GetSize(), output);
@@ -338,8 +338,8 @@ public:
 template<>
 class TFirDownsampler<float> final : public FirDownsampler
 {
-  avec::ScalarBuffer<double> floatToDoubleBuffer;
-  avec::ScalarBuffer<double> doubleToFloatBuffer;
+  ScalarBuffer<double> floatToDoubleBuffer;
+  ScalarBuffer<double> doubleToFloatBuffer;
 
 public:
   /**
@@ -364,12 +364,12 @@ public:
 
   /**
    * Downsamples a multi channel input buffer.
-   * @param avec::ScalarBuffer that holds the input buffer.
+   * @param ScalarBuffer that holds the input buffer.
    * @param output pointer to the memory in which to store the downsampled data.
    * @param numChannels number of channels of the output buffer
    * @param requiredSamples the number of samples needed as output
    */
-  void ProcessBlock(avec::ScalarBuffer<float> const& input,
+  void ProcessBlock(ScalarBuffer<float> const& input,
                     float** output,
                     int numChannels,
                     int requiredSamples)
@@ -387,12 +387,12 @@ public:
 
   /**
    * Downsamples a multi channel input buffer.
-   * @param avec::ScalarBuffer that holds the input buffer.
+   * @param ScalarBuffer that holds the input buffer.
    * @param output ScalarBufffer to hold the downsampled data.
    * @param requiredSamples the number of samples needed as output
    */
-  void ProcessBlock(avec::ScalarBuffer<float> const& input,
-                    avec::ScalarBuffer<float>& output,
+  void ProcessBlock(ScalarBuffer<float> const& input,
+                    ScalarBuffer<float>& output,
                     int requiredSamples)
   {
     ProcessBlock(input, output.Get(), output.GetNumChannels(), requiredSamples);
