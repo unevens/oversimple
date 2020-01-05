@@ -203,19 +203,27 @@ protected:
 
   void SetupStages()
   {
-    if (VEC8_AVAILABLE && numChannels > 4) {
+    if constexpr (VEC8_AVAILABLE) {
       auto d = std::div(numChannels, 8);
+#if AVEC_MIX_VEC_SIZES
       int numOf8 = d.quot + (d.rem > 4 ? 1 : 0);
       stage8_0.resize(numOf8);
       stage8_1.resize(numOf8);
       stage8_2.resize(numOf8);
       stage8_3.resize(numOf8);
       if (d.rem > 0 && d.rem <= 4) {
-        stage4_0.resize(d.rem);
-        stage4_1.resize(d.rem);
-        stage4_2.resize(d.rem);
-        stage4_3.resize(d.rem);
+        stage4_0.resize(1);
+        stage4_1.resize(1);
+        stage4_2.resize(1);
+        stage4_3.resize(1);
       }
+#else
+      int numOf8 = d.quot + (d.rem > 0 ? 1 : 0);
+      stage8_0.resize(numOf8);
+      stage8_1.resize(numOf8);
+      stage8_2.resize(numOf8);
+      stage8_3.resize(numOf8);
+#endif
     }
     else if constexpr (VEC4_AVAILABLE) {
       auto d = std::div(numChannels, 4);
