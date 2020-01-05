@@ -54,7 +54,7 @@ FirUpsampler::ProcessBlock(double* const* input,
                            int numSamples,
                            ScalarBuffer<double>& output)
 {
-  assert(numInputChannels == numChannels);
+  assert(numInputChannels <= numChannels);
   int numOutputSamples = numSamples * oversamplingFactor;
   output.SetNumChannelsAndSize(numInputChannels, numOutputSamples);
 
@@ -65,7 +65,7 @@ FirUpsampler::ProcessBlock(double* const* input,
     return numSamples;
   }
   int totalUpsampledSamples = 0;
-  for (int c = 0; c < numChannels; ++c) {
+  for (int c = 0; c < numInputChannels; ++c) {
     double* outPtr;
     int numInputSamples = numSamples;
     int inputCounter = 0;
@@ -93,11 +93,11 @@ FirDownsampler::ProcessBlock(ScalarBuffer<double> const& input,
                              int numOutputChannels,
                              int requiredSamples)
 {
-  assert(numChannels == numOutputChannels);
+  assert(numOutputChannels <= numChannels);
   int numSamples = input.GetSize();
 
   if (oversamplingFactor == 1) {
-    for (int c = 0; c < numChannels; ++c) {
+    for (int c = 0; c < numOutputChannels; ++c) {
       std::copy(&input[c][0], &input[c][0] + numSamples, &output[c][0]);
     }
     return;
@@ -105,7 +105,7 @@ FirDownsampler::ProcessBlock(ScalarBuffer<double> const& input,
 
   int newBufferCounter = bufferCounter;
   if (numSamples <= maxSamplesPerBlock) {
-    for (int c = 0; c < numChannels; ++c) {
+    for (int c = 0; c < numOutputChannels; ++c) {
       double* outPtr;
       int numUpsampledSamples = resamplers[c]->process(
         const_cast<double*>(&input[c][0]), numSamples, outPtr);
@@ -151,7 +151,7 @@ FirDownsampler::ProcessBlock(ScalarBuffer<double> const& input,
     bufferCounter = newBufferCounter;
   }
   else { // numSamples > maxSamplesPerBlock
-    for (int c = 0; c < numChannels; ++c) {
+    for (int c = 0; c < numOutputChannels; ++c) {
       int inputCounter = 0;
       int outputCounter = 0;
       int numInputSamples = numSamples;
@@ -186,7 +186,7 @@ FirDownsampler::ProcessBlock(ScalarBuffer<double> const& input,
 
     int diff = requiredSamples - bufferCounter;
     if (diff >= 0) {
-      for (int c = 0; c < numChannels; ++c) {
+      for (int c = 0; c < numOutputChannels; ++c) {
         std::fill_n(&output[c][0], diff, 0.0);
         std::copy(
           &buffer[c][0], &buffer[c][0] + bufferCounter, &output[c][diff]);
@@ -194,7 +194,7 @@ FirDownsampler::ProcessBlock(ScalarBuffer<double> const& input,
       bufferCounter = 0;
     }
     else { // diff < 0
-      for (int c = 0; c < numChannels; ++c) {
+      for (int c = 0; c < numOutputChannels; ++c) {
         std::copy(
           &buffer[c][0], &buffer[c][0] + requiredSamples, &output[c][0]);
         std::copy(&buffer[c][0] + requiredSamples,
