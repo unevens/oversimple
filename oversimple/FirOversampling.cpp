@@ -26,7 +26,7 @@ DEBUG_MESSAGE(char const* message)
   OutputDebugString(message);
 }
 #else
-#define AUDIOVEC_DEBUG_MESSAGE(x) /*nohing*/
+#define DEBUG_MESSAGE(x) /*nohing*/
 #endif
 
 namespace oversimple {
