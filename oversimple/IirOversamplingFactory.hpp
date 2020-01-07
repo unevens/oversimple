@@ -95,11 +95,11 @@ public:
       case 0:
       default:
         return std::unique_ptr<IirUpsampler<Scalar>>(
-          new TIirUpsampler<Scalar, 11, 5, 3, 3, Stage8, Stage4, Stage2>(
+          new TIirUpsampler<Scalar, 11, 5, 3, 3, 2, Stage8, Stage4, Stage2>(
             preset, numChannels));
       case 1:
         return std::unique_ptr<IirUpsampler<Scalar>>(
-          new TIirUpsampler<Scalar, 11, 5, 4, 3, Stage8, Stage4, Stage2>(
+          new TIirUpsampler<Scalar, 11, 5, 4, 3, 2, Stage8, Stage4, Stage2>(
             preset, numChannels));
     }
   }
@@ -149,11 +149,11 @@ public:
       case 0:
       default:
         return std::unique_ptr<IirDownsampler<Scalar>>(
-          new TIirDownsampler<Scalar, 11, 5, 3, 3, Stage8, Stage4, Stage2>(
+          new TIirDownsampler<Scalar, 11, 5, 3, 3, 2, Stage8, Stage4, Stage2>(
             preset, numChannels));
       case 1:
         return std::unique_ptr<IirDownsampler<Scalar>>(
-          new TIirDownsampler<Scalar, 11, 5, 4, 3, Stage8, Stage4, Stage2>(
+          new TIirDownsampler<Scalar, 11, 5, 4, 3, 2, Stage8, Stage4, Stage2>(
             preset, numChannels));
     }
   }

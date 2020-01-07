@@ -190,7 +190,7 @@ InspectIirOversampling(int numChannels,
     cout << "channel " << i << "\n";
     for (int s = 0; s < samplesPerBlock; ++s) {
       cout << i2s(s) << ":   " << n2s(in[i][s]) << "  |  "
-           << n2s(output.At(i, s)) << "\n";
+           << n2s(*output.At(i, s)) << "\n";
     }
     cout << "\n";
   }

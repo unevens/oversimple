@@ -151,6 +151,7 @@ template<typename Scalar,
          int numCoefsStage1,
          int numCoefsStage2,
          int numCoefsStage3,
+         int numCoefsStage4,
          template<int>
          class StageVec8,
          template<int>
@@ -171,16 +172,19 @@ protected:
   aligned_vector<StageVec8<numCoefsStage1>> stage8_1;
   aligned_vector<StageVec8<numCoefsStage2>> stage8_2;
   aligned_vector<StageVec8<numCoefsStage3>> stage8_3;
+  aligned_vector<StageVec8<numCoefsStage4>> stage8_4;
 
   aligned_vector<StageVec4<numCoefsStage0>> stage4_0;
   aligned_vector<StageVec4<numCoefsStage1>> stage4_1;
   aligned_vector<StageVec4<numCoefsStage2>> stage4_2;
   aligned_vector<StageVec4<numCoefsStage3>> stage4_3;
+  aligned_vector<StageVec4<numCoefsStage4>> stage4_4;
 
   aligned_vector<StageVec2<numCoefsStage0>> stage2_0;
   aligned_vector<StageVec2<numCoefsStage1>> stage2_1;
   aligned_vector<StageVec2<numCoefsStage2>> stage2_2;
   aligned_vector<StageVec2<numCoefsStage3>> stage2_3;
+  aligned_vector<StageVec2<numCoefsStage4>> stage2_4;
 
   IirOversamplingDesigner designer;
   int numChannels;
@@ -196,7 +200,7 @@ protected:
     , order(0)
     , factor(1)
   {
-    assert(designer.GetStages().size() == 4);
+    assert(designer.GetStages().size() == 5);
     SetupBuffer();
     SetupStages();
   }
@@ -211,11 +215,13 @@ protected:
       stage8_1.resize(numOf8);
       stage8_2.resize(numOf8);
       stage8_3.resize(numOf8);
+      stage8_4.resize(numOf8);
       if (d.rem > 0 && d.rem <= 4) {
         stage4_0.resize(1);
         stage4_1.resize(1);
         stage4_2.resize(1);
         stage4_3.resize(1);
+        stage4_4.resize(1);
       }
 #else
       int numOf8 = d.quot + (d.rem > 0 ? 1 : 0);
@@ -223,27 +229,26 @@ protected:
       stage8_1.resize(numOf8);
       stage8_2.resize(numOf8);
       stage8_3.resize(numOf8);
+      stage8_4.resize(numOf8);
 #endif
     }
     else if constexpr (VEC4_AVAILABLE) {
       auto d = std::div(numChannels, 4);
-      int numProcessorsForStage = d.quot + (d.rem > 0 ? 1 : 0);
-      stage4_0.resize(numProcessorsForStage);
-      stage4_1.resize(numProcessorsForStage);
-      stage4_2.resize(numProcessorsForStage);
-      stage4_3.resize(numProcessorsForStage);
-      stage8_0.resize(0);
-      stage8_1.resize(0);
-      stage8_2.resize(0);
-      stage8_3.resize(0);
+      int numOf4 = d.quot + (d.rem > 0 ? 1 : 0);
+      stage4_0.resize(numOf4);
+      stage4_1.resize(numOf4);
+      stage4_2.resize(numOf4);
+      stage4_3.resize(numOf4);
+      stage4_4.resize(numOf4);
     }
     else {
       auto d = std::div(numChannels, 2);
-      int numProcessorsForStage = d.quot + (d.rem > 0 ? 1 : 0);
-      stage2_0.resize(numProcessorsForStage);
-      stage2_1.resize(numProcessorsForStage);
-      stage2_2.resize(numProcessorsForStage);
-      stage2_3.resize(numProcessorsForStage);
+      int numOf2 = d.quot + (d.rem > 0 ? 1 : 0);
+      stage2_0.resize(numOf2);
+      stage2_1.resize(numOf2);
+      stage2_2.resize(numOf2);
+      stage2_3.resize(numOf2);
+      stage2_4.resize(numOf2);
     }
 
     auto& stages = designer.GetStages();
@@ -298,6 +303,19 @@ protected:
       stage.clear_buffers();
     }
     for (auto& stage : stage2_3) {
+      stage.set_coefs(&coefs[0]);
+      stage.clear_buffers();
+    }
+    stages[4].ComputeCoefs(coefs);
+    for (auto& stage : stage4_4) {
+      stage.set_coefs(&coefs[0]);
+      stage.clear_buffers();
+    }
+    for (auto& stage : stage8_4) {
+      stage.set_coefs(&coefs[0]);
+      stage.clear_buffers();
+    }
+    for (auto& stage : stage2_4) {
       stage.set_coefs(&coefs[0]);
       stage.clear_buffers();
     }
@@ -467,6 +485,38 @@ protected:
       }
     }
   }
+  void ApplyStage4(InterleavedBuffer<Scalar>& output,
+                   InterleavedBuffer<Scalar>& input,
+                   int numSamples)
+  {
+    if constexpr (VEC8_AVAILABLE) {
+      int i = 0;
+      for (auto& stage : stage8_4) {
+        auto& out = output.GetBuffer8(i);
+        auto& in = input.GetBuffer8(i);
+        stage.process_block(out, in, numSamples);
+        ++i;
+      }
+    }
+    if constexpr (VEC4_AVAILABLE) {
+      int i = 0;
+      for (auto& stage : stage4_4) {
+        auto& out = output.GetBuffer4(i);
+        auto& in = input.GetBuffer4(i);
+        stage.process_block(out, in, numSamples);
+        ++i;
+      }
+    }
+    else {
+      int i = 0;
+      for (auto& stage : stage2_4) {
+        auto& out = output.GetBuffer2(i);
+        auto& in = input.GetBuffer2(i);
+        stage.process_block(out, in, numSamples);
+        ++i;
+      }
+    }
+  }
 
   void Reset() override
   {
@@ -482,6 +532,9 @@ protected:
     for (auto& stage : stage8_3) {
       stage.clear_buffers();
     }
+    for (auto& stage : stage8_4) {
+      stage.clear_buffers();
+    }
     for (auto& stage : stage4_0) {
       stage.clear_buffers();
     }
@@ -494,6 +547,9 @@ protected:
     for (auto& stage : stage4_3) {
       stage.clear_buffers();
     }
+    for (auto& stage : stage4_4) {
+      stage.clear_buffers();
+    }
     for (auto& stage : stage2_0) {
       stage.clear_buffers();
     }
@@ -504,6 +560,9 @@ protected:
       stage.clear_buffers();
     }
     for (auto& stage : stage2_3) {
+      stage.clear_buffers();
+    }
+    for (auto& stage : stage2_4) {
       stage.clear_buffers();
     }
   }
@@ -519,6 +578,7 @@ template<typename Scalar,
          int numCoefsStage1,
          int numCoefsStage2,
          int numCoefsStage3,
+         int numCoefsStage4,
          template<int>
          class StageVec8,
          template<int>
@@ -532,6 +592,7 @@ class TIirDownsampler final
                                 numCoefsStage1,
                                 numCoefsStage2,
                                 numCoefsStage3,
+                                numCoefsStage4,
                                 StageVec8,
                                 StageVec4,
                                 StageVec2>
@@ -552,6 +613,7 @@ public:
                            numCoefsStage1,
                            numCoefsStage2,
                            numCoefsStage3,
+                           numCoefsStage4,
                            StageVec8,
                            StageVec4,
                            StageVec2>(designer, numChannels)
@@ -586,6 +648,13 @@ public:
         this->ApplyStage1(temp, *output, numSamples / 8);
         this->ApplyStage0(*output, temp, numSamples / 16);
       } break;
+      case 5: {
+        this->ApplyStage4(*output, input, numSamples / 2);
+        this->ApplyStage3(temp, *output, numSamples / 4);
+        this->ApplyStage2(*output, temp, numSamples / 8);
+        this->ApplyStage1(temp, *output, numSamples / 16);
+        this->ApplyStage0(*output, temp, numSamples / 32);
+      } break;
       default:
         assert(false);
     }
@@ -606,6 +675,7 @@ template<typename Scalar,
          int numCoefsStage1,
          int numCoefsStage2,
          int numCoefsStage3,
+         int numCoefsStage4,
          template<int>
          class StageVec8,
          template<int>
@@ -619,6 +689,7 @@ class TIirUpsampler final
                                 numCoefsStage1,
                                 numCoefsStage2,
                                 numCoefsStage3,
+                                numCoefsStage4,
                                 StageVec8,
                                 StageVec4,
                                 StageVec2>
@@ -638,6 +709,7 @@ public:
                            numCoefsStage1,
                            numCoefsStage2,
                            numCoefsStage3,
+                           numCoefsStage4,
                            StageVec8,
                            StageVec4,
                            StageVec2>(designer, numChannels)
@@ -678,6 +750,14 @@ public:
         this->ApplyStage1(input, temp, numInputSamples * 2);
         this->ApplyStage2(temp, input, numInputSamples * 4);
         this->ApplyStage3(output, temp, numInputSamples * 8);
+      } break;
+      case 5: {
+        input.Interleave(inputs, output.GetNumChannels(), numInputSamples);
+        this->ApplyStage0(output, input, numInputSamples);
+        this->ApplyStage1(temp, output, numInputSamples * 2);
+        this->ApplyStage2(output, temp, numInputSamples * 4);
+        this->ApplyStage3(temp, output, numInputSamples * 8);
+        this->ApplyStage4(output, temp, numInputSamples * 16);
       } break;
       default:
         assert(false);

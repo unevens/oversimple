@@ -68,7 +68,7 @@ public:
    */
   IirOversamplingDesigner(double attenuation,
                           double transition,
-                          int numStages = 4);
+                          int numStages = 5);
 
   /**
    * @return a reference to the vector with the information specific to each
