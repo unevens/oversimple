@@ -105,7 +105,8 @@ public:
    * @param output an InterleavedBuffer to hold the upsampled samples
    */
   virtual void ProcessBlock(ScalarBuffer<Scalar> const& input,
-                            InterleavedBuffer<Scalar>& output) = 0;
+                            InterleavedBuffer<Scalar>& output,
+                            int numChannelsToProcess = -1) = 0;
 
   /**
    * Upsamples the input.
@@ -116,7 +117,20 @@ public:
    */
   virtual void ProcessBlock(Scalar* const* input,
                             int numInputSamples,
-                            InterleavedBuffer<Scalar>& output) = 0;
+                            InterleavedBuffer<Scalar>& output,
+                            int numChannelsToProcess = -1) = 0;
+
+  /**
+   * Upsamples an already interleaved input.
+   * @param input an InterleavedBuffer<Scalar> holding the input samples
+   * @param numInputSamples the number of samples in each channel of the input
+   * buffer
+   * @param output an InterleavedBuffer to hold the upsampled samples
+   */
+  virtual void ProcessBlock(InterleavedBuffer<Scalar> const& input,
+                            int numInputSamples,
+                            InterleavedBuffer<Scalar>& output,
+                            int numChannelsToProcess = -1) = 0;
 };
 
 /**
@@ -132,8 +146,9 @@ public:
    * @param numSamples the number of samples to donwsample from each channel of
    * the input
    */
-  virtual void ProcessBlock(InterleavedBuffer<Scalar>& input,
-                            int numSamples) = 0;
+  virtual void ProcessBlock(InterleavedBuffer<Scalar> const& input,
+                            int numSamples,
+                            int numChannelsToProcess = -1) = 0;
 
   /**
    * @return a reference to the InterleavedBuffer holding the donwsampled
@@ -354,8 +369,9 @@ protected:
   }
 
   void ApplyStage0(InterleavedBuffer<Scalar>& output,
-                   InterleavedBuffer<Scalar>& input,
-                   int numSamples)
+                   InterleavedBuffer<Scalar> const& input,
+                   int numSamples,
+                   int numChannelsToProcess)
   {
     if constexpr (VEC8_AVAILABLE) {
       int i = 0;
@@ -364,6 +380,10 @@ protected:
         auto& in = input.GetBuffer8(i);
         stage.process_block(out, in, numSamples);
         ++i;
+        numChannelsToProcess -= 8;
+        if (numChannelsToProcess <= 0) {
+          return;
+        }
       }
     }
     if constexpr (VEC4_AVAILABLE) {
@@ -373,6 +393,10 @@ protected:
         auto& in = input.GetBuffer4(i);
         stage.process_block(out, in, numSamples);
         ++i;
+        numChannelsToProcess -= 4;
+        if (numChannelsToProcess <= 0) {
+          return;
+        }
       }
     }
     else {
@@ -382,13 +406,18 @@ protected:
         auto& in = input.GetBuffer2(i);
         stage.process_block(out, in, numSamples);
         ++i;
+        numChannelsToProcess -= 2;
+        if (numChannelsToProcess <= 0) {
+          return;
+        }
       }
     }
   }
 
   void ApplyStage1(InterleavedBuffer<Scalar>& output,
-                   InterleavedBuffer<Scalar>& input,
-                   int numSamples)
+                   InterleavedBuffer<Scalar> const& input,
+                   int numSamples,
+                   int numChannelsToProcess)
   {
     if constexpr (VEC8_AVAILABLE) {
       int i = 0;
@@ -397,6 +426,10 @@ protected:
         auto& in = input.GetBuffer8(i);
         stage.process_block(out, in, numSamples);
         ++i;
+        numChannelsToProcess -= 8;
+        if (numChannelsToProcess <= 0) {
+          return;
+        }
       }
     }
     if constexpr (VEC4_AVAILABLE) {
@@ -406,6 +439,10 @@ protected:
         auto& in = input.GetBuffer4(i);
         stage.process_block(out, in, numSamples);
         ++i;
+        numChannelsToProcess -= 4;
+        if (numChannelsToProcess <= 0) {
+          return;
+        }
       }
     }
     else {
@@ -415,13 +452,18 @@ protected:
         auto& in = input.GetBuffer2(i);
         stage.process_block(out, in, numSamples);
         ++i;
+        numChannelsToProcess -= 2;
+        if (numChannelsToProcess <= 0) {
+          return;
+        }
       }
     }
   }
 
   void ApplyStage2(InterleavedBuffer<Scalar>& output,
-                   InterleavedBuffer<Scalar>& input,
-                   int numSamples)
+                   InterleavedBuffer<Scalar> const& input,
+                   int numSamples,
+                   int numChannelsToProcess)
   {
 
     if constexpr (VEC8_AVAILABLE) {
@@ -431,6 +473,10 @@ protected:
         auto& in = input.GetBuffer8(i);
         stage.process_block(out, in, numSamples);
         ++i;
+        numChannelsToProcess -= 8;
+        if (numChannelsToProcess <= 0) {
+          return;
+        }
       }
     }
     if constexpr (VEC4_AVAILABLE) {
@@ -440,6 +486,10 @@ protected:
         auto& in = input.GetBuffer4(i);
         stage.process_block(out, in, numSamples);
         ++i;
+        numChannelsToProcess -= 4;
+        if (numChannelsToProcess <= 0) {
+          return;
+        }
       }
     }
     else {
@@ -449,13 +499,18 @@ protected:
         auto& in = input.GetBuffer2(i);
         stage.process_block(out, in, numSamples);
         ++i;
+        numChannelsToProcess -= 2;
+        if (numChannelsToProcess <= 0) {
+          return;
+        }
       }
     }
   }
 
   void ApplyStage3(InterleavedBuffer<Scalar>& output,
-                   InterleavedBuffer<Scalar>& input,
-                   int numSamples)
+                   InterleavedBuffer<Scalar> const& input,
+                   int numSamples,
+                   int numChannelsToProcess)
   {
     if constexpr (VEC8_AVAILABLE) {
       int i = 0;
@@ -464,6 +519,10 @@ protected:
         auto& in = input.GetBuffer8(i);
         stage.process_block(out, in, numSamples);
         ++i;
+        numChannelsToProcess -= 8;
+        if (numChannelsToProcess <= 0) {
+          return;
+        }
       }
     }
     if constexpr (VEC4_AVAILABLE) {
@@ -473,6 +532,10 @@ protected:
         auto& in = input.GetBuffer4(i);
         stage.process_block(out, in, numSamples);
         ++i;
+        numChannelsToProcess -= 4;
+        if (numChannelsToProcess <= 0) {
+          return;
+        }
       }
     }
     else {
@@ -482,12 +545,18 @@ protected:
         auto& in = input.GetBuffer2(i);
         stage.process_block(out, in, numSamples);
         ++i;
+        numChannelsToProcess -= 2;
+        if (numChannelsToProcess <= 0) {
+          return;
+        }
       }
     }
   }
+
   void ApplyStage4(InterleavedBuffer<Scalar>& output,
-                   InterleavedBuffer<Scalar>& input,
-                   int numSamples)
+                   InterleavedBuffer<Scalar> const& input,
+                   int numSamples,
+                   int numChannelsToProcess)
   {
     if constexpr (VEC8_AVAILABLE) {
       int i = 0;
@@ -496,6 +565,10 @@ protected:
         auto& in = input.GetBuffer8(i);
         stage.process_block(out, in, numSamples);
         ++i;
+        numChannelsToProcess -= 8;
+        if (numChannelsToProcess <= 0) {
+          return;
+        }
       }
     }
     if constexpr (VEC4_AVAILABLE) {
@@ -505,6 +578,10 @@ protected:
         auto& in = input.GetBuffer4(i);
         stage.process_block(out, in, numSamples);
         ++i;
+        numChannelsToProcess -= 4;
+        if (numChannelsToProcess <= 0) {
+          return;
+        }
       }
     }
     else {
@@ -514,6 +591,10 @@ protected:
         auto& in = input.GetBuffer2(i);
         stage.process_block(out, in, numSamples);
         ++i;
+        numChannelsToProcess -= 2;
+        if (numChannelsToProcess <= 0) {
+          return;
+        }
       }
     }
   }
@@ -619,41 +700,47 @@ public:
                            StageVec2>(designer, numChannels)
   {}
 
-  void ProcessBlock(InterleavedBuffer<Scalar>& input, int numSamples) override
+  void ProcessBlock(InterleavedBuffer<Scalar> const& input,
+                    int numSamples,
+                    int numChannelsToProcess) override
   {
-    assert(this->numChannels <= input.GetNumChannels());
+    if (numChannelsToProcess < 0) {
+      numChannelsToProcess = this->numChannels;
+    }
+    assert(numChannelsToProcess <= this->numChannels);
+    assert(numChannelsToProcess <= input.GetNumChannels());
     this->PrepareBuffer(numSamples);
     output = &this->buffer[0];
     auto& temp = this->buffer[1];
 
     switch (this->order) {
       case 0: {
-        output = &input;
+        output = const_cast<InterleavedBuffer<Scalar>*>(&input);
       } break;
       case 1: {
-        this->ApplyStage0(*output, input, numSamples / 2);
+        this->ApplyStage0(*output, input, numSamples / 2, numChannelsToProcess);
       } break;
       case 2: {
-        this->ApplyStage1(temp, input, numSamples / 2);
-        this->ApplyStage0(*output, temp, numSamples / 4);
+        this->ApplyStage1(temp, input, numSamples / 2, numChannelsToProcess);
+        this->ApplyStage0(*output, temp, numSamples / 4, numChannelsToProcess);
       } break;
       case 3: {
-        this->ApplyStage2(*output, input, numSamples / 2);
-        this->ApplyStage1(temp, *output, numSamples / 4);
-        this->ApplyStage0(*output, temp, numSamples / 8);
+        this->ApplyStage2(*output, input, numSamples / 2, numChannelsToProcess);
+        this->ApplyStage1(temp, *output, numSamples / 4, numChannelsToProcess);
+        this->ApplyStage0(*output, temp, numSamples / 8, numChannelsToProcess);
       } break;
       case 4: {
-        this->ApplyStage3(temp, input, numSamples / 2);
-        this->ApplyStage2(*output, temp, numSamples / 4);
-        this->ApplyStage1(temp, *output, numSamples / 8);
-        this->ApplyStage0(*output, temp, numSamples / 16);
+        this->ApplyStage3(temp, input, numSamples / 2, numChannelsToProcess);
+        this->ApplyStage2(*output, temp, numSamples / 4, numChannelsToProcess);
+        this->ApplyStage1(temp, *output, numSamples / 8, numChannelsToProcess);
+        this->ApplyStage0(*output, temp, numSamples / 16, numChannelsToProcess);
       } break;
       case 5: {
-        this->ApplyStage4(*output, input, numSamples / 2);
-        this->ApplyStage3(temp, *output, numSamples / 4);
-        this->ApplyStage2(*output, temp, numSamples / 8);
-        this->ApplyStage1(temp, *output, numSamples / 16);
-        this->ApplyStage0(*output, temp, numSamples / 32);
+        this->ApplyStage4(*output, input, numSamples / 2, numChannelsToProcess);
+        this->ApplyStage3(temp, *output, numSamples / 4, numChannelsToProcess);
+        this->ApplyStage2(*output, temp, numSamples / 8, numChannelsToProcess);
+        this->ApplyStage1(temp, *output, numSamples / 16, numChannelsToProcess);
+        this->ApplyStage0(*output, temp, numSamples / 32, numChannelsToProcess);
       } break;
       default:
         assert(false);
@@ -715,10 +802,77 @@ public:
                            StageVec2>(designer, numChannels)
   {}
 
+  void ProcessBlock(InterleavedBuffer<Scalar> const& input,
+                    int numInputSamples,
+                    InterleavedBuffer<Scalar>& output,
+                    int numChannelsToProcess) override
+  {
+    if (numChannelsToProcess < 0) {
+      numChannelsToProcess = this->numChannels;
+    }
+    assert(numChannelsToProcess <= this->numChannels);
+    assert(numChannelsToProcess <= input.GetNumChannels());
+    assert(numChannelsToProcess <= output.GetNumChannels());
+    output.SetNumSamples(numInputSamples * this->factor);
+    this->PrepareBuffer(numInputSamples);
+
+    auto& temp2 = this->buffer[0];
+    auto& temp = this->buffer[1];
+
+    switch (this->order) {
+      case 0: {
+        output.CopyFrom(input, numInputSamples, numChannelsToProcess);
+      } break;
+      case 1: {
+        this->ApplyStage0(output, input, numInputSamples, numChannelsToProcess);
+      } break;
+      case 2: {
+        this->ApplyStage0(temp, input, numInputSamples, numChannelsToProcess);
+        this->ApplyStage1(
+          output, temp, numInputSamples * 2, numChannelsToProcess);
+      } break;
+      case 3: {
+        this->ApplyStage0(output, input, numInputSamples, numChannelsToProcess);
+        this->ApplyStage1(
+          temp, output, numInputSamples * 2, numChannelsToProcess);
+        this->ApplyStage2(
+          output, temp, numInputSamples * 4, numChannelsToProcess);
+      } break;
+      case 4: {
+        this->ApplyStage0(temp, input, numInputSamples, numChannelsToProcess);
+        this->ApplyStage1(
+          temp2, temp, numInputSamples * 2, numChannelsToProcess);
+        this->ApplyStage2(
+          temp, temp2, numInputSamples * 4, numChannelsToProcess);
+        this->ApplyStage3(
+          output, temp, numInputSamples * 8, numChannelsToProcess);
+      } break;
+      case 5: {
+        this->ApplyStage0(output, input, numInputSamples, numChannelsToProcess);
+        this->ApplyStage1(
+          temp, output, numInputSamples * 2, numChannelsToProcess);
+        this->ApplyStage2(
+          output, temp, numInputSamples * 4, numChannelsToProcess);
+        this->ApplyStage3(
+          temp, output, numInputSamples * 8, numChannelsToProcess);
+        this->ApplyStage4(
+          output, temp, numInputSamples * 16, numChannelsToProcess);
+      } break;
+      default:
+        assert(false);
+    }
+  }
+
   void ProcessBlock(Scalar* const* inputs,
                     int numInputSamples,
-                    InterleavedBuffer<Scalar>& output) override
+                    InterleavedBuffer<Scalar>& output,
+                    int numChannelsToProcess) override
   {
+    if (numChannelsToProcess < 0) {
+      numChannelsToProcess = this->numChannels;
+    }
+    assert(numChannelsToProcess <= this->numChannels);
+    assert(numChannelsToProcess <= output.GetNumChannels());
     output.SetNumSamples(numInputSamples * this->factor);
     this->PrepareBuffer(numInputSamples);
 
@@ -731,33 +885,43 @@ public:
       } break;
       case 1: {
         input.Interleave(inputs, output.GetNumChannels(), numInputSamples);
-        this->ApplyStage0(output, input, numInputSamples);
+        this->ApplyStage0(output, input, numInputSamples, numChannelsToProcess);
       } break;
       case 2: {
         input.Interleave(inputs, output.GetNumChannels(), numInputSamples);
-        this->ApplyStage0(temp, input, numInputSamples);
-        this->ApplyStage1(output, temp, numInputSamples * 2);
+        this->ApplyStage0(temp, input, numInputSamples, numChannelsToProcess);
+        this->ApplyStage1(
+          output, temp, numInputSamples * 2, numChannelsToProcess);
       } break;
       case 3: {
         input.Interleave(inputs, output.GetNumChannels(), numInputSamples);
-        this->ApplyStage0(output, input, numInputSamples);
-        this->ApplyStage1(temp, output, numInputSamples * 2);
-        this->ApplyStage2(output, temp, numInputSamples * 4);
+        this->ApplyStage0(output, input, numInputSamples, numChannelsToProcess);
+        this->ApplyStage1(
+          temp, output, numInputSamples * 2, numChannelsToProcess);
+        this->ApplyStage2(
+          output, temp, numInputSamples * 4, numChannelsToProcess);
       } break;
       case 4: {
         input.Interleave(inputs, output.GetNumChannels(), numInputSamples);
-        this->ApplyStage0(temp, input, numInputSamples);
-        this->ApplyStage1(input, temp, numInputSamples * 2);
-        this->ApplyStage2(temp, input, numInputSamples * 4);
-        this->ApplyStage3(output, temp, numInputSamples * 8);
+        this->ApplyStage0(temp, input, numInputSamples, numChannelsToProcess);
+        this->ApplyStage1(
+          input, temp, numInputSamples * 2, numChannelsToProcess);
+        this->ApplyStage2(
+          temp, input, numInputSamples * 4, numChannelsToProcess);
+        this->ApplyStage3(
+          output, temp, numInputSamples * 8, numChannelsToProcess);
       } break;
       case 5: {
         input.Interleave(inputs, output.GetNumChannels(), numInputSamples);
-        this->ApplyStage0(output, input, numInputSamples);
-        this->ApplyStage1(temp, output, numInputSamples * 2);
-        this->ApplyStage2(output, temp, numInputSamples * 4);
-        this->ApplyStage3(temp, output, numInputSamples * 8);
-        this->ApplyStage4(output, temp, numInputSamples * 16);
+        this->ApplyStage0(output, input, numInputSamples, numChannelsToProcess);
+        this->ApplyStage1(
+          temp, output, numInputSamples * 2, numChannelsToProcess);
+        this->ApplyStage2(
+          output, temp, numInputSamples * 4, numChannelsToProcess);
+        this->ApplyStage3(
+          temp, output, numInputSamples * 8, numChannelsToProcess);
+        this->ApplyStage4(
+          output, temp, numInputSamples * 16, numChannelsToProcess);
       } break;
       default:
         assert(false);
@@ -765,9 +929,10 @@ public:
   }
 
   void ProcessBlock(ScalarBuffer<Scalar> const& input,
-                    InterleavedBuffer<Scalar>& output) override
+                    InterleavedBuffer<Scalar>& output,
+                    int numChannelsToProcess) override
   {
-    ProcessBlock(input.Get(), input.GetSize(), output);
+    ProcessBlock(input.Get(), input.GetSize(), output, numChannelsToProcess);
   }
 };
 
