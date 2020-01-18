@@ -33,7 +33,7 @@ namespace oversimple {
 
 int
 FirUnbufferedResampler::ProcessBlock(ScalarBuffer<double> const& input,
-                           ScalarBuffer<double>& output)
+                                     ScalarBuffer<double>& output)
 {
   return ProcessBlock(
     input.Get(), input.GetNumChannels(), input.GetSize(), output);
@@ -41,8 +41,8 @@ FirUnbufferedResampler::ProcessBlock(ScalarBuffer<double> const& input,
 
 void
 FirBufferedResampler::ProcessBlock(ScalarBuffer<double> const& input,
-                             ScalarBuffer<double>& output,
-                             int requiredSamples)
+                                   ScalarBuffer<double>& output,
+                                   int requiredSamples)
 {
   output.SetNumChannelsAndSize(input.GetNumChannels(), input.GetSize());
   ProcessBlock(input, output.Get(), output.GetNumChannels(), requiredSamples);
@@ -50,9 +50,9 @@ FirBufferedResampler::ProcessBlock(ScalarBuffer<double> const& input,
 
 int
 FirUnbufferedResampler::ProcessBlock(double* const* input,
-                           int numInputChannels,
-                           int numSamples,
-                           ScalarBuffer<double>& output)
+                                     int numInputChannels,
+                                     int numSamples,
+                                     ScalarBuffer<double>& output)
 {
   assert(numInputChannels <= numChannels);
   int numOutputSamples = std::ceil(numSamples * oversamplingFactor);
@@ -83,8 +83,9 @@ FirUnbufferedResampler::ProcessBlock(double* const* input,
       numInputSamples -= samplesToProcess;
       if (numUpsampledSamples > 0) {
         if (outputCounter + numOutputSamples > numOutputSamples) {
-          DEBUG_MESSAGE("The FirUnbufferedResampler had to allocate memory due to a "
-                        "fluctuation, this shold not happen!\n");
+          DEBUG_MESSAGE(
+            "The FirUnbufferedResampler had to allocate memory due to a "
+            "fluctuation, this shold not happen!\n");
           output.SetSize(outputCounter + numOutputSamples);
         }
         std::copy(
@@ -99,9 +100,9 @@ FirUnbufferedResampler::ProcessBlock(double* const* input,
 
 void
 FirBufferedResampler::ProcessBlock(ScalarBuffer<double> const& input,
-                             double** output,
-                             int numOutputChannels,
-                             int requiredSamples)
+                                   double** output,
+                                   int numOutputChannels,
+                                   int requiredSamples)
 {
   assert(numOutputChannels <= numChannels);
   int numSamples = input.GetSize();
@@ -215,6 +216,21 @@ FirBufferedResampler::ProcessBlock(ScalarBuffer<double> const& input,
   }
 }
 
+void
+FirResamplerBase::Setup()
+{
+  resamplers.clear();
+
+  if (numChannels == 0) {
+    return;
+  }
+
+  for (int c = 0; c < numChannels; ++c) {
+    resamplers.push_back(std::make_unique<r8b::CDSPResampler24>(
+      1.0, oversamplingFactor, maxSamplesPerBlock, transitionBand));
+  }
+}
+
 FirResamplerBase::FirResamplerBase(int numChannels,
                                    double transitionBand,
                                    int maxSamplesPerBlock,
@@ -227,9 +243,9 @@ FirResamplerBase::FirResamplerBase(int numChannels,
 {}
 
 FirBufferedResampler::FirBufferedResampler(int numChannels,
-                               double transitionBand,
-                               int maxSamplesPerBlock,
-                               double oversamplingFactor)
+                                           double transitionBand,
+                                           int maxSamplesPerBlock,
+                                           double oversamplingFactor)
   : FirResamplerBase(numChannels,
                      transitionBand,
                      maxSamplesPerBlock,
@@ -240,9 +256,9 @@ FirBufferedResampler::FirBufferedResampler(int numChannels,
 }
 
 FirUnbufferedResampler::FirUnbufferedResampler(int numChannels,
-                           double transitionBand,
-                           int maxSamplesPerBlock,
-                           double oversamplingFactor)
+                                               double transitionBand,
+                                               int maxSamplesPerBlock,
+                                               double oversamplingFactor)
   : FirResamplerBase(numChannels,
                      transitionBand,
                      maxSamplesPerBlock,
@@ -298,7 +314,8 @@ FirResamplerBase::PrepareBuffers(int numSamples)
 }
 
 void
-FirBufferedResampler::PrepareBuffers(int numInputSamples, int requiredOutputSamples)
+FirBufferedResampler::PrepareBuffers(int numInputSamples,
+                                     int requiredOutputSamples)
 {
   FirResamplerBase::PrepareBuffers(numInputSamples);
   maxRequiredOutputLength = requiredOutputSamples;
@@ -320,16 +337,7 @@ FirBufferedResampler::Reset()
 void
 FirUnbufferedResampler::Setup()
 {
-  resamplers.clear();
-
-  if (numChannels == 0) {
-    return;
-  }
-
-  for (int c = 0; c < numChannels; ++c) {
-    resamplers.push_back(std::make_unique<r8b::CDSPResampler24>(
-      1.0, (double)oversamplingFactor, maxSamplesPerBlock, transitionBand));
-  }
+  FirResamplerBase::Setup();
 
   PrepareBuffers(maxInputLength);
   Reset();
@@ -338,16 +346,7 @@ FirUnbufferedResampler::Setup()
 void
 FirBufferedResampler::Setup()
 {
-  resamplers.clear();
-
-  if (numChannels == 0) {
-    return;
-  }
-
-  for (int c = 0; c < numChannels; ++c) {
-    resamplers.push_back(std::make_unique<r8b::CDSPResampler24>(
-      (double)oversamplingFactor, 1.0, maxSamplesPerBlock, transitionBand));
-  }
+  FirResamplerBase::Setup();
 
   buffer.SetNumChannels(numChannels);
   PrepareBuffers(maxInputLength, maxRequiredOutputLength);
