@@ -22,14 +22,14 @@ limitations under the License.
 namespace oversimple {
 
 /**
- * Abstract class for FIR resamplers, implementing getters, setters, and filters
+ * Abstract class for FIR resamplers, implementing getters, setters, filters,
  * and buffer management.
  */
 
-class FirResampler
+class FirResamplerBase
 {
 protected:
-  int oversamplingFactor;
+  double oversamplingFactor;
   int numChannels;
   int maxSamplesPerBlock;
   double transitionBand;
@@ -38,10 +38,10 @@ protected:
   int maxInputLength;
 
   virtual void Setup() = 0;
-  FirResampler(int numChannels,
-               double transitionBand,
-               int maxSamplesPerBlock,
-               int oversamplingFactor);
+  FirResamplerBase(int numChannels,
+                   double transitionBand,
+                   int maxSamplesPerBlock,
+                   double oversamplingFactor);
 
 public:
   /**
@@ -57,11 +57,11 @@ public:
    * Sets the overampling factor.
    * @param value the new overampling factor.
    */
-  void SetOversamplingFactor(int value);
+  void SetOversamplingFactor(double value);
   /**
    * @return the oversampling factor.
    */
-  int GetOversamplingFactor() const { return oversamplingFactor; }
+  double GetOversamplingFactor() const { return oversamplingFactor; }
   /**
    * Sets the number of samples that will be processed together.
    * @param value the new number of samples that will be processed together.
@@ -108,11 +108,13 @@ public:
 };
 
 /**
- * Upsampler using a FIR antialiasing filter. Only works with double
- * precision input/output.
- * @see TFirUpsampler for a template that can work with single precision.
+ * Resampler using a FIR antialiasing filter. It will output every sample
+ * produced, without buffering. As such, is better used for upsampling. Only
+ * works with double precision input/output.
+ * @see TFirUnbufferedsReampler for a template that can work with single
+ * precision.
  */
-class FirUpsampler : public FirResampler
+class FirUnbufferedResampler : public FirResamplerBase
 {
   void Setup() override;
 
@@ -127,13 +129,13 @@ public:
    * together.
    * @param oversamplingFactor the oversampling factor
    */
-  FirUpsampler(int numChannel,
-               double transitionBand = 2.0,
-               int maxSamplesPerBlock = 1024,
-               int oversamplingFactor = 1);
+  FirUnbufferedResampler(int numChannel,
+                         double transitionBand = 2.0,
+                         int maxSamplesPerBlock = 1024,
+                         double oversamplingFactor = 1.0);
 
   /**
-   * Upsamples a multi channel input buffer.
+   * Resamples a multi channel input buffer.
    * @param input pointer to the input buffer.
    * @param numChannels number of channels of the input buffer
    * @param numSamples the number of samples of each channel of the input
@@ -147,7 +149,7 @@ public:
                    ScalarBuffer<double>& output);
 
   /**
-   * Upsamples a multi channel input buffer.
+   * Resamples a multi channel input buffer.
    * @param input ScalarBuffer that holds the input buffer.
    * @param output ScalarBufffer to hold the upsampled data.
    * @return number of upsampled samples
@@ -157,11 +159,22 @@ public:
 };
 
 /**
- * Downsampler using a FIR antialiasing filter. Only works with double
- * precision input/output.
- * @see TFirDownsampler for a template that can work with single precision.
+ * Upsampler using a FIR antialiasing filter. Actually an alias for
+ * FirUnbufferedResampler. Only works with double precision input/output.
+ * @see TFirUpsampler for a template that can work with single
+ * precision.
  */
-class FirDownsampler : public FirResampler
+using FirUpsampler = FirUnbufferedResampler;
+
+/**
+ * Resampler using a FIR antialiasing filter. Its processing method takes a
+ * number of requested samples, and will output either output that much samples,
+ * or no samples at all. It uses a buffer to store the samples produced but not
+ * works with double precision input/output.
+ * @see TFirUnbufferedsReampler for a template that can work with single
+ * precision.
+ */
+class FirBufferedResampler : public FirResamplerBase
 {
   void Setup() override;
   ScalarBuffer<double> buffer;
@@ -179,13 +192,13 @@ public:
    * together.
    * @param oversamplingFactor the oversampling factor
    */
-  FirDownsampler(int numChannel,
-                 double transitionBand = 2.0,
-                 int maxSamplesPerBlock = 1024,
-                 int oversamplingFactor = 1);
+  FirBufferedResampler(int numChannel,
+                       double transitionBand = 2.0,
+                       int maxSamplesPerBlock = 1024,
+                       double oversamplingFactor = 1.0);
 
   /**
-   * Downsamples a multi channel input buffer.
+   * Resamples a multi channel input buffer.
    * @param ScalarBuffer that holds the input buffer.
    * @param output pointer to the memory in which to store the downsampled data.
    * @param numChannels number of channels of the output buffer
@@ -197,7 +210,7 @@ public:
                     int requiredSamples);
 
   /**
-   * Downsamples a multi channel input buffer.
+   * Resamples a multi channel input buffer.
    * @param ScalarBuffer that holds the input buffer.
    * @param output ScalarBufffer to hold the downsampled data.
    * @param requiredSamples the number of samples needed as output
@@ -211,10 +224,19 @@ public:
 };
 
 /**
- * Upsampler using a FIR antialiasing filter.
+ * Downsampler using a FIR antialiasing filter. Actually an alias for
+ * FirBufferedResampler. Only works with double precision input/output.
+ * @see TFirDownsampler for a template that can work with single
+ * precision.
+ */
+using FirDownsampler = FirBufferedResampler;
+
+/**
+ * Template version of FirUnbufferedResampler.
+ * @see FirUnbufferedResampler
  */
 template<typename Scalar>
-class TFirUpsampler final : public FirUpsampler
+class TFirUnbufferedsReampler final : public FirUnbufferedResampler
 {
 public:
   /**
@@ -227,19 +249,19 @@ public:
    * together.
    * @param oversamplingFactor the oversampling factor
    */
-  TFirUpsampler(int numChannel,
-                double transitionBand = 2.0,
-                int maxSamplesPerBlock = 1024,
-                int oversamplingFactor = 1)
-    : FirUpsampler(numChannel,
-                   transitionBand,
-                   maxSamplesPerBlock,
-                   oversamplingFactor)
+  TFirUnbufferedsReampler(int numChannel,
+                          double transitionBand = 2.0,
+                          int maxSamplesPerBlock = 1024,
+                          double oversamplingFactor = 1.0)
+    : FirUnbufferedResampler(numChannel,
+                             transitionBand,
+                             maxSamplesPerBlock,
+                             oversamplingFactor)
   {}
 };
 
 template<>
-class TFirUpsampler<float> final : public FirUpsampler
+class TFirUnbufferedsReampler<float> final : public FirUnbufferedResampler
 {
   ScalarBuffer<double> floatToDoubleBuffer;
   ScalarBuffer<double> doubleToFloatBuffer;
@@ -255,18 +277,18 @@ public:
    * together.
    * @param oversamplingFactor the oversampling factor
    */
-  TFirUpsampler(int numChannel,
-                double transitionBand = 2.0,
-                int maxSamplesPerBlock = 1024,
-                int oversamplingFactor = 1)
-    : FirUpsampler(numChannel,
-                   transitionBand,
-                   maxSamplesPerBlock,
-                   oversamplingFactor)
+  TFirUnbufferedsReampler(int numChannel,
+                          double transitionBand = 2.0,
+                          int maxSamplesPerBlock = 1024,
+                          double oversamplingFactor = 1.0)
+    : FirUnbufferedResampler(numChannel,
+                             transitionBand,
+                             maxSamplesPerBlock,
+                             oversamplingFactor)
   {}
 
   /**
-   * Upsamples a multi channel input buffer.
+   * Resamples a multi channel input buffer.
    * @param input pointer to the input buffer.
    * @param numChannels number of channels of the input buffer
    * @param numSamples the number of samples of each channel of the input
@@ -280,21 +302,21 @@ public:
                    ScalarBuffer<float>& output)
   {
     floatToDoubleBuffer.SetNumChannelsAndSize(numChannels, numSamples);
-    doubleToFloatBuffer.SetNumChannelsAndSize(numChannels,
-                                              numSamples * oversamplingFactor);
+    doubleToFloatBuffer.SetNumChannelsAndSize(
+      numChannels, std::ceil(numSamples * oversamplingFactor));
     for (int c = 0; c < numChannels; ++c) {
       for (int i = 0; i < numSamples; ++i) {
         floatToDoubleBuffer[c][i] = (double)input[c][i];
       }
     }
-    int samples =
-      FirUpsampler::ProcessBlock(floatToDoubleBuffer, doubleToFloatBuffer);
+    int samples = FirUnbufferedResampler::ProcessBlock(floatToDoubleBuffer,
+                                                       doubleToFloatBuffer);
     CopyScalarBuffer(doubleToFloatBuffer, output);
     return samples;
   }
 
   /**
-   * Upsamples a multi channel input buffer.
+   * Resamples a multi channel input buffer.
    * @param input ScalarBuffer that holds the input buffer.
    * @param output ScalarBufffer to hold the upsampled data.
    * @return number of upsampled samples
@@ -308,10 +330,18 @@ public:
 };
 
 /**
- * Downsampler using a FIR antialiasing filter.
+ * Template version of FirUpsampler.
+ * @see FirUpsampler
  */
 template<typename Scalar>
-class TFirDownsampler final : public FirDownsampler
+using TFirUpsampler = TFirUnbufferedsReampler<Scalar>;
+
+/**
+ * Template version of FirBufferedResampler.
+ * @see FirBufferedResampler
+ */
+template<typename Scalar>
+class TFirBufferedResampler final : public FirBufferedResampler
 {
 public:
   /**
@@ -324,19 +354,19 @@ public:
    * together.
    * @param oversamplingFactor the oversampling factor
    */
-  TFirDownsampler(int numChannel,
-                  double transitionBand = 2.0,
-                  int maxSamplesPerBlock = 1024,
-                  int oversamplingFactor = 1)
-    : FirDownsampler(numChannel,
-                     transitionBand,
-                     maxSamplesPerBlock,
-                     oversamplingFactor)
+  TFirBufferedResampler(int numChannel,
+                        double transitionBand = 2.0,
+                        int maxSamplesPerBlock = 1024,
+                        double oversamplingFactor = 1.0)
+    : FirBufferedResampler(numChannel,
+                           transitionBand,
+                           maxSamplesPerBlock,
+                           oversamplingFactor)
   {}
 };
 
 template<>
-class TFirDownsampler<float> final : public FirDownsampler
+class TFirBufferedResampler<float> final : public FirBufferedResampler
 {
   ScalarBuffer<double> floatToDoubleBuffer;
   ScalarBuffer<double> doubleToFloatBuffer;
@@ -352,18 +382,18 @@ public:
    * together.
    * @param oversamplingFactor the oversampling factor
    */
-  TFirDownsampler(int numChannel,
-                  double transitionBand = 2.0,
-                  int maxSamplesPerBlock = 1024,
-                  int oversamplingFactor = 1)
-    : FirDownsampler(numChannel,
-                     transitionBand,
-                     maxSamplesPerBlock,
-                     oversamplingFactor)
+  TFirBufferedResampler(int numChannel,
+                        double transitionBand = 2.0,
+                        int maxSamplesPerBlock = 1024,
+                        double oversamplingFactor = 1.0)
+    : FirBufferedResampler(numChannel,
+                           transitionBand,
+                           maxSamplesPerBlock,
+                           oversamplingFactor)
   {}
 
   /**
-   * Downsamples a multi channel input buffer.
+   * Resamples a multi channel input buffer.
    * @param ScalarBuffer that holds the input buffer.
    * @param output pointer to the memory in which to store the downsampled data.
    * @param numChannels number of channels of the output buffer
@@ -376,7 +406,7 @@ public:
   {
     CopyScalarBuffer(input, floatToDoubleBuffer);
     doubleToFloatBuffer.SetNumChannelsAndSize(numChannels, requiredSamples);
-    FirDownsampler::ProcessBlock(
+    FirBufferedResampler::ProcessBlock(
       floatToDoubleBuffer, doubleToFloatBuffer, requiredSamples);
     for (int c = 0; c < numChannels; ++c) {
       for (int i = 0; i < requiredSamples; ++i) {
@@ -386,7 +416,7 @@ public:
   }
 
   /**
-   * Downsamples a multi channel input buffer.
+   * Resamples a multi channel input buffer.
    * @param ScalarBuffer that holds the input buffer.
    * @param output ScalarBufffer to hold the downsampled data.
    * @param requiredSamples the number of samples needed as output
@@ -398,5 +428,12 @@ public:
     ProcessBlock(input, output.Get(), output.GetNumChannels(), requiredSamples);
   }
 };
+
+/**
+ * Template version of FirDownsampler.
+ * @see FirDownsampler
+ */
+template<typename Scalar>
+using TFirDownsampler = TFirBufferedResampler<Scalar>;
 
 } // namespace oversimple
