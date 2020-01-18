@@ -349,10 +349,9 @@ int
 FirResampler::GetNumSamplesBeforeOutputStarts()
 {
   if (resamplers.size() == 0) {
-    assert(false,
-           "Asking the number of samples before the output of the "
-           "resamplers starts when there are 0 allocated resamplers.");
-    return -1;
+    DEBUG_MESSAGE("Asking the number of samples before the output of the "
+                  "resamplers starts when there are 0 allocated resamplers.");
+    return 0;
   }
   return resamplers[0]->getInLenBeforeOutStart();
 }
