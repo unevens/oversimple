@@ -58,7 +58,7 @@ FirUnbufferedResampler::ProcessBlock(double* const* input,
   int numOutputSamples = std::ceil(numSamples * oversamplingFactor);
   if (output.GetNumChannels() < numInputChannels ||
       output.GetCapacity() < numOutputSamples) {
-    DEBUG_MESSAGE("The FirUnbufferedResampler had to allocate memory! Has "
+    DEBUG_MESSAGE("A FirUnbufferedResampler object had to allocate memory! Has "
                   "PrepareBuffers been called?\n");
   }
   output.SetNumChannelsAndSize(numInputChannels, numOutputSamples);
@@ -84,7 +84,7 @@ FirUnbufferedResampler::ProcessBlock(double* const* input,
       if (numUpsampledSamples > 0) {
         if (outputCounter + numUpsampledSamples > numOutputSamples) {
           DEBUG_MESSAGE(
-            "The FirUnbufferedResampler had to allocate memory due to a "
+            "A FirUnbufferedResampler object had to allocate memory due to a "
             "fluctuation, this shold not happen!\n");
           output.SetSize(outputCounter + numOutputSamples);
         }
@@ -148,8 +148,8 @@ FirBufferedResampler::ProcessBlock(ScalarBuffer<double> const& input,
           newBufferCounter + numUpsampledSamples - samplesFromResampler;
         if (buffer.GetSize() < neededBufferSize) {
           if (buffer.GetCapacity() < neededBufferSize) {
-            DEBUG_MESSAGE("The FirDonwsampler had to allocate memory! Has "
-                          "PrepareBuffers been called?\n");
+            DEBUG_MESSAGE("A FirBufferedResampler object had to allocate "
+                          "memory! Has PrepareBuffers been called?\n");
           }
           buffer.SetSize(neededBufferSize);
         }
@@ -179,8 +179,8 @@ FirBufferedResampler::ProcessBlock(ScalarBuffer<double> const& input,
           bufferCounter + outputCounter + numUpsampledSamples;
         if (buffer.GetSize() < neededBufferSize) {
           if (buffer.GetCapacity() < neededBufferSize) {
-            DEBUG_MESSAGE("The FirDonwsampler had to allocate memory! Has "
-                          "PrepareBuffers been called?");
+            DEBUG_MESSAGE("A FirBufferedResampler object had to allocate "
+                          "memory! Has PrepareBuffers been called?");
           }
           buffer.SetSize(bufferCounter + outputCounter + numUpsampledSamples);
         }
