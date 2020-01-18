@@ -82,7 +82,7 @@ FirUnbufferedResampler::ProcessBlock(double* const* input,
       inputCounter += samplesToProcess;
       numInputSamples -= samplesToProcess;
       if (numUpsampledSamples > 0) {
-        if (outputCounter + numOutputSamples > numOutputSamples) {
+        if (outputCounter + numUpsampledSamples > numOutputSamples) {
           DEBUG_MESSAGE(
             "The FirUnbufferedResampler had to allocate memory due to a "
             "fluctuation, this shold not happen!\n");
