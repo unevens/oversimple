@@ -15,7 +15,9 @@ limitations under the License.
 */
 
 #pragma once
+#ifndef NOMINMAX
 #define NOMINMAX
+#endif
 #include "CDSPResampler.h"
 #include "avec/Avec.hpp"
 
@@ -380,7 +382,7 @@ using TFirUpsampler = TFirUnbufferedReampler<Scalar>;
  * @see FirBufferedResampler
  */
 template<typename Scalar>
-class TFirBufferedResampler  : public FirBufferedResampler
+class TFirBufferedResampler : public FirBufferedResampler
 {
 public:
   /**
@@ -502,14 +504,17 @@ public:
    */
   void SetOversamplingFactor(double value) override
   {
-    oversamplingFactor = 1.0 / value;
-    Setup();
+    this->oversamplingFactor = 1.0 / value;
+    this->Setup();
   }
 
   /**
    * @return the oversampling factor.
    */
-  double GetOversamplingFactor() const { return 1.0 / oversamplingFactor; }
+  double GetOversamplingFactor() const
+  {
+    return 1.0 / this->oversamplingFactor;
+  }
 };
 
 } // namespace oversimple

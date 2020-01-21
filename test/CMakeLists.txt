@@ -30,14 +30,16 @@ endif(WIN32)
 
 if(UNIX)
 
-add_executable(ovr-test-native ${src} oversampling-ovr-test.cpp)
-add_executable(ovr-test ${src} oversampling-ovr-test.cpp)
+add_executable(ovr-test-native ${src} testing.cpp)
+add_executable(ovr-test ${src} testing.cpp)
 
 target_compile_options (ovr-test-native PRIVATE -march=native)
 target_compile_definitions(ovr-test-native PRIVATE R8B_PFFFT_DOUBLE=1)
 target_compile_definitions(ovr-test PRIVATE R8B_PFFFT=1)
-find_package (Threads)
-target_link_libraries (ovr-test-native ${CMAKE_THREAD_LIBS_INIT})
-target_link_libraries (ovr-test ${CMAKE_THREAD_LIBS_INIT})
 
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_package(Threads REQUIRED)
+target_link_libraries(ovr-test-native Threads::Threads)
+target_link_libraries(ovr-test Threads::Threads)
+target_link_libraries(iir-design Threads::Threads)
 endif(UNIX)
