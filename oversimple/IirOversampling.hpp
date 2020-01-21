@@ -103,6 +103,8 @@ public:
    * Upsamples the input.
    * @param input a ScalarBuffer that holds the input samples
    * @param output an InterleavedBuffer to hold the upsampled samples
+   * @param numChannelsToProcess the number of channels to process. If negative,
+   * all channels will be processed.
    */
   virtual void ProcessBlock(ScalarBuffer<Scalar> const& input,
                             InterleavedBuffer<Scalar>& output,
@@ -114,6 +116,8 @@ public:
    * @param numInputSamples the number of samples in each channel of the input
    * buffer
    * @param output an InterleavedBuffer to hold the upsampled samples
+   * @param numChannelsToProcess the number of channels to process. If negative,
+   * all channels will be processed.
    */
   virtual void ProcessBlock(Scalar* const* input,
                             int numInputSamples,
@@ -126,6 +130,8 @@ public:
    * @param numInputSamples the number of samples in each channel of the input
    * buffer
    * @param output an InterleavedBuffer to hold the upsampled samples
+   * @param numChannelsToProcess the number of channels to process. If negative,
+   * all channels will be processed.
    */
   virtual void ProcessBlock(InterleavedBuffer<Scalar> const& input,
                             int numInputSamples,
@@ -145,6 +151,8 @@ public:
    * @param input InterleavedBuffer holding the interleaved input samples.
    * @param numSamples the number of samples to donwsample from each channel of
    * the input
+   * @param numChannelsToProcess the number of channels to process. If negative,
+   * all channels will be processed.
    */
   virtual void ProcessBlock(InterleavedBuffer<Scalar> const& input,
                             int numSamples,

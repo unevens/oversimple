@@ -63,7 +63,7 @@ public:
   /**
    * Constructor.
    * @param attenuation required stopband attenuation in dB
-   * @param attenuation required normalized transition bandwidth
+   * @param transition required normalized transition bandwidth
    * @param numStages number of oversampling stages
    */
   IirOversamplingDesigner(double attenuation,

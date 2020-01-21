@@ -51,44 +51,53 @@ public:
    * @param value the new number of channels.
    */
   void SetNumChannels(int value);
+
   /**
    * @return the number of channels the processor is ready to work with.
    */
   int GetNumChannels() const { return numChannels; }
+
   /**
    * Sets the overampling factor.
    * @param value the new overampling factor.
    */
   virtual void SetOversamplingFactor(double value);
+
   /**
    * @return the oversampling factor.
    */
   virtual double GetOversamplingFactor() const { return oversamplingFactor; }
+
   /**
    * Sets the number of samples that will be processed together.
    * @param value the new number of samples that will be processed together.
    */
   void SetMaxSamplesPerBlock(int value);
+
   /**
    * @return the number of samples that will be processed together.
    */
   int GetMaxSamplesPerBlock() const { return maxSamplesPerBlock; }
+
   /**
    * Sets the antialiasing filter transition band.
    * @param value the new antialiasing filter transition band, in percentage of
    * the sample rate.
    */
   void SetTransitionBand(int value);
+
   /**
    * @return value the antialiasing filter transition band, in percentage of the
    * sample rate.
    */
   double GetTransitionBand() const { return transitionBand; }
+
   /**
    * @return the number of input samples needed before a first output sample is
    * produced.
    */
   int GetNumSamplesBeforeOutputStarts();
+
   /**
    * @return the maximum number of samples that can be produced by a
    * ProcessBlock call, assuming it is never called with more samples than those
@@ -96,10 +105,12 @@ public:
    * more samples than maxSamplesPerBlock should be passed to ProcessBlock.
    */
   int GetMaxNumOutputSamples() { return maxOutputLength; }
+
   /**
    * Resets the state of the processor, clearing the buffers.
    */
   virtual void Reset();
+
   /**
    * Prepare the resampler to be able to process up to numSamples samples with
    * each ProcessBlock call.
@@ -131,7 +142,7 @@ public:
    * together.
    * @param oversamplingFactor the oversampling factor
    */
-  FirUnbufferedResampler(int numChannel,
+  FirUnbufferedResampler(int numChannels,
                          double transitionBand = 2.0,
                          int maxSamplesPerBlock = 1024,
                          double oversamplingFactor = 1.0);
@@ -196,14 +207,14 @@ public:
    * together.
    * @param oversamplingFactor the oversampling factor
    */
-  FirBufferedResampler(int numChannel,
+  FirBufferedResampler(int numChannels,
                        double transitionBand = 2.0,
                        int maxSamplesPerBlock = 1024,
                        double oversamplingFactor = 1.0);
 
   /**
    * Resamples a multi channel input buffer.
-   * @param ScalarBuffer that holds the input buffer.
+   * @param input a ScalarBuffer that holds the input buffer.
    * @param output pointer to the memory in which to store the downsampled data.
    * @param numChannels number of channels of the output buffer
    * @param requiredSamples the number of samples needed as output
@@ -215,15 +226,25 @@ public:
 
   /**
    * Resamples a multi channel input buffer.
-   * @param ScalarBuffer that holds the input buffer.
-   * @param output ScalarBufffer to hold the downsampled data.
+   * @param input a ScalarBuffer that holds the input buffer.
+   * @param output a ScalarBufffer to hold the downsampled data.
    * @param requiredSamples the number of samples needed as output
    */
   void ProcessBlock(ScalarBuffer<double> const& input,
                     ScalarBuffer<double>& output,
                     int requiredSamples);
 
+  /**
+   * Allocates resources to process up to numInputSamples input samples and
+   * produce requiredOutputSamples output samples.
+   * @param numInputSamples the expected maximum number input samples
+   * @param requiredOutputSamples the required number of output samples
+   */
   void PrepareBuffers(int numInputSamples, int requiredOutputSamples);
+
+  /**
+   * Resets the state of the processor, clearing the buffers.
+   */
   void Reset() override;
 };
 
@@ -246,11 +267,11 @@ public:
    * together.
    * @param oversamplingFactor the oversampling factor
    */
-  FirDownsampler(int numChannel,
+  FirDownsampler(int numChannels,
                  double transitionBand = 2.0,
                  int maxSamplesPerBlock = 1024,
                  double oversamplingFactor = 1.0)
-    : FirBufferedResampler(numChannel,
+    : FirBufferedResampler(numChannels,
                            transitionBand,
                            maxSamplesPerBlock,
                            1.0 / oversamplingFactor)
@@ -290,11 +311,11 @@ public:
    * together.
    * @param oversamplingFactor the oversampling factor
    */
-  TFirUnbufferedReampler(int numChannel,
+  TFirUnbufferedReampler(int numChannels,
                          double transitionBand = 2.0,
                          int maxSamplesPerBlock = 1024,
                          double oversamplingFactor = 1.0)
-    : FirUnbufferedResampler(numChannel,
+    : FirUnbufferedResampler(numChannels,
                              transitionBand,
                              maxSamplesPerBlock,
                              oversamplingFactor)
@@ -318,11 +339,11 @@ public:
    * together.
    * @param oversamplingFactor the oversampling factor
    */
-  TFirUnbufferedReampler(int numChannel,
+  TFirUnbufferedReampler(int numChannels,
                          double transitionBand = 2.0,
                          int maxSamplesPerBlock = 1024,
                          double oversamplingFactor = 1.0)
-    : FirUnbufferedResampler(numChannel,
+    : FirUnbufferedResampler(numChannels,
                              transitionBand,
                              maxSamplesPerBlock,
                              oversamplingFactor)
@@ -395,11 +416,11 @@ public:
    * together.
    * @param oversamplingFactor the oversampling factor
    */
-  TFirBufferedResampler(int numChannel,
+  TFirBufferedResampler(int numChannels,
                         double transitionBand = 2.0,
                         int maxSamplesPerBlock = 1024,
                         double oversamplingFactor = 1.0)
-    : FirBufferedResampler(numChannel,
+    : FirBufferedResampler(numChannels,
                            transitionBand,
                            maxSamplesPerBlock,
                            oversamplingFactor)
@@ -423,11 +444,11 @@ public:
    * together.
    * @param oversamplingFactor the oversampling factor
    */
-  TFirBufferedResampler(int numChannel,
+  TFirBufferedResampler(int numChannels,
                         double transitionBand = 2.0,
                         int maxSamplesPerBlock = 1024,
                         double oversamplingFactor = 1.0)
-    : FirBufferedResampler(numChannel,
+    : FirBufferedResampler(numChannels,
                            transitionBand,
                            maxSamplesPerBlock,
                            oversamplingFactor)
@@ -488,11 +509,11 @@ public:
    * together.
    * @param oversamplingFactor the oversampling factor
    */
-  TFirDownsampler(int numChannel,
+  TFirDownsampler(int numChannels,
                   double transitionBand = 2.0,
                   int maxSamplesPerBlock = 1024,
                   double oversamplingFactor = 1.0)
-    : TFirBufferedResampler<Scalar>(numChannel,
+    : TFirBufferedResampler<Scalar>(numChannels,
                                     transitionBand,
                                     maxSamplesPerBlock,
                                     1.0 / oversamplingFactor)
