@@ -8,7 +8,7 @@ Oversimple wraps two of the best resampling libraries available:
 
 - and [r8brain-free-src](https://github.com/avaneev/r8brain-free-src) by Aleksey Vaneev, for linear phase antialiasing, through [my fork](https://github.com/unevens/r8brain/tree/include), which adds supports for [my fork of Julien Pommier's PFFFT library](https://github.com/unevens/pffft), which can work with double-precision floating point numbers using AVX instructions.
 
-Aligned memory and interleaved buffers needed by the simd code in HIIR are managed using my header only library [avec](https://github.com/unevens/avec).
+Aligned memory and interleaved buffers needed by the simd code in HIIR are managed using [avec](https://github.com/unevens/avec).
 
 ## Usage
 
