@@ -23,7 +23,7 @@ If you support AVX instructions, you may want to define `R8B_PFFFT_DOUBLE=1` in 
 
 ## Documentation
 
-The documentation can be generated with [Doxygen](http://doxygen.nl/) running
+The documentation, available at https://unevens.github.io/oversimple/, can be generated with [Doxygen](http://doxygen.nl/) running
 
 ```bash
 $ doxygen doxyfile.txt
