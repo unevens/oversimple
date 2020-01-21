@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.16"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Oversimple: Main Page</title>
+<title>Oversimple: oversimple</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -61,11 +61,33 @@ $(function() {
 </iframe>
 </div>
 
-<div class="header">
+<div class="PageDoc"><div class="header">
   <div class="headertitle">
-<div class="title">Oversimple Documentation</div>  </div>
+<div class="title">oversimple </div>  </div>
 </div><!--header-->
 <div class="contents">
+<div class="textblock"><p>Oversimple is a C++17 library for audio oversampling, which tries to offer a simple api.</p>
+<p>Oversimple wraps two of the best resampling libraries available:</p>
+<ul>
+<li>HIIR, by <a href="http://ldesoras.free.fr/">Laurent De Soras</a> for minimum phase antialiasing, through <a href="https://github.com/unevens/hiir">my fork</a> which adds support for double precision floating-point numbers, and AVX instructions. HIIR only implements power of two resampling.</li>
+<li>and <a href="https://github.com/avaneev/r8brain-free-src">r8brain-free-src</a> by Aleksey Vaneev, for linear phase antialiasing, through <a href="https://github.com/unevens/r8brain/tree/include">my fork</a>, which adds supports for <a href="https://github.com/unevens/pffft">my fork of Julien Pommier's PFFFT library</a>, which can work with double-precision floating point numbers using AVX instructions.</li>
+</ul>
+<p>Aligned memory and interleaved buffers needed by the simd code in HIIR are managed using <a href="https://github.com/unevens/avec">avec</a>.</p>
+<h1><a class="anchor" id="autotoc_md1"></a>
+Usage</h1>
+<p>Just add everything to your project except for the content of the <code>test</code> folders and the .cpp files in <code>audio-vec/vectorclass</code>.</p>
+<p>If you support AVX instructions, you may want to define <code>R8B_PFFFT_DOUBLE=1</code> in <code>r8bconf.h</code> or as a preprocessor definition. See <code>r8brain/README.md</code> for more details.</p>
+<h1><a class="anchor" id="autotoc_md2"></a>
+Dependencies</h1>
+<ul>
+<li><a href="https://www.boost.org/doc/libs/1_71_0/doc/html/align.html">Boost.Align</a>.</li>
+<li><code>pthread</code> on *nix (only r8brain).</li>
+</ul>
+<h1><a class="anchor" id="autotoc_md3"></a>
+Documentation</h1>
+<p>The documentation, available at <a href="https://unevens.github.io/oversimple/,">https://unevens.github.io/oversimple/,</a> can be generated with <a href="http://doxygen.nl/">Doxygen</a> running</p>
+<div class="fragment"><div class="line">$ doxygen doxyfile.txt</div>
+</div><!-- fragment --> </div></div><!-- PageDoc -->
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
