@@ -359,7 +359,7 @@ protected:
   int GetOrder() const override { return order; }
   void SetOrder(int value) override
   {
-    assert(order > -1 && order < 5);
+    assert(order > -1 && order <= 5);
     order = value;
     factor = 1 << order;
     SetupBuffer();
