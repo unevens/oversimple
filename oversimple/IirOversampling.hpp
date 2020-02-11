@@ -185,8 +185,8 @@ class IirOversamplingChain : public virtual IirOversampler
 {
 protected:
   static constexpr bool VEC8_AVAILABLE = SimdTypes<Scalar>::VEC8_AVAILABLE;
-
   static constexpr bool VEC4_AVAILABLE = SimdTypes<Scalar>::VEC4_AVAILABLE;
+  static constexpr bool VEC2_AVAILABLE = SimdTypes<Scalar>::VEC2_AVAILABLE;
 
   template<class T>
   using aligned_vector = aligned_vector<T>;
@@ -230,49 +230,24 @@ protected:
 
   void SetupStages()
   {
-    if constexpr (VEC8_AVAILABLE) {
-      auto d = std::div(numChannels, 8);
-#if AVEC_MIX_VEC_SIZES
-      int numOf8 = d.quot + (d.rem > 4 ? 1 : 0);
-      stage8_0.resize(numOf8);
-      stage8_1.resize(numOf8);
-      stage8_2.resize(numOf8);
-      stage8_3.resize(numOf8);
-      stage8_4.resize(numOf8);
-      if (d.rem > 0 && d.rem <= 4) {
-        stage4_0.resize(1);
-        stage4_1.resize(1);
-        stage4_2.resize(1);
-        stage4_3.resize(1);
-        stage4_4.resize(1);
-      }
-#else
-      int numOf8 = d.quot + (d.rem > 0 ? 1 : 0);
-      stage8_0.resize(numOf8);
-      stage8_1.resize(numOf8);
-      stage8_2.resize(numOf8);
-      stage8_3.resize(numOf8);
-      stage8_4.resize(numOf8);
-#endif
-    }
-    else if constexpr (VEC4_AVAILABLE) {
-      auto d = std::div(numChannels, 4);
-      int numOf4 = d.quot + (d.rem > 0 ? 1 : 0);
-      stage4_0.resize(numOf4);
-      stage4_1.resize(numOf4);
-      stage4_2.resize(numOf4);
-      stage4_3.resize(numOf4);
-      stage4_4.resize(numOf4);
-    }
-    else {
-      auto d = std::div(numChannels, 2);
-      int numOf2 = d.quot + (d.rem > 0 ? 1 : 0);
-      stage2_0.resize(numOf2);
-      stage2_1.resize(numOf2);
-      stage2_2.resize(numOf2);
-      stage2_3.resize(numOf2);
-      stage2_4.resize(numOf2);
-    }
+    int num2, num4, num8;
+    avec::GetNumOfVecBuffersUsedByInterleavedBuffer<Scalar>(
+      numChannels, num2, num4, num8);
+    stage2_0.resize(num2);
+    stage2_1.resize(num2);
+    stage2_2.resize(num2);
+    stage2_3.resize(num2);
+    stage2_4.resize(num2);
+    stage4_0.resize(num4);
+    stage4_1.resize(num4);
+    stage4_2.resize(num4);
+    stage4_3.resize(num4);
+    stage4_4.resize(num4);
+    stage8_0.resize(num8);
+    stage8_1.resize(num8);
+    stage8_2.resize(num8);
+    stage8_3.resize(num8);
+    stage8_4.resize(num8);
 
     auto& stages = designer.GetStages();
     std::vector<double> coefs;
@@ -381,14 +356,14 @@ protected:
                    int numSamples,
                    int numChannelsToProcess)
   {
-    if constexpr (VEC8_AVAILABLE) {
+    if constexpr (VEC2_AVAILABLE) {
       int i = 0;
-      for (auto& stage : stage8_0) {
-        auto& out = output.GetBuffer8(i);
-        auto& in = input.GetBuffer8(i);
+      for (auto& stage : stage2_0) {
+        auto& out = output.GetBuffer2(i);
+        auto& in = input.GetBuffer2(i);
         stage.process_block(out, in, numSamples);
         ++i;
-        numChannelsToProcess -= 8;
+        numChannelsToProcess -= 2;
         if (numChannelsToProcess <= 0) {
           return;
         }
@@ -407,14 +382,14 @@ protected:
         }
       }
     }
-    else {
+    if constexpr (VEC8_AVAILABLE) {
       int i = 0;
-      for (auto& stage : stage2_0) {
-        auto& out = output.GetBuffer2(i);
-        auto& in = input.GetBuffer2(i);
+      for (auto& stage : stage8_0) {
+        auto& out = output.GetBuffer8(i);
+        auto& in = input.GetBuffer8(i);
         stage.process_block(out, in, numSamples);
         ++i;
-        numChannelsToProcess -= 2;
+        numChannelsToProcess -= 8;
         if (numChannelsToProcess <= 0) {
           return;
         }
@@ -427,14 +402,14 @@ protected:
                    int numSamples,
                    int numChannelsToProcess)
   {
-    if constexpr (VEC8_AVAILABLE) {
+    if constexpr (VEC2_AVAILABLE) {
       int i = 0;
-      for (auto& stage : stage8_1) {
-        auto& out = output.GetBuffer8(i);
-        auto& in = input.GetBuffer8(i);
+      for (auto& stage : stage2_1) {
+        auto& out = output.GetBuffer2(i);
+        auto& in = input.GetBuffer2(i);
         stage.process_block(out, in, numSamples);
         ++i;
-        numChannelsToProcess -= 8;
+        numChannelsToProcess -= 2;
         if (numChannelsToProcess <= 0) {
           return;
         }
@@ -453,14 +428,14 @@ protected:
         }
       }
     }
-    else {
+    if constexpr (VEC8_AVAILABLE) {
       int i = 0;
-      for (auto& stage : stage2_1) {
-        auto& out = output.GetBuffer2(i);
-        auto& in = input.GetBuffer2(i);
+      for (auto& stage : stage8_1) {
+        auto& out = output.GetBuffer8(i);
+        auto& in = input.GetBuffer8(i);
         stage.process_block(out, in, numSamples);
         ++i;
-        numChannelsToProcess -= 2;
+        numChannelsToProcess -= 8;
         if (numChannelsToProcess <= 0) {
           return;
         }
@@ -473,15 +448,14 @@ protected:
                    int numSamples,
                    int numChannelsToProcess)
   {
-
-    if constexpr (VEC8_AVAILABLE) {
+    if constexpr (VEC2_AVAILABLE) {
       int i = 0;
-      for (auto& stage : stage8_2) {
-        auto& out = output.GetBuffer8(i);
-        auto& in = input.GetBuffer8(i);
+      for (auto& stage : stage2_2) {
+        auto& out = output.GetBuffer2(i);
+        auto& in = input.GetBuffer2(i);
         stage.process_block(out, in, numSamples);
         ++i;
-        numChannelsToProcess -= 8;
+        numChannelsToProcess -= 2;
         if (numChannelsToProcess <= 0) {
           return;
         }
@@ -500,14 +474,14 @@ protected:
         }
       }
     }
-    else {
+    if constexpr (VEC8_AVAILABLE) {
       int i = 0;
-      for (auto& stage : stage2_2) {
-        auto& out = output.GetBuffer2(i);
-        auto& in = input.GetBuffer2(i);
+      for (auto& stage : stage8_2) {
+        auto& out = output.GetBuffer8(i);
+        auto& in = input.GetBuffer8(i);
         stage.process_block(out, in, numSamples);
         ++i;
-        numChannelsToProcess -= 2;
+        numChannelsToProcess -= 8;
         if (numChannelsToProcess <= 0) {
           return;
         }
@@ -520,14 +494,14 @@ protected:
                    int numSamples,
                    int numChannelsToProcess)
   {
-    if constexpr (VEC8_AVAILABLE) {
+    if constexpr (VEC2_AVAILABLE) {
       int i = 0;
-      for (auto& stage : stage8_3) {
-        auto& out = output.GetBuffer8(i);
-        auto& in = input.GetBuffer8(i);
+      for (auto& stage : stage2_3) {
+        auto& out = output.GetBuffer2(i);
+        auto& in = input.GetBuffer2(i);
         stage.process_block(out, in, numSamples);
         ++i;
-        numChannelsToProcess -= 8;
+        numChannelsToProcess -= 2;
         if (numChannelsToProcess <= 0) {
           return;
         }
@@ -546,14 +520,14 @@ protected:
         }
       }
     }
-    else {
+    if constexpr (VEC8_AVAILABLE) {
       int i = 0;
-      for (auto& stage : stage2_3) {
-        auto& out = output.GetBuffer2(i);
-        auto& in = input.GetBuffer2(i);
+      for (auto& stage : stage8_3) {
+        auto& out = output.GetBuffer8(i);
+        auto& in = input.GetBuffer8(i);
         stage.process_block(out, in, numSamples);
         ++i;
-        numChannelsToProcess -= 2;
+        numChannelsToProcess -= 8;
         if (numChannelsToProcess <= 0) {
           return;
         }
@@ -566,14 +540,14 @@ protected:
                    int numSamples,
                    int numChannelsToProcess)
   {
-    if constexpr (VEC8_AVAILABLE) {
+    if constexpr (VEC2_AVAILABLE) {
       int i = 0;
-      for (auto& stage : stage8_4) {
-        auto& out = output.GetBuffer8(i);
-        auto& in = input.GetBuffer8(i);
+      for (auto& stage : stage2_4) {
+        auto& out = output.GetBuffer2(i);
+        auto& in = input.GetBuffer2(i);
         stage.process_block(out, in, numSamples);
         ++i;
-        numChannelsToProcess -= 8;
+        numChannelsToProcess -= 2;
         if (numChannelsToProcess <= 0) {
           return;
         }
@@ -592,14 +566,14 @@ protected:
         }
       }
     }
-    else {
+    if constexpr (VEC8_AVAILABLE) {
       int i = 0;
-      for (auto& stage : stage2_4) {
-        auto& out = output.GetBuffer2(i);
-        auto& in = input.GetBuffer2(i);
+      for (auto& stage : stage8_4) {
+        auto& out = output.GetBuffer8(i);
+        auto& in = input.GetBuffer8(i);
         stage.process_block(out, in, numSamples);
         ++i;
-        numChannelsToProcess -= 2;
+        numChannelsToProcess -= 8;
         if (numChannelsToProcess <= 0) {
           return;
         }
