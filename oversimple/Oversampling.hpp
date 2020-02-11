@@ -23,11 +23,16 @@ namespace oversimple {
 
 struct OversamplingSettings
 {
+  int numChannels;
+
   int numUpsamplers;
   int numInterleavedUpsamplers;
   int numDownsamplers;
   int numInterleavedDownsamplers;
-  int numChannels;
+
+  int numBuffers;
+  int numInterleavedBuffers;
+
   int order;
   bool linearPhase;
   int numSamplesPerBlock;
@@ -55,6 +60,8 @@ struct OversamplingSettings
     , linearPhase(linearPhase)
     , numSamplesPerBlock(numSamplesPerBlock)
     , firTransitionBand(firTransitionBand)
+    , numBuffers(numBuffers)
+    , numInterleavedBuffers(numInterleavedBuffers)
   {}
 };
 
@@ -418,6 +425,10 @@ public:
 
   std::vector<std::unique_ptr<Downsampler>> downsamplers;
 
+  std::vector<InterleavedBuffer<Scalar>> interleavedBuffers;
+
+  std::vector<ScalarBuffer<Scalar>> buffers;
+
   bool isNew = true;
 
   Oversampling(OversamplingSettings const& settings)
@@ -440,6 +451,14 @@ public:
     }
     if (settings.UpdateLatency) {
       settings.UpdateLatency(GetLatency());
+    }
+    interleavedBuffers.resize(settings.numInterleavedBuffers);
+    for (auto& buffer : interleavedBuffers) {
+      buffer.SetNumChannels(settings.numChannels);
+    }
+    buffers.resize(settings.numBuffers);
+    for (auto& buffer : buffers) {
+      buffer.SetNumChannels(settings.numChannels);
     }
   }
 
@@ -466,6 +485,14 @@ public:
 
       for (auto& downsampler : downsamplers) {
         downsampler->PrepareBuffers(numSamples, maxNumUpsampledSamples);
+      }
+
+      for (auto& buffer : interleavedBuffers) {
+        buffer.Reserve(maxNumUpsampledSamples);
+      }
+
+      for (auto& buffer : buffers) {
+        buffer.Reserve(maxNumUpsampledSamples);
       }
     }
   }
