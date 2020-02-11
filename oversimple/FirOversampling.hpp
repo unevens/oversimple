@@ -214,14 +214,27 @@ public:
 
   /**
    * Resamples a multi channel input buffer.
+   * @param input pointer to the input buffers.
+   * @param output pointer to the memory in which to store the downsampled data.
+   * @param numOutputChannels number of channels of the output buffer
+   * @param requiredSamples the number of samples needed as output
+   */
+  void ProcessBlock(double* const* input,
+                    int numSamples,
+                    double** output,
+                    int numOutputChannels,
+                    int requiredSamples);
+
+  /**
+   * Resamples a multi channel input buffer.
    * @param input a ScalarBuffer that holds the input buffer.
    * @param output pointer to the memory in which to store the downsampled data.
-   * @param numChannels number of channels of the output buffer
+   * @param numOutputChannels number of channels of the output buffer
    * @param requiredSamples the number of samples needed as output
    */
   void ProcessBlock(ScalarBuffer<double> const& input,
                     double** output,
-                    int numChannels,
+                    int numOutputChannels,
                     int requiredSamples);
 
   /**
@@ -453,6 +466,34 @@ public:
                            maxSamplesPerBlock,
                            oversamplingFactor)
   {}
+
+  /**
+   * Resamples a multi channel input buffer.
+   * @param input pointer to the input buffers.
+   * @param output pointer to the memory in which to store the downsampled data.
+   * @param numOutputChannels number of channels of the output buffer
+   * @param requiredSamples the number of samples needed as output
+   */
+  void ProcessBlock(float* const* input,
+                    int numSamples,
+                    float** output,
+                    int numOutputChannels,
+                    int requiredSamples)
+  {
+    floatToDoubleBuffer.SetNumChannelsAndSize(numChannels, numSamples);
+    for (int c = 0; c < numChannels; ++c) {
+      std::copy(
+        &input[c][0], &input[c][0] + numSamples, &floatToDoubleBuffer[c][0]);
+    }
+    doubleToFloatBuffer.SetNumChannelsAndSize(numChannels, requiredSamples);
+    FirBufferedResampler::ProcessBlock(
+      floatToDoubleBuffer, doubleToFloatBuffer, requiredSamples);
+    for (int c = 0; c < numChannels; ++c) {
+      for (int i = 0; i < requiredSamples; ++i) {
+        output[c][i] = (float)doubleToFloatBuffer[c][i];
+      }
+    }
+  }
 
   /**
    * Resamples a multi channel input buffer.

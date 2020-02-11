@@ -19,6 +19,7 @@ limitations under the License.
 
 // macro to send debug messages using Visual Studio
 #if (defined _DEBUG) && (defined _WIN32)
+#include "FirOversampling.hpp"
 #include <Windows.h>
 inline void
 DEBUG_MESSAGE(char const* message)
@@ -97,15 +98,14 @@ FirUnbufferedResampler::ProcessBlock(double* const* input,
   }
   return totalUpsampledSamples;
 }
-
 void
-FirBufferedResampler::ProcessBlock(ScalarBuffer<double> const& input,
+FirBufferedResampler::ProcessBlock(double* const* input,
+                                   int numSamples,
                                    double** output,
                                    int numOutputChannels,
                                    int requiredSamples)
 {
   assert(numOutputChannels <= numChannels);
-  int numSamples = input.GetSize();
 
   if (oversamplingFactor == 1.0) {
     for (int c = 0; c < numOutputChannels; ++c) {
@@ -214,6 +214,16 @@ FirBufferedResampler::ProcessBlock(ScalarBuffer<double> const& input,
       }
     }
   }
+}
+
+void
+FirBufferedResampler::ProcessBlock(ScalarBuffer<double> const& input,
+                                   double** output,
+                                   int numOutputChannels,
+                                   int requiredSamples)
+{
+  ProcessBlock(
+    input.Get(), input.GetSize(), output, numOutputChannels, requiredSamples);
 }
 
 void
