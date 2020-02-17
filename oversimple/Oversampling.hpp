@@ -46,6 +46,8 @@ struct OversamplingSettings
                        int numDownsamplers = 1,
                        int numInterleavedUpsamplers = 0,
                        int numInterleavedDownsamplers = 0,
+                       int numBuffers = 0,
+                       int numInterleavedBuffers = 0,
                        double firTransitionBand = 4.0,
                        int order = 1,
                        bool linearPhase = false,
