@@ -49,7 +49,7 @@ struct OversamplingSettings
                        int numBuffers = 0,
                        int numInterleavedBuffers = 0,
                        double firTransitionBand = 4.0,
-                       int order = 1,
+                       int order = 0,
                        bool linearPhase = false,
                        int numSamplesPerBlock = 256)
     : UpdateLatency(UpdateLatency)
