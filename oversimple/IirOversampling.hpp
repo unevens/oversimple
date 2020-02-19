@@ -914,7 +914,7 @@ public:
                     InterleavedBuffer<Scalar>& output,
                     int numChannelsToProcess) override
   {
-    ProcessBlock(input.Get(), input.GetSize(), output, numChannelsToProcess);
+    ProcessBlock(input.Get(), input.GetNumSamples(), output, numChannelsToProcess);
   }
 };
 

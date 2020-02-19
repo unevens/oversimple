@@ -376,8 +376,8 @@ public:
                    int numSamples,
                    ScalarBuffer<float>& output)
   {
-    floatToDoubleBuffer.SetNumChannelsAndSize(numChannels, numSamples);
-    doubleToFloatBuffer.SetNumChannelsAndSize(
+    floatToDoubleBuffer.SetNumChannelsAndSamples(numChannels, numSamples);
+    doubleToFloatBuffer.SetNumChannelsAndSamples(
       numChannels, std::ceil(numSamples * oversamplingFactor));
     for (int c = 0; c < numChannels; ++c) {
       for (int i = 0; i < numSamples; ++i) {
@@ -400,7 +400,7 @@ public:
                    ScalarBuffer<float>& output)
   {
     return ProcessBlock(
-      input.Get(), input.GetNumChannels(), input.GetSize(), output);
+      input.Get(), input.GetNumChannels(), input.GetNumSamples(), output);
   }
 };
 
@@ -480,12 +480,12 @@ public:
                     int numOutputChannels,
                     int requiredSamples)
   {
-    floatToDoubleBuffer.SetNumChannelsAndSize(numChannels, numSamples);
+    floatToDoubleBuffer.SetNumChannelsAndSamples(numChannels, numSamples);
     for (int c = 0; c < numChannels; ++c) {
       std::copy(
         &input[c][0], &input[c][0] + numSamples, &floatToDoubleBuffer[c][0]);
     }
-    doubleToFloatBuffer.SetNumChannelsAndSize(numChannels, requiredSamples);
+    doubleToFloatBuffer.SetNumChannelsAndSamples(numChannels, requiredSamples);
     FirBufferedResampler::ProcessBlock(
       floatToDoubleBuffer, doubleToFloatBuffer, requiredSamples);
     for (int c = 0; c < numChannels; ++c) {
@@ -508,7 +508,7 @@ public:
                     int requiredSamples)
   {
     CopyScalarBuffer(input, floatToDoubleBuffer);
-    doubleToFloatBuffer.SetNumChannelsAndSize(numChannels, requiredSamples);
+    doubleToFloatBuffer.SetNumChannelsAndSamples(numChannels, requiredSamples);
     FirBufferedResampler::ProcessBlock(
       floatToDoubleBuffer, doubleToFloatBuffer, requiredSamples);
     for (int c = 0; c < numChannels; ++c) {

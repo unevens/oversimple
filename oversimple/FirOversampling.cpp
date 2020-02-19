@@ -37,7 +37,7 @@ FirUnbufferedResampler::ProcessBlock(ScalarBuffer<double> const& input,
                                      ScalarBuffer<double>& output)
 {
   return ProcessBlock(
-    input.Get(), input.GetNumChannels(), input.GetSize(), output);
+    input.Get(), input.GetNumChannels(), input.GetNumSamples(), output);
 }
 
 void
@@ -45,7 +45,7 @@ FirBufferedResampler::ProcessBlock(ScalarBuffer<double> const& input,
                                    ScalarBuffer<double>& output,
                                    int requiredSamples)
 {
-  output.SetNumChannelsAndSize(input.GetNumChannels(), input.GetSize());
+  output.SetNumChannelsAndSamples(input.GetNumChannels(), input.GetNumSamples());
   ProcessBlock(input, output.Get(), output.GetNumChannels(), requiredSamples);
 }
 
@@ -62,7 +62,7 @@ FirUnbufferedResampler::ProcessBlock(double* const* input,
     DEBUG_MESSAGE("A FirUnbufferedResampler object had to allocate memory! Has "
                   "PrepareBuffers been called?\n");
   }
-  output.SetNumChannelsAndSize(numInputChannels, numOutputSamples);
+  output.SetNumChannelsAndSamples(numInputChannels, numOutputSamples);
 
   if (oversamplingFactor == 1) {
     for (int c = 0; c < numInputChannels; ++c) {
@@ -87,7 +87,7 @@ FirUnbufferedResampler::ProcessBlock(double* const* input,
           DEBUG_MESSAGE(
             "A FirUnbufferedResampler object had to allocate memory due to a "
             "fluctuation, this shold not happen!\n");
-          output.SetSize(outputCounter + numOutputSamples);
+          output.SetNumSamples(outputCounter + numOutputSamples);
         }
         std::copy(
           outPtr, outPtr + numUpsampledSamples, &output[c][outputCounter]);
@@ -146,12 +146,12 @@ FirBufferedResampler::ProcessBlock(double* const* input,
         // check buffer size
         int neededBufferSize =
           newBufferCounter + numUpsampledSamples - samplesFromResampler;
-        if (buffer.GetSize() < neededBufferSize) {
+        if (buffer.GetNumSamples() < neededBufferSize) {
           if (buffer.GetCapacity() < neededBufferSize) {
             DEBUG_MESSAGE("A FirBufferedResampler object had to allocate "
                           "memory! Has PrepareBuffers been called?\n");
           }
-          buffer.SetSize(neededBufferSize);
+          buffer.SetNumSamples(neededBufferSize);
         }
         // copy tail to buffer
         std::copy(outPtr + samplesFromResampler,
@@ -177,12 +177,12 @@ FirBufferedResampler::ProcessBlock(double* const* input,
         numInputSamples -= samplesToProcess;
         int neededBufferSize =
           bufferCounter + outputCounter + numUpsampledSamples;
-        if (buffer.GetSize() < neededBufferSize) {
+        if (buffer.GetNumSamples() < neededBufferSize) {
           if (buffer.GetCapacity() < neededBufferSize) {
             DEBUG_MESSAGE("A FirBufferedResampler object had to allocate "
                           "memory! Has PrepareBuffers been called?");
           }
-          buffer.SetSize(bufferCounter + outputCounter + numUpsampledSamples);
+          buffer.SetNumSamples(bufferCounter + outputCounter + numUpsampledSamples);
         }
         if (numUpsampledSamples > 0) {
           std::copy(outPtr,
@@ -223,7 +223,7 @@ FirBufferedResampler::ProcessBlock(ScalarBuffer<double> const& input,
                                    int requiredSamples)
 {
   ProcessBlock(
-    input.Get(), input.GetSize(), output, numOutputChannels, requiredSamples);
+    input.Get(), input.GetNumSamples(), output, numOutputChannels, requiredSamples);
 }
 
 void
@@ -331,9 +331,9 @@ FirBufferedResampler::PrepareBuffers(int numInputSamples,
   maxRequiredOutputLength = requiredOutputSamples;
   int neededBufferSize =
     maxOutputLength + std::max(maxOutputLength, requiredOutputSamples);
-  // maybe buffer.SetSize(maxOutputLength); is enough?
-  if (buffer.GetSize() < neededBufferSize) {
-    buffer.SetSize(neededBufferSize);
+  // maybe buffer.SetNumSamples(maxOutputLength); is enough?
+  if (buffer.GetNumSamples() < neededBufferSize) {
+    buffer.SetNumSamples(neededBufferSize);
   }
 }
 
