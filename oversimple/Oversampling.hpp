@@ -21,6 +21,13 @@ limitations under the License.
 
 namespace oversimple {
 
+/**
+ * A class to control an Oversampling instance. It contains simple fields to
+ * setup how to oversample and if any upsampled audio buffers are needed.
+ * Then the Oversampling instance will do all the work.
+ * @see Oversampling
+ */
+
 struct OversamplingSettings
 {
   int numChannels;
@@ -70,6 +77,12 @@ struct OversamplingSettings
   {}
 };
 
+/**
+ * A class to abstract over all the implementations in this library, which you
+ * can control with an OversamplingSettings object, and offers a simple api for
+ * oversampling and management of upsampled audio buffers.
+ * @see OversamplingSettings
+ */
 template<typename Scalar>
 class Oversampling
 {
@@ -524,6 +537,8 @@ public:
 
   std::vector<ScalarBuffer<Scalar>> scalarBuffers;
 
+  // just a flag, usefull to trigger a reset on other objects when the
+  // oversampling is changed
   bool isNew = true;
 
   Oversampling(OversamplingSettings const& settings)
