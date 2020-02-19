@@ -25,12 +25,13 @@ struct OversamplingSettings
 {
   int numChannels;
 
-  int numUpsamplers;
-  int numInterleavedUpsamplers;
-  int numDownsamplers;
-  int numInterleavedDownsamplers;
+  int numScalarToVecUpsamplers;
+  int numVecToVecUpsamplers;
+  int numScalarToScalarUpsamplers;
+  int numScalarToScalarDownsamplers;
+  int numVecToScalarDownsamplers;
 
-  int numBuffers;
+  int numScalarBuffers;
   int numInterleavedBuffers;
 
   int order;
@@ -40,13 +41,14 @@ struct OversamplingSettings
 
   std::function<void(int)> UpdateLatency;
 
-  OversamplingSettings(std::function<void(int)> UpdateLatency,
+  OversamplingSettings(std::function<void(int)> UpdateLatency = nullptr,
                        int numChannels = 2,
-                       int numUpsamplers = 1,
-                       int numDownsamplers = 1,
-                       int numInterleavedUpsamplers = 0,
-                       int numInterleavedDownsamplers = 0,
-                       int numBuffers = 0,
+                       int numScalarToVecUpsamplers = 0,
+                       int numVecToScalarDownsamplers = 0,
+                       int numScalarToScalarUpsamplers = 0,
+                       int numScalarToScalarDownsamplers = 0,
+                       int numVecToVecUpsamplers = 0,
+                       int numScalarBuffers = 0,
                        int numInterleavedBuffers = 0,
                        double firTransitionBand = 4.0,
                        int order = 0,
@@ -54,15 +56,16 @@ struct OversamplingSettings
                        int numSamplesPerBlock = 256)
     : UpdateLatency(UpdateLatency)
     , numChannels(numChannels)
-    , numUpsamplers(numUpsamplers)
-    , numInterleavedUpsamplers(numInterleavedUpsamplers)
-    , numDownsamplers(numDownsamplers)
-    , numInterleavedDownsamplers(numInterleavedDownsamplers)
+    , numScalarToVecUpsamplers(numScalarToVecUpsamplers)
+    , numVecToScalarDownsamplers(numVecToScalarDownsamplers)
+    , numScalarToScalarDownsamplers(numScalarToScalarDownsamplers)
+    , numScalarToScalarUpsamplers(numScalarToScalarUpsamplers)
+    , numVecToVecUpsamplers(numVecToVecUpsamplers)
     , order(order)
     , linearPhase(linearPhase)
     , numSamplesPerBlock(numSamplesPerBlock)
     , firTransitionBand(firTransitionBand)
-    , numBuffers(numBuffers)
+    , numScalarBuffers(numScalarBuffers)
     , numInterleavedBuffers(numInterleavedBuffers)
   {}
 };
@@ -74,7 +77,7 @@ class Oversampling
   int rate;
 
 public:
-  class InterleavedUpsampler
+  class VecToVecUpsampler
   {
     std::unique_ptr<IirUpsampler<Scalar>> iirUpsampler;
     std::unique_ptr<TFirUpsampler<Scalar>> firUpsampler;
@@ -116,15 +119,15 @@ public:
       outputBuffer.SetNumSamples(numUpsampledSamples);
       if (firUpsampler) {
         firUpsampler->PrepareBuffers(numSamples);
-        firInputBuffer.SetSize(numSamples);
-        firOutputBuffer.SetSize(numUpsampledSamples);
+        firInputBuffer.SetNumSamples(numSamples);
+        firOutputBuffer.SetNumSamples(numUpsampledSamples);
       }
       if (iirUpsampler) {
         iirUpsampler->PrepareBuffer(numSamples);
       }
     }
 
-    InterleavedUpsampler(OversamplingSettings const& settings)
+    VecToVecUpsampler(OversamplingSettings const& settings)
     {
       if (settings.linearPhase) {
         firUpsampler = std::make_unique<TFirUpsampler<double>>(
@@ -171,7 +174,7 @@ public:
     }
   };
 
-  class Upsampler
+  class ScalarToVecUpsampler
   {
     std::unique_ptr<IirUpsampler<Scalar>> iirUpsampler;
     std::unique_ptr<TFirUpsampler<Scalar>> firUpsampler;
@@ -203,17 +206,17 @@ public:
                                        ? firUpsampler->GetOversamplingFactor()
                                        : (1 << iirUpsampler->GetOrder());
       int const numUpsampledSamples = numSamples * oversamplingFactor;
-      firOutputBuffer.SetSize(numUpsampledSamples);
       outputBuffer.SetNumSamples(numUpsampledSamples);
       if (firUpsampler) {
         firUpsampler->PrepareBuffers(numSamples);
+        firOutputBuffer.SetNumSamples(numUpsampledSamples);
       }
       if (iirUpsampler) {
         iirUpsampler->PrepareBuffer(numSamples);
       }
     }
 
-    Upsampler(OversamplingSettings const& settings)
+    ScalarToVecUpsampler(OversamplingSettings const& settings)
     {
       if (settings.linearPhase) {
         firUpsampler = std::make_unique<TFirUpsampler<double>>(
@@ -258,14 +261,100 @@ public:
     }
   };
 
-  struct InterleavedDownsampler
+  class ScalarToScalarUpsampler
+  {
+    std::unique_ptr<IirUpsampler<Scalar>> iirUpsampler;
+    std::unique_ptr<TFirUpsampler<Scalar>> firUpsampler;
+    ScalarBuffer<Scalar> outputBuffer;
+    InterleavedBuffer<Scalar> iirOutputBuffer;
+
+  public:
+    ScalarBuffer<Scalar>& GetOutput() { return outputBuffer; }
+
+    int ProcessBlock(Scalar** input, int numChannelsToUpsample, int numSamples)
+    {
+      if (firUpsampler) {
+        int numUpsampledSamples = firUpsampler->ProcessBlock(
+          input, numChannelsToUpsample, numSamples, outputBuffer);
+        return numUpsampledSamples;
+      }
+      else {
+        iirUpsampler->ProcessBlock(
+          input, numSamples, iirOutputBuffer, numChannelsToUpsample);
+        iirOutputBuffer.Deinterleave(outputBuffer, numChannelsToUpsample);
+        return numSamples * (1 << iirUpsampler->GetOrder());
+      }
+    }
+
+    void PrepareBuffers(int numSamples)
+    {
+      int const oversamplingFactor = firUpsampler
+                                       ? firUpsampler->GetOversamplingFactor()
+                                       : (1 << iirUpsampler->GetOrder());
+      int const numUpsampledSamples = numSamples * oversamplingFactor;
+      outputBuffer.SetNumSamples(numUpsampledSamples);
+      if (firUpsampler) {
+        firUpsampler->PrepareBuffers(numSamples);
+      }
+      if (iirUpsampler) {
+        iirOutputBuffer.SetNumSamples(numUpsampledSamples);
+        iirUpsampler->PrepareBuffer(numSamples);
+      }
+    }
+
+    ScalarToScalarUpsampler(OversamplingSettings const& settings)
+    {
+      if (settings.linearPhase) {
+        firUpsampler = std::make_unique<TFirUpsampler<double>>(
+          settings.numChannels, settings.firTransitionBand);
+        firUpsampler->SetOversamplingFactor(1 << settings.order);
+        iirUpsampler = nullptr;
+        iirOutputBuffer.SetNumChannels(0);
+      }
+      else {
+        iirUpsampler = IirUpsamplerFactory<double>::New(settings.numChannels);
+        iirUpsampler->SetOrder(settings.order);
+        iirOutputBuffer.SetNumChannels(settings.numChannels);
+        firUpsampler = nullptr;
+      }
+      PrepareBuffers(settings.numSamplesPerBlock);
+    }
+
+    int GetLatency()
+    {
+      if (firUpsampler) {
+        return firUpsampler->GetNumSamplesBeforeOutputStarts();
+      }
+      return 0;
+    }
+
+    int GetMaxUpsampledSamples()
+    {
+      if (firUpsampler) {
+        return firUpsampler->GetMaxNumOutputSamples();
+      }
+      return 0;
+    }
+
+    void Reset()
+    {
+      if (firDownsampler) {
+        firDownsampler->Reset();
+      }
+      if (iirDownsampler) {
+        iirDownsampler->Reset();
+      }
+    }
+  };
+
+  struct VecToScalarDownsampler
   {
     std::unique_ptr<IirDownsampler<Scalar>> iirDownsampler;
     std::unique_ptr<TFirDownsampler<Scalar>> firDownsampler;
     ScalarBuffer<Scalar> firInputBuffer;
 
   public:
-    InterleavedDownsampler(OversamplingSettings const& settings)
+    VecToScalarDownsampler(OversamplingSettings const& settings)
     {
       if (settings.linearPhase) {
         firDownsampler = std::make_unique<TFirDownsampler<double>>(
@@ -292,7 +381,7 @@ public:
                                        : (1 << iirDownsampler->GetOrder());
       if (firDownsampler) {
         firDownsampler->PrepareBuffers(maxNumUpsampledSamples, numSamples);
-        firInputBuffer.SetSize(maxNumUpsampledSamples);
+        firInputBuffer.SetNumSamples(maxNumUpsampledSamples);
       }
       if (iirDownsampler) {
         iirDownsampler->PrepareBuffer(numSamples);
@@ -337,14 +426,14 @@ public:
     }
   };
 
-  struct Downsampler
+  struct ScalarToScalarDownsampler
   {
     std::unique_ptr<IirDownsampler<Scalar>> iirDownsampler;
     std::unique_ptr<TFirDownsampler<Scalar>> firDownsampler;
     InterleavedBuffer<Scalar> iirInputBuffer;
 
   public:
-    Downsampler(OversamplingSettings const& settings)
+    ScalarToScalarDownsampler(OversamplingSettings const& settings)
     {
       if (settings.linearPhase) {
         firDownsampler = std::make_unique<TFirDownsampler<double>>(
@@ -419,17 +508,21 @@ public:
     }
   };
 
-  std::vector<std::unique_ptr<Upsampler>> upsamplers;
+  std::vector<std::unique_ptr<ScalarToVecUpsampler>> scalarToVecUpsamplers;
 
-  std::vector<std::unique_ptr<InterleavedUpsampler>> interleavedUpsamplers;
+  std::vector<std::unique_ptr<VecToVecUpsampler>> vecToVecUpsamplers;
 
-  std::vector<std::unique_ptr<InterleavedDownsampler>> interleavedDownsamplers;
+  std::vector<std::unique_ptr<ScalarToScalarUpsampler>>
+    scalarToScalarUpsamplers;
 
-  std::vector<std::unique_ptr<Downsampler>> downsamplers;
+  std::vector<std::unique_ptr<VecToScalarDownsampler>> vecToScalarDownsamplers;
+
+  std::vector<std::unique_ptr<ScalarToScalarDownsampler>>
+    scalarToScalarDownsamplers;
 
   std::vector<InterleavedBuffer<Scalar>> interleavedBuffers;
 
-  std::vector<ScalarBuffer<Scalar>> buffers;
+  std::vector<ScalarBuffer<Scalar>> scalarBuffers;
 
   bool isNew = true;
 
@@ -437,19 +530,25 @@ public:
     : numSamplesPerBlock(settings.numSamplesPerBlock)
     , rate(1 << settings.order)
   {
-    for (int i = 0; i < settings.numUpsamplers; ++i) {
-      upsamplers.push_back(std::make_unique<Upsampler>(settings));
+    for (int i = 0; i < settings.numScalarToVecUpsamplers; ++i) {
+      scalarToVecUpsamplers.push_back(
+        std::make_unique<ScalarToVecUpsampler>(settings));
     }
-    for (int i = 0; i < settings.numInterleavedUpsamplers; ++i) {
-      interleavedUpsamplers.push_back(
-        std::make_unique<InterleavedUpsampler>(settings));
+    for (int i = 0; i < settings.numVecToVecUpsamplers; ++i) {
+      vecToVecUpsamplers.push_back(
+        std::make_unique<VecToVecUpsampler>(settings));
     }
-    for (int i = 0; i < settings.numInterleavedDownsamplers; ++i) {
-      interleavedDownsamplers.push_back(
-        std::make_unique<InterleavedDownsampler>(settings));
+    for (int i = 0; i < settings.numScalarToScalarUpsamplers; ++i) {
+      scalarToScalarUpsamplers.push_back(
+        std::make_unique<ScalarToScalarUpsampler>(settings));
     }
-    for (int i = 0; i < settings.numDownsamplers; ++i) {
-      downsamplers.push_back(std::make_unique<Downsampler>(settings));
+    for (int i = 0; i < settings.numVecToScalarDownsamplers; ++i) {
+      vecToScalarDownsamplers.push_back(
+        std::make_unique<VecToScalarDownsampler>(settings));
+    }
+    for (int i = 0; i < settings.numScalarToScalarDownsamplers; ++i) {
+      scalarToScalarDownsamplers.push_back(
+        std::make_unique<ScalarToScalarDownsampler>(settings));
     }
     if (settings.UpdateLatency) {
       settings.UpdateLatency(GetLatency());
@@ -458,8 +557,8 @@ public:
     for (auto& buffer : interleavedBuffers) {
       buffer.SetNumChannels(settings.numChannels);
     }
-    buffers.resize(settings.numBuffers);
-    for (auto& buffer : buffers) {
+    scalarBuffers.resize(settings.numScalarBuffers);
+    for (auto& buffer : scalarBuffers) {
       buffer.SetNumChannels(settings.numChannels);
     }
   }
@@ -467,25 +566,31 @@ public:
   void PrepareBuffers(int numSamples)
   {
     if (numSamplesPerBlock < numSamples) {
+
       numSamplesPerBlock = numSamples;
-      for (auto& upsampler : upsamplers) {
+
+      for (auto& upsampler : scalarToVecUpsamplers) {
         upsampler->PrepareBuffers(numSamples);
       }
-      for (auto& upsampler : interleavedUpsamplers) {
+      for (auto& upsampler : vecToVecUpsamplers) {
+        upsampler->PrepareBuffers(numSamples);
+      }
+      for (auto& upsampler : scalarToScalarUpsamplers) {
         upsampler->PrepareBuffers(numSamples);
       }
 
       int maxNumUpsampledSamples = rate * numSamples;
 
-      if (upsamplers.size() > 0) {
-        maxNumUpsampledSamples = upsamplers[0]->GetMaxUpsampledSamples();
-      }
-      else if (interleavedUpsamplers.size() > 0) {
+      if (scalarToVecUpsamplers.size() > 0) {
         maxNumUpsampledSamples =
-          interleavedUpsamplers[0]->GetMaxUpsampledSamples();
+          scalarToVecUpsamplers[0]->GetMaxUpsampledSamples();
+      }
+      else if (vecToVecUpsamplers.size() > 0) {
+        maxNumUpsampledSamples =
+          vecToVecUpsamplers[0]->GetMaxUpsampledSamples();
       }
 
-      for (auto& downsampler : downsamplers) {
+      for (auto& downsampler : scalarToScalarDownsamplers) {
         downsampler->PrepareBuffers(numSamples, maxNumUpsampledSamples);
       }
 
@@ -493,7 +598,7 @@ public:
         buffer.Reserve(maxNumUpsampledSamples);
       }
 
-      for (auto& buffer : buffers) {
+      for (auto& buffer : scalarBuffers) {
         buffer.Reserve(maxNumUpsampledSamples);
       }
     }
@@ -502,27 +607,30 @@ public:
   int GetLatency()
   {
     int latency = 0;
-    if (upsamplers.size() > 0) {
-      latency += upsamplers[0]->GetLatency();
+    if (scalarToVecUpsamplers.size() > 0) {
+      latency += scalarToVecUpsamplers[0]->GetLatency();
     }
-    else if (interleavedUpsamplers.size() > 0) {
-      latency += interleavedUpsamplers[0]->GetLatency();
+    else if (vecToVecUpsamplers.size() > 0) {
+      latency += vecToVecUpsamplers[0]->GetLatency();
     }
-    if (downsamplers.size() > 0) {
-      latency += downsamplers[0]->GetLatency();
+    if (vecToScalarDownsamplers.size() > 0) {
+      latency += vecToScalarDownsamplers[0]->GetLatency();
+    }
+    else if (scalarToScalarDownsamplers.size() > 0) {
+      latency += scalarToScalarDownsamplers[0]->GetLatency();
     }
     return latency;
   }
 
   void Reset()
   {
-    for (auto& upsampler : upsamplers) {
+    for (auto& upsampler : scalarToVecUpsamplers) {
       upsampler->Reset();
     }
-    for (auto& upsampler : interleavedUpsamplers) {
+    for (auto& upsampler : vecToVecUpsamplers) {
       upsampler->Reset();
     }
-    for (auto& downsampler : downsamplers) {
+    for (auto& downsampler : scalarToScalarDownsamplers) {
       downsampler->Reset();
     }
   }
