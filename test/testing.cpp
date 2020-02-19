@@ -96,9 +96,6 @@ TestFirOversampler(int numChannels,
   for (int c = 0; c < numChannels; ++c) {
     for (int i = 0; i < samplesPerBlock; ++i) {
       inputCopy[c][i] = input[c][i] = sin(2.0 * M_PI * 0.125 * (Scalar)i);
-      // inputCopy[c][i] = input[c][i] =
-      //  sin(2.0 * M_PI * 0.45 * (Scalar)i *
-      //      (1.0 - ((Scalar)i) / (2.0 * (Scalar)samplesPerBlock)));
     }
   }
 
