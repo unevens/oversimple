@@ -10,3 +10,6 @@
 [submodule "avec"]
 	path = avec
 	url = https://github.com/unevens/avec
+[submodule "lockfree-async"]
+	path = lockfree-async
+	url = https://github.com/unevens/lockfree-async
