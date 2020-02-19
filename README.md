@@ -12,9 +12,11 @@ Aligned memory and interleaved buffers needed by the simd code in HIIR are manag
 
 ## Usage
 
-Just add everything to your project except for the content of the `test` folders and the .cpp files in `audio-vec/vectorclass`.
+Add everything to your project except for the content of the `test` folders and the .cpp files in `avec/vectorclass`.
 
-If you support AVX instructions, you may want to define `R8B_PFFFT_DOUBLE=1` in `r8bconf.h` or as a preprocessor definition. See `r8brain/README.md` for more details.
+Add to your include paths the directory in which you put this repository and its subdirectories `r8brain`, `avec`, and `avec/vectorclass`. 
+
+If you support AVX instructions, you may want to define `R8B_PFFFT_DOUBLE=1` in `r8brain/r8bconf.h` or as a preprocessor definition. See `r8brain/README.md` for more details.
 
 ## Dependencies
 
