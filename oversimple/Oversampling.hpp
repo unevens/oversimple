@@ -265,11 +265,11 @@ public:
 
     void Reset()
     {
-      if (firDownsampler) {
-        firDownsampler->Reset();
+      if (firUpsampler) {
+        firUpsampler->Reset();
       }
-      if (iirDownsampler) {
-        iirDownsampler->Reset();
+      if (iirUpsampler) {
+        iirUpsampler->Reset();
       }
     }
   };
@@ -351,11 +351,11 @@ public:
 
     void Reset()
     {
-      if (firDownsampler) {
-        firDownsampler->Reset();
+      if (firUpsampler) {
+        firUpsampler->Reset();
       }
-      if (iirDownsampler) {
-        iirDownsampler->Reset();
+      if (iirUpsampler) {
+        iirUpsampler->Reset();
       }
     }
   };
