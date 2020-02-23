@@ -125,8 +125,8 @@ public:
     void prepareBuffers(int numSamples)
     {
       int const oversamplingRate = firUpsampler
-                                       ? firUpsampler->getRate()
-                                       : (1 << iirUpsampler->getOrder());
+                                     ? firUpsampler->getRate()
+                                     : (1 << iirUpsampler->getOrder());
       int const numUpsampledSamples = numSamples * oversamplingRate;
 
       outputBuffer.setNumSamples(numUpsampledSamples);
@@ -185,6 +185,16 @@ public:
         iirUpsampler->reset();
       }
     }
+
+    int getRate() const
+    {
+      if (firUpsampler) {
+        return firUpsampler->getRate();
+      }
+      if (iirUpsampler) {
+        return 1 << iirUpsampler->getOrder();
+      }
+    }
   };
 
   class ScalarToVecUpsampler
@@ -197,7 +207,9 @@ public:
   public:
     InterleavedBuffer<Scalar>& getOutput() { return outputBuffer; }
 
-    int processBlock(Scalar** input, int numChannelsToUpsample, int numSamples)
+    int processBlock(Scalar* const* input,
+                     int numChannelsToUpsample,
+                     int numSamples)
     {
       if (firUpsampler) {
         int numUpsampledSamples = firUpsampler->processBlock(
@@ -216,8 +228,8 @@ public:
     void prepareBuffers(int numSamples)
     {
       int const oversamplingRate = firUpsampler
-                                       ? firUpsampler->getRate()
-                                       : (1 << iirUpsampler->getOrder());
+                                     ? firUpsampler->getRate()
+                                     : (1 << iirUpsampler->getOrder());
       int const numUpsampledSamples = numSamples * oversamplingRate;
       outputBuffer.setNumSamples(numUpsampledSamples);
       if (firUpsampler) {
@@ -272,6 +284,16 @@ public:
         iirUpsampler->reset();
       }
     }
+
+    int getRate() const
+    {
+      if (firUpsampler) {
+        return firUpsampler->getRate();
+      }
+      if (iirUpsampler) {
+        return 1 << iirUpsampler->getOrder();
+      }
+    }
   };
 
   class ScalarToScalarUpsampler
@@ -284,7 +306,9 @@ public:
   public:
     ScalarBuffer<Scalar>& getOutput() { return outputBuffer; }
 
-    int processBlock(Scalar** input, int numChannelsToUpsample, int numSamples)
+    int processBlock(Scalar* const* input,
+                     int numChannelsToUpsample,
+                     int numSamples)
     {
       if (firUpsampler) {
         int numUpsampledSamples = firUpsampler->processBlock(
@@ -302,8 +326,8 @@ public:
     void prepareBuffers(int numSamples)
     {
       int const oversamplingRate = firUpsampler
-                                       ? firUpsampler->getRate()
-                                       : (1 << iirUpsampler->getOrder());
+                                     ? firUpsampler->getRate()
+                                     : (1 << iirUpsampler->getOrder());
       int const numUpsampledSamples = numSamples * oversamplingRate;
       outputBuffer.setNumSamples(numUpsampledSamples);
       if (firUpsampler) {
@@ -358,6 +382,16 @@ public:
         iirUpsampler->reset();
       }
     }
+
+    int getRate() const
+    {
+      if (firUpsampler) {
+        return firUpsampler->getRate();
+      }
+      if (iirUpsampler) {
+        return 1 << iirUpsampler->getOrder();
+      }
+    }
   };
 
   struct VecToScalarDownsampler
@@ -390,8 +424,8 @@ public:
     void prepareBuffers(int numSamples, int maxNumUpsampledSamples)
     {
       int const oversamplingRate = firDownsampler
-                                       ? firDownsampler->getRate()
-                                       : (1 << iirDownsampler->getOrder());
+                                     ? firDownsampler->getRate()
+                                     : (1 << iirDownsampler->getOrder());
       if (firDownsampler) {
         firDownsampler->prepareBuffers(maxNumUpsampledSamples, numSamples);
         firInputBuffer.setNumSamples(maxNumUpsampledSamples);
@@ -403,19 +437,19 @@ public:
 
     void processBlock(InterleavedBuffer<Scalar>& input,
                       Scalar** output,
-                      int numChannelsToUpsample,
+                      int numChannelsToDownsample,
                       int numSamples)
     {
       if (firDownsampler) {
         input.deinterleave(firInputBuffer);
         firDownsampler->processBlock(
-          firInputBuffer, output, numChannelsToUpsample, numSamples);
+          firInputBuffer, output, numChannelsToDownsample, numSamples);
       }
       else {
         iirDownsampler->processBlock(
           input, numSamples * (1 << iirDownsampler->getOrder()));
         iirDownsampler->getOutput().deinterleave(
-          output, numChannelsToUpsample, numSamples);
+          output, numChannelsToDownsample, numSamples);
       }
     }
 
@@ -435,6 +469,16 @@ public:
       }
       if (iirDownsampler) {
         iirDownsampler->reset();
+      }
+    }
+
+    int getRate() const
+    {
+      if (firDownsampler) {
+        return firDownsampler->getRate();
+      }
+      if (iirDownsampler) {
+        return 1 << iirDownsampler->getOrder();
       }
     }
   };
@@ -469,8 +513,8 @@ public:
     void prepareBuffers(int numSamples, int maxNumUpsampledSamples)
     {
       int const oversamplingRate = firDownsampler
-                                       ? firDownsampler->getRate()
-                                       : (1 << iirDownsampler->getOrder());
+                                     ? firDownsampler->getRate()
+                                     : (1 << iirDownsampler->getOrder());
       if (firDownsampler) {
         firDownsampler->prepareBuffers(maxNumUpsampledSamples, numSamples);
       }
@@ -480,24 +524,24 @@ public:
       }
     }
 
-    void processBlock(Scalar** input,
+    void processBlock(Scalar* const* input,
                       Scalar** output,
-                      int numChannelsToUpsample,
+                      int numChannelsToDownsample,
                       int numSamples)
     {
       if (firDownsampler) {
         firDownsampler->processBlock(input,
-                                     numChannelsToUpsample,
+                                     numChannelsToDownsample,
                                      output,
-                                     numChannelsToUpsample,
+                                     numChannelsToDownsample,
                                      numSamples);
       }
       else {
-        iirInputBuffer.interleave(input, numChannelsToUpsample, numSamples);
+        iirInputBuffer.interleave(input, numChannelsToDownsample, numSamples);
         iirDownsampler->processBlock(
           iirInputBuffer, numSamples * (1 << iirDownsampler->getOrder()));
         iirDownsampler->getOutput().deinterleave(
-          output, numChannelsToUpsample, numSamples);
+          output, numChannelsToDownsample, numSamples);
       }
     }
 
@@ -517,6 +561,16 @@ public:
       }
       if (iirDownsampler) {
         iirDownsampler->reset();
+      }
+    }
+
+    int getRate() const
+    {
+      if (firDownsampler) {
+        return firDownsampler->getRate();
+      }
+      if (iirDownsampler) {
+        return 1 << iirDownsampler->getOrder();
       }
     }
   };
