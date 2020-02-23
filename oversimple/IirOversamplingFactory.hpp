@@ -27,7 +27,7 @@ namespace oversimple {
  * @return the IirOversamplingDesigner corresponding to the index
  */
 inline IirOversamplingDesigner
-GetIirOversamplingPreset(int presetIndex = 0)
+getIirOversamplingPreset(int presetIndex = 0)
 {
   switch (presetIndex) {
     case 0:
@@ -46,12 +46,12 @@ GetIirOversamplingPreset(int presetIndex = 0)
  * @return the minimum group delay
  */
 inline double
-GetIirOversamplingMinGroupDelay(int order, int presetIndex = 0)
+getIirOversamplingMinGroupDelay(int order, int presetIndex = 0)
 {
   if (order == 0) {
     return 0.0;
   }
-  return GetIirOversamplingPreset(presetIndex).GetMinGroupDelay(order);
+  return getIirOversamplingPreset(presetIndex).getMinGroupDelay(order);
 }
 
 /**
@@ -87,10 +87,10 @@ public:
    * @param presetIndex the quality preset index used to create the IirUpsampler
    * antialiasing filters
    */
-  static std::unique_ptr<IirUpsampler<Scalar>> New(int numChannels,
+  static std::unique_ptr<IirUpsampler<Scalar>> make(int numChannels,
                                                    int presetIndex = 0)
   {
-    auto preset = GetIirOversamplingPreset(presetIndex);
+    auto preset = getIirOversamplingPreset(presetIndex);
     switch (presetIndex) {
       case 0:
       default:
@@ -141,10 +141,10 @@ public:
    * @param presetIndex the quality preset index used to create the
    * IirDownsampler antialiasing filters
    */
-  static std::unique_ptr<IirDownsampler<Scalar>> New(int numChannels,
+  static std::unique_ptr<IirDownsampler<Scalar>> make(int numChannels,
                                                      int presetIndex = 0)
   {
-    auto preset = GetIirOversamplingPreset(presetIndex);
+    auto preset = getIirOversamplingPreset(presetIndex);
     switch (presetIndex) {
       case 0:
       default:

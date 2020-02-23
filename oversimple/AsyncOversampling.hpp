@@ -56,7 +56,7 @@ using OversamplingGetter =
  */
 template<typename Scalar>
 inline OversamplingGetter<Scalar>*
-RequestOversamplingGetter(AsyncOversampling& asyncOversampling)
+requestOversamplingGetter(AsyncOversampling& asyncOversampling)
 {
   return asyncOversampling.requestGetter<Oversampling<Scalar>>();
 }
@@ -74,7 +74,7 @@ using OversamplingSettingsGetter =
  * @see OversamplingSettingsGetter
  */
 inline OversamplingSettingsGetter*
-RequestOversamplingSettingsGetter(AsyncOversampling& asyncOversampling)
+requestOversamplingSettingsGetter(AsyncOversampling& asyncOversampling)
 {
   return asyncOversampling.requestBlockingGetter<>();
 }
