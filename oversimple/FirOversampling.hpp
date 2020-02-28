@@ -303,7 +303,7 @@ public:
   /**
    * @return the oversampling rate.
    */
-  double getRate() const { return 1.0 / oversamplingRate; }
+  double getRate() const override { return 1.0 / oversamplingRate; }
 };
 
 /**
@@ -573,10 +573,7 @@ public:
   /**
    * @return the oversampling factor.
    */
-  double getRate() const
-  {
-    return 1.0 / this->oversamplingRate;
-  }
+  double getRate() const override { return 1.0 / this->oversamplingRate; }
 };
 
 } // namespace oversimple
