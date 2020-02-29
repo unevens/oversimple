@@ -104,9 +104,9 @@ public:
   public:
     InterleavedBuffer<Scalar>& getOutput() { return outputBuffer; }
 
-    int processBlock(InterleavedBuffer<Scalar>& input,
-                      int numChannelsToUpsample,
-                      int numSamples)
+    int processBlock(InterleavedBuffer<Scalar> const& input,
+                     int numChannelsToUpsample,
+                     int numSamples)
     {
       if (firUpsampler) {
         bool ok = input.deinterleave(
@@ -125,7 +125,6 @@ public:
         iirUpsampler->processBlock(
           input, numSamples, outputBuffer, numChannelsToUpsample);
         return numSamples * (1 << iirUpsampler->getOrder());
-
       }
     }
 
@@ -444,7 +443,7 @@ public:
       }
     }
 
-    void processBlock(InterleavedBuffer<Scalar>& input,
+    void processBlock(InterleavedBuffer<Scalar> const& input,
                       Scalar** output,
                       int numChannelsToDownsample,
                       int numSamples)
@@ -541,7 +540,7 @@ public:
       outputBuffer.setNumSamples(numSamples);
     }
 
-    void processBlock(InterleavedBuffer<Scalar>& input,
+    void processBlock(InterleavedBuffer<Scalar> const& input,
                       int numChannelsToDownsample,
                       int numSamples)
     {
