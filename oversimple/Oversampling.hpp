@@ -732,12 +732,15 @@ public:
     if (settings.updateLatency) {
       settings.updateLatency(getLatency());
     }
+    int maxNumUpsampledSamples = rate * settings.numSamplesPerBlock;
     interleavedBuffers.resize(settings.numInterleavedBuffers);
     for (auto& buffer : interleavedBuffers) {
+      buffer.setNumSamples(maxNumUpsampledSamples);
       buffer.setNumChannels(settings.numChannels);
     }
     scalarBuffers.resize(settings.numScalarBuffers);
     for (auto& buffer : scalarBuffers) {
+      buffer.setNumSamples(maxNumUpsampledSamples);
       buffer.setNumChannels(settings.numChannels);
     }
   }
@@ -780,11 +783,11 @@ public:
       }
 
       for (auto& buffer : interleavedBuffers) {
-        buffer.reserve(maxNumUpsampledSamples);
+        buffer.setNumSamples(maxNumUpsampledSamples);
       }
 
       for (auto& buffer : scalarBuffers) {
-        buffer.reserve(maxNumUpsampledSamples);
+        buffer.setNumSamples(maxNumUpsampledSamples);
       }
     }
   }
