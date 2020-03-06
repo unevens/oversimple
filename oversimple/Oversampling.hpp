@@ -446,12 +446,16 @@ public:
     void processBlock(InterleavedBuffer<Scalar> const& input,
                       Scalar** output,
                       int numChannelsToDownsample,
+                      int numUpsampledSamples,
                       int numSamples)
     {
       if (firDownsampler) {
         input.deinterleave(firInputBuffer);
-        firDownsampler->processBlock(
-          firInputBuffer, output, numChannelsToDownsample, numSamples);
+        firDownsampler->processBlock(firInputBuffer.get(),
+                                     numUpsampledSamples,
+                                     output,
+                                     numChannelsToDownsample,
+                                     numSamples);
       }
       else {
         iirDownsampler->processBlock(
@@ -542,13 +546,19 @@ public:
 
     void processBlock(InterleavedBuffer<Scalar> const& input,
                       int numChannelsToDownsample,
+                      int numUpsampledSamples,
                       int numSamples)
     {
       if (firDownsampler) {
-        input.deinterleave(firInputBuffer);
-        firDownsampler->processBlock(
-          firInputBuffer, firOutputBuffer, numChannelsToDownsample);
-        outputBuffer.interleave(firOutputBuffer, numChannelsToDownsample);
+        input.deinterleave(
+          firInputBuffer.get(), numChannelsToDownsample, numUpsampledSamples);
+        firDownsampler->processBlock(firInputBuffer.get(),
+                                     numUpsampledSamples,
+                                     firOutputBuffer.get(),
+                                     numChannelsToDownsample,
+                                     numSamples);
+        outputBuffer.interleave(
+          firOutputBuffer.get(), numChannelsToDownsample, numSamples);
       }
       else {
         iirDownsampler->processBlock(
@@ -635,11 +645,12 @@ public:
     void processBlock(Scalar* const* input,
                       Scalar** output,
                       int numChannelsToDownsample,
+                      int numUpsampledSamples,
                       int numSamples)
     {
       if (firDownsampler) {
         firDownsampler->processBlock(input,
-                                     numChannelsToDownsample,
+                                     numUpsampledSamples,
                                      output,
                                      numChannelsToDownsample,
                                      numSamples);
@@ -770,6 +781,10 @@ public:
       else if (vecToVecUpsamplers.size() > 0) {
         maxNumUpsampledSamples =
           vecToVecUpsamplers[0]->getMaxUpsampledSamples();
+      }
+      else if (scalarToScalarUpsamplers.size() > 0) {
+        maxNumUpsampledSamples =
+          scalarToScalarUpsamplers[0]->getMaxUpsampledSamples();
       }
 
       for (auto& downsampler : scalarToScalarDownsamplers) {
