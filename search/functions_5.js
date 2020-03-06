@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['reset_93',['Reset',['../classoversimple_1_1_fir_resampler_base.html#a586df5dcbd18fea5c1d4df9fb0f15d76',1,'oversimple::FirResamplerBase::Reset()'],['../classoversimple_1_1_fir_buffered_resampler.html#abe15c0beae9ee1ecbf721472ec6da182',1,'oversimple::FirBufferedResampler::Reset()'],['../classoversimple_1_1_iir_oversampler.html#a77254163029bbffd3f3d4bf04195ffff',1,'oversimple::IirOversampler::Reset()']]]
+  ['reset_109',['reset',['../classoversimple_1_1_fir_resampler_base.html#ad898fc9e2cd0222e2be77bd05031cb58',1,'oversimple::FirResamplerBase::reset()'],['../classoversimple_1_1_fir_buffered_resampler.html#aa3c47776cf698b883048ebc0cd440695',1,'oversimple::FirBufferedResampler::reset()'],['../classoversimple_1_1_iir_oversampler.html#a68bed5c6e1b76e948b76e8928d25ab03',1,'oversimple::IirOversampler::reset()']]]
 ];

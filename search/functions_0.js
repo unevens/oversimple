@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['firbufferedresampler_70',['FirBufferedResampler',['../classoversimple_1_1_fir_buffered_resampler.html#ac058525c8445a6d69b07f711f97f0d1d',1,'oversimple::FirBufferedResampler']]],
-  ['firdownsampler_71',['FirDownsampler',['../classoversimple_1_1_fir_downsampler.html#a123d353f5b5888d3e622ff1c38ff6da1',1,'oversimple::FirDownsampler']]],
-  ['firunbufferedresampler_72',['FirUnbufferedResampler',['../classoversimple_1_1_fir_unbuffered_resampler.html#a31b5b8ddc5723c14cd155c5f639c2225',1,'oversimple::FirUnbufferedResampler']]]
+  ['firbufferedresampler_86',['FirBufferedResampler',['../classoversimple_1_1_fir_buffered_resampler.html#a1a9925240450ac6bfcd38ad9f0cda7d5',1,'oversimple::FirBufferedResampler']]],
+  ['firdownsampler_87',['FirDownsampler',['../classoversimple_1_1_fir_downsampler.html#aa9bf27373789c8a3d2f0830a0477cee3',1,'oversimple::FirDownsampler']]],
+  ['firunbufferedresampler_88',['FirUnbufferedResampler',['../classoversimple_1_1_fir_unbuffered_resampler.html#a6bb202d94f69f2dcacaab16a8cb6d5ad',1,'oversimple::FirUnbufferedResampler']]]
 ];

@@ -93,7 +93,7 @@ $(function() {
 <div class="line"><a name="l00021"></a><span class="lineno">   21</span>&#160;<span class="keyword">namespace </span>oversimple {</div>
 <div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160; </div>
 <div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;<span class="keyword">inline</span> IirOversamplingDesigner</div>
-<div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;GetIirOversamplingPreset(<span class="keywordtype">int</span> presetIndex = 0)</div>
+<div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;getIirOversamplingPreset(<span class="keywordtype">int</span> presetIndex = 0)</div>
 <div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;{</div>
 <div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;  <span class="keywordflow">switch</span> (presetIndex) {</div>
 <div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;    <span class="keywordflow">case</span> 0:</div>
@@ -105,12 +105,12 @@ $(function() {
 <div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;}</div>
 <div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160; </div>
 <div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;<span class="keyword">inline</span> <span class="keywordtype">double</span></div>
-<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;GetIirOversamplingMinGroupDelay(<span class="keywordtype">int</span> order, <span class="keywordtype">int</span> presetIndex = 0)</div>
+<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;getIirOversamplingMinGroupDelay(<span class="keywordtype">int</span> order, <span class="keywordtype">int</span> presetIndex = 0)</div>
 <div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;{</div>
 <div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;  <span class="keywordflow">if</span> (order == 0) {</div>
 <div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;    <span class="keywordflow">return</span> 0.0;</div>
 <div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;  }</div>
-<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;  <span class="keywordflow">return</span> GetIirOversamplingPreset(presetIndex).<a class="code" href="classoversimple_1_1_iir_oversampling_designer.html#acb2e8b7bf5042476f37883158047bfa8">GetMinGroupDelay</a>(order);</div>
+<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;  <span class="keywordflow">return</span> getIirOversamplingPreset(presetIndex).<a class="code" href="classoversimple_1_1_iir_oversampling_designer.html#a9b71d73149014f65d4a38e3c568761b9">getMinGroupDelay</a>(order);</div>
 <div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;}</div>
 <div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160; </div>
 <div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;<span class="keyword">template</span>&lt;<span class="keyword">typename</span> Scalar&gt;</div>
@@ -137,10 +137,10 @@ $(function() {
 <div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160;                              FakeUpsamplerStage2Float&lt;NC&gt;,</div>
 <div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160;                              hiir::Upsampler2x2SseDouble&lt;NC&gt;&gt;::type;</div>
 <div class="line"><a name="l00083"></a><span class="lineno">   83</span>&#160; </div>
-<div class="line"><a name="l00090"></a><span class="lineno"><a class="line" href="classoversimple_1_1_iir_upsampler_factory.html#a3dccdade7c19eb59d369176e8808d57c">   90</a></span>&#160;  <span class="keyword">static</span> std::unique_ptr&lt;IirUpsampler&lt;Scalar&gt;&gt; <a class="code" href="classoversimple_1_1_iir_upsampler_factory.html#a3dccdade7c19eb59d369176e8808d57c">New</a>(<span class="keywordtype">int</span> numChannels,</div>
+<div class="line"><a name="l00090"></a><span class="lineno"><a class="line" href="classoversimple_1_1_iir_upsampler_factory.html#aa7c393314858537f47f52b22ef304e4a">   90</a></span>&#160;  <span class="keyword">static</span> std::unique_ptr&lt;IirUpsampler&lt;Scalar&gt;&gt; <a class="code" href="classoversimple_1_1_iir_upsampler_factory.html#aa7c393314858537f47f52b22ef304e4a">make</a>(<span class="keywordtype">int</span> numChannels,</div>
 <div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160;                                                   <span class="keywordtype">int</span> presetIndex = 0)</div>
 <div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160;  {</div>
-<div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160;    <span class="keyword">auto</span> preset = GetIirOversamplingPreset(presetIndex);</div>
+<div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160;    <span class="keyword">auto</span> preset = getIirOversamplingPreset(presetIndex);</div>
 <div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160;    <span class="keywordflow">switch</span> (presetIndex) {</div>
 <div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;      <span class="keywordflow">case</span> 0:</div>
 <div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160;      <span class="keywordflow">default</span>:</div>
@@ -182,10 +182,10 @@ $(function() {
 <div class="line"><a name="l00135"></a><span class="lineno">  135</span>&#160;                              FakeDownsamplerStage2Float&lt;NC&gt;,</div>
 <div class="line"><a name="l00136"></a><span class="lineno">  136</span>&#160;                              hiir::Downsampler2x2SseDouble&lt;NC&gt;&gt;::type;</div>
 <div class="line"><a name="l00137"></a><span class="lineno">  137</span>&#160; </div>
-<div class="line"><a name="l00144"></a><span class="lineno"><a class="line" href="classoversimple_1_1_iir_downsampler_factory.html#a064dfa114b53ca6183f8722b33d3862f">  144</a></span>&#160;  <span class="keyword">static</span> std::unique_ptr&lt;IirDownsampler&lt;Scalar&gt;&gt; <a class="code" href="classoversimple_1_1_iir_downsampler_factory.html#a064dfa114b53ca6183f8722b33d3862f">New</a>(<span class="keywordtype">int</span> numChannels,</div>
+<div class="line"><a name="l00144"></a><span class="lineno"><a class="line" href="classoversimple_1_1_iir_downsampler_factory.html#a236a24d067187bf30e026c8e81b8c15b">  144</a></span>&#160;  <span class="keyword">static</span> std::unique_ptr&lt;IirDownsampler&lt;Scalar&gt;&gt; <a class="code" href="classoversimple_1_1_iir_downsampler_factory.html#a236a24d067187bf30e026c8e81b8c15b">make</a>(<span class="keywordtype">int</span> numChannels,</div>
 <div class="line"><a name="l00145"></a><span class="lineno">  145</span>&#160;                                                     <span class="keywordtype">int</span> presetIndex = 0)</div>
 <div class="line"><a name="l00146"></a><span class="lineno">  146</span>&#160;  {</div>
-<div class="line"><a name="l00147"></a><span class="lineno">  147</span>&#160;    <span class="keyword">auto</span> preset = GetIirOversamplingPreset(presetIndex);</div>
+<div class="line"><a name="l00147"></a><span class="lineno">  147</span>&#160;    <span class="keyword">auto</span> preset = getIirOversamplingPreset(presetIndex);</div>
 <div class="line"><a name="l00148"></a><span class="lineno">  148</span>&#160;    <span class="keywordflow">switch</span> (presetIndex) {</div>
 <div class="line"><a name="l00149"></a><span class="lineno">  149</span>&#160;      <span class="keywordflow">case</span> 0:</div>
 <div class="line"><a name="l00150"></a><span class="lineno">  150</span>&#160;      <span class="keywordflow">default</span>:</div>
@@ -203,15 +203,15 @@ $(function() {
 <div class="line"><a name="l00162"></a><span class="lineno">  162</span>&#160;} <span class="comment">// namespace oversimple</span></div>
 </div><!-- fragment --></div><!-- contents -->
 <div class="ttc" id="aclasshiir_1_1_upsampler2x8_avx_html"><div class="ttname"><a href="classhiir_1_1_upsampler2x8_avx.html">hiir::Upsampler2x8Avx</a></div><div class="ttdef"><b>Definition:</b> IirOversampling.hpp:49</div></div>
-<div class="ttc" id="aclassoversimple_1_1_t_iir_upsampler_html"><div class="ttname"><a href="classoversimple_1_1_t_iir_upsampler.html">oversimple::TIirUpsampler</a></div><div class="ttdoc">Upsampler with IIR antialiasing filters.</div><div class="ttdef"><b>Definition:</b> IirOversampling.hpp:780</div></div>
+<div class="ttc" id="aclassoversimple_1_1_t_iir_upsampler_html"><div class="ttname"><a href="classoversimple_1_1_t_iir_upsampler.html">oversimple::TIirUpsampler</a></div><div class="ttdoc">Upsampler with IIR antialiasing filters.</div><div class="ttdef"><b>Definition:</b> IirOversampling.hpp:754</div></div>
 <div class="ttc" id="aclasshiir_1_1_upsampler2x4_avx_double_html"><div class="ttname"><a href="classhiir_1_1_upsampler2x4_avx_double.html">hiir::Upsampler2x4AvxDouble</a></div><div class="ttdef"><b>Definition:</b> IirOversampling.hpp:46</div></div>
+<div class="ttc" id="aclassoversimple_1_1_iir_downsampler_factory_html_a236a24d067187bf30e026c8e81b8c15b"><div class="ttname"><a href="classoversimple_1_1_iir_downsampler_factory.html#a236a24d067187bf30e026c8e81b8c15b">oversimple::IirDownsamplerFactory::make</a></div><div class="ttdeci">static std::unique_ptr&lt; IirDownsampler&lt; Scalar &gt; &gt; make(int numChannels, int presetIndex=0)</div><div class="ttdef"><b>Definition:</b> IirOversamplingFactory.hpp:144</div></div>
 <div class="ttc" id="aclassoversimple_1_1_iir_upsampler_factory_html"><div class="ttname"><a href="classoversimple_1_1_iir_upsampler_factory.html">oversimple::IirUpsamplerFactory</a></div><div class="ttdoc">Static class implementing a factory for IirUpsamplers.</div><div class="ttdef"><b>Definition:</b> IirOversamplingFactory.hpp:61</div></div>
-<div class="ttc" id="aclassoversimple_1_1_iir_downsampler_factory_html_a064dfa114b53ca6183f8722b33d3862f"><div class="ttname"><a href="classoversimple_1_1_iir_downsampler_factory.html#a064dfa114b53ca6183f8722b33d3862f">oversimple::IirDownsamplerFactory::New</a></div><div class="ttdeci">static std::unique_ptr&lt; IirDownsampler&lt; Scalar &gt; &gt; New(int numChannels, int presetIndex=0)</div><div class="ttdef"><b>Definition:</b> IirOversamplingFactory.hpp:144</div></div>
 <div class="ttc" id="aclassoversimple_1_1_iir_downsampler_factory_html"><div class="ttname"><a href="classoversimple_1_1_iir_downsampler_factory.html">oversimple::IirDownsamplerFactory</a></div><div class="ttdoc">Static class implementing a factory for IirDownsamplers.</div><div class="ttdef"><b>Definition:</b> IirOversamplingFactory.hpp:112</div></div>
 <div class="ttc" id="aclasshiir_1_1_downsampler2x8_avx_html"><div class="ttname"><a href="classhiir_1_1_downsampler2x8_avx.html">hiir::Downsampler2x8Avx</a></div><div class="ttdef"><b>Definition:</b> IirOversampling.hpp:43</div></div>
-<div class="ttc" id="aclassoversimple_1_1_iir_oversampling_designer_html_acb2e8b7bf5042476f37883158047bfa8"><div class="ttname"><a href="classoversimple_1_1_iir_oversampling_designer.html#acb2e8b7bf5042476f37883158047bfa8">oversimple::IirOversamplingDesigner::GetMinGroupDelay</a></div><div class="ttdeci">double GetMinGroupDelay(int oversamplingOrder) const</div><div class="ttdef"><b>Definition:</b> IirOversamplingDesigner.hpp:166</div></div>
-<div class="ttc" id="aclassoversimple_1_1_iir_upsampler_factory_html_a3dccdade7c19eb59d369176e8808d57c"><div class="ttname"><a href="classoversimple_1_1_iir_upsampler_factory.html#a3dccdade7c19eb59d369176e8808d57c">oversimple::IirUpsamplerFactory::New</a></div><div class="ttdeci">static std::unique_ptr&lt; IirUpsampler&lt; Scalar &gt; &gt; New(int numChannels, int presetIndex=0)</div><div class="ttdef"><b>Definition:</b> IirOversamplingFactory.hpp:90</div></div>
-<div class="ttc" id="aclassoversimple_1_1_t_iir_downsampler_html"><div class="ttname"><a href="classoversimple_1_1_t_iir_downsampler.html">oversimple::TIirDownsampler</a></div><div class="ttdoc">Donwsampler with IIR antialiasing filters.</div><div class="ttdef"><b>Definition:</b> IirOversampling.hpp:677</div></div>
+<div class="ttc" id="aclassoversimple_1_1_iir_upsampler_factory_html_aa7c393314858537f47f52b22ef304e4a"><div class="ttname"><a href="classoversimple_1_1_iir_upsampler_factory.html#aa7c393314858537f47f52b22ef304e4a">oversimple::IirUpsamplerFactory::make</a></div><div class="ttdeci">static std::unique_ptr&lt; IirUpsampler&lt; Scalar &gt; &gt; make(int numChannels, int presetIndex=0)</div><div class="ttdef"><b>Definition:</b> IirOversamplingFactory.hpp:90</div></div>
+<div class="ttc" id="aclassoversimple_1_1_iir_oversampling_designer_html_a9b71d73149014f65d4a38e3c568761b9"><div class="ttname"><a href="classoversimple_1_1_iir_oversampling_designer.html#a9b71d73149014f65d4a38e3c568761b9">oversimple::IirOversamplingDesigner::getMinGroupDelay</a></div><div class="ttdeci">double getMinGroupDelay(int oversamplingOrder) const</div><div class="ttdef"><b>Definition:</b> IirOversamplingDesigner.hpp:166</div></div>
+<div class="ttc" id="aclassoversimple_1_1_t_iir_downsampler_html"><div class="ttname"><a href="classoversimple_1_1_t_iir_downsampler.html">oversimple::TIirDownsampler</a></div><div class="ttdoc">Donwsampler with IIR antialiasing filters.</div><div class="ttdef"><b>Definition:</b> IirOversampling.hpp:651</div></div>
 <div class="ttc" id="aclasshiir_1_1_downsampler2x4_avx_double_html"><div class="ttname"><a href="classhiir_1_1_downsampler2x4_avx_double.html">hiir::Downsampler2x4AvxDouble</a></div><div class="ttdef"><b>Definition:</b> IirOversampling.hpp:40</div></div>
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>

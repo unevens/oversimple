@@ -94,33 +94,33 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a75f92932aa224c0c97a606a45a8914b1"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classoversimple_1_1_t_iir_upsampler.html#a75f92932aa224c0c97a606a45a8914b1">TIirUpsampler</a> (<a class="el" href="classoversimple_1_1_iir_oversampling_designer.html">IirOversamplingDesigner</a> const &amp;designer, int numChannels)</td></tr>
 <tr class="memdesc:a75f92932aa224c0c97a606a45a8914b1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructor.  <a href="classoversimple_1_1_t_iir_upsampler.html#a75f92932aa224c0c97a606a45a8914b1">More...</a><br /></td></tr>
 <tr class="separator:a75f92932aa224c0c97a606a45a8914b1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af4503128c0da2c5d310a15f38bd860e7"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classoversimple_1_1_t_iir_upsampler.html#af4503128c0da2c5d310a15f38bd860e7">ProcessBlock</a> (InterleavedBuffer&lt; Scalar &gt; const &amp;input, int numInputSamples, InterleavedBuffer&lt; Scalar &gt; &amp;output, int numChannelsToProcess) override</td></tr>
-<tr class="memdesc:af4503128c0da2c5d310a15f38bd860e7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Upsamples an already interleaved input.  <a href="classoversimple_1_1_t_iir_upsampler.html#af4503128c0da2c5d310a15f38bd860e7">More...</a><br /></td></tr>
-<tr class="separator:af4503128c0da2c5d310a15f38bd860e7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a657d9a260dc7a65585141c66efdc9d56"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classoversimple_1_1_t_iir_upsampler.html#a657d9a260dc7a65585141c66efdc9d56">ProcessBlock</a> (Scalar *const *inputs, int numInputSamples, InterleavedBuffer&lt; Scalar &gt; &amp;output, int numChannelsToProcess) override</td></tr>
-<tr class="memdesc:a657d9a260dc7a65585141c66efdc9d56"><td class="mdescLeft">&#160;</td><td class="mdescRight">Upsamples the input.  <a href="classoversimple_1_1_t_iir_upsampler.html#a657d9a260dc7a65585141c66efdc9d56">More...</a><br /></td></tr>
-<tr class="separator:a657d9a260dc7a65585141c66efdc9d56"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a88e35a3f41eb736fc9f74e3ddc8d8fb5"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classoversimple_1_1_t_iir_upsampler.html#a88e35a3f41eb736fc9f74e3ddc8d8fb5">ProcessBlock</a> (ScalarBuffer&lt; Scalar &gt; const &amp;input, InterleavedBuffer&lt; Scalar &gt; &amp;output, int numChannelsToProcess) override</td></tr>
-<tr class="memdesc:a88e35a3f41eb736fc9f74e3ddc8d8fb5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Upsamples the input.  <a href="classoversimple_1_1_t_iir_upsampler.html#a88e35a3f41eb736fc9f74e3ddc8d8fb5">More...</a><br /></td></tr>
-<tr class="separator:a88e35a3f41eb736fc9f74e3ddc8d8fb5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a451a517adcf05bdaceb7cd5ae40931ff"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classoversimple_1_1_t_iir_upsampler.html#a451a517adcf05bdaceb7cd5ae40931ff">processBlock</a> (InterleavedBuffer&lt; Scalar &gt; const &amp;input, int numInputSamples, InterleavedBuffer&lt; Scalar &gt; &amp;output, int numChannelsToProcess) override</td></tr>
+<tr class="memdesc:a451a517adcf05bdaceb7cd5ae40931ff"><td class="mdescLeft">&#160;</td><td class="mdescRight">Upsamples an already interleaved input.  <a href="classoversimple_1_1_t_iir_upsampler.html#a451a517adcf05bdaceb7cd5ae40931ff">More...</a><br /></td></tr>
+<tr class="separator:a451a517adcf05bdaceb7cd5ae40931ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6cfd0f1be0661d5fec8919ccb37e45fd"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classoversimple_1_1_t_iir_upsampler.html#a6cfd0f1be0661d5fec8919ccb37e45fd">processBlock</a> (Scalar *const *inputs, int numInputSamples, InterleavedBuffer&lt; Scalar &gt; &amp;output, int numChannelsToProcess) override</td></tr>
+<tr class="memdesc:a6cfd0f1be0661d5fec8919ccb37e45fd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Upsamples the input.  <a href="classoversimple_1_1_t_iir_upsampler.html#a6cfd0f1be0661d5fec8919ccb37e45fd">More...</a><br /></td></tr>
+<tr class="separator:a6cfd0f1be0661d5fec8919ccb37e45fd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aaf4ee8cb63188316e88a73728b596a03"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classoversimple_1_1_t_iir_upsampler.html#aaf4ee8cb63188316e88a73728b596a03">processBlock</a> (ScalarBuffer&lt; Scalar &gt; const &amp;input, InterleavedBuffer&lt; Scalar &gt; &amp;output, int numChannelsToProcess) override</td></tr>
+<tr class="memdesc:aaf4ee8cb63188316e88a73728b596a03"><td class="mdescLeft">&#160;</td><td class="mdescRight">Upsamples the input.  <a href="classoversimple_1_1_t_iir_upsampler.html#aaf4ee8cb63188316e88a73728b596a03">More...</a><br /></td></tr>
+<tr class="separator:aaf4ee8cb63188316e88a73728b596a03"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_classoversimple_1_1_iir_oversampler"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_classoversimple_1_1_iir_oversampler')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="classoversimple_1_1_iir_oversampler.html">oversimple::IirOversampler</a></td></tr>
-<tr class="memitem:ad9f3e19719a7af68c4d4ede81b6dcbb1 inherit pub_methods_classoversimple_1_1_iir_oversampler"><td class="memItemLeft" align="right" valign="top">virtual int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classoversimple_1_1_iir_oversampler.html#ad9f3e19719a7af68c4d4ede81b6dcbb1">GetOrder</a> () const =0</td></tr>
-<tr class="separator:ad9f3e19719a7af68c4d4ede81b6dcbb1 inherit pub_methods_classoversimple_1_1_iir_oversampler"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0654d5fbb7c93363fdaefd6513f50060 inherit pub_methods_classoversimple_1_1_iir_oversampler"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classoversimple_1_1_iir_oversampler.html#a0654d5fbb7c93363fdaefd6513f50060">SetOrder</a> (int value)=0</td></tr>
-<tr class="memdesc:a0654d5fbb7c93363fdaefd6513f50060 inherit pub_methods_classoversimple_1_1_iir_oversampler"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the oversampling order.  <a href="classoversimple_1_1_iir_oversampler.html#a0654d5fbb7c93363fdaefd6513f50060">More...</a><br /></td></tr>
-<tr class="separator:a0654d5fbb7c93363fdaefd6513f50060 inherit pub_methods_classoversimple_1_1_iir_oversampler"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa02931ea54267e610284eff7fb233794 inherit pub_methods_classoversimple_1_1_iir_oversampler"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classoversimple_1_1_iir_oversampler.html#aa02931ea54267e610284eff7fb233794">PrepareBuffer</a> (int samplesPerBlock)=0</td></tr>
-<tr class="memdesc:aa02931ea54267e610284eff7fb233794 inherit pub_methods_classoversimple_1_1_iir_oversampler"><td class="mdescLeft">&#160;</td><td class="mdescRight">Preallocates data to process the supplied amount of samples.  <a href="classoversimple_1_1_iir_oversampler.html#aa02931ea54267e610284eff7fb233794">More...</a><br /></td></tr>
-<tr class="separator:aa02931ea54267e610284eff7fb233794 inherit pub_methods_classoversimple_1_1_iir_oversampler"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a95a0de73d1bcc0c8fef96dd19bc75a49 inherit pub_methods_classoversimple_1_1_iir_oversampler"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classoversimple_1_1_iir_oversampler.html#a95a0de73d1bcc0c8fef96dd19bc75a49">SetNumChannels</a> (int value)=0</td></tr>
-<tr class="memdesc:a95a0de73d1bcc0c8fef96dd19bc75a49 inherit pub_methods_classoversimple_1_1_iir_oversampler"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the number of channels the processor is capable to work with.  <a href="classoversimple_1_1_iir_oversampler.html#a95a0de73d1bcc0c8fef96dd19bc75a49">More...</a><br /></td></tr>
-<tr class="separator:a95a0de73d1bcc0c8fef96dd19bc75a49 inherit pub_methods_classoversimple_1_1_iir_oversampler"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a77254163029bbffd3f3d4bf04195ffff inherit pub_methods_classoversimple_1_1_iir_oversampler"><td class="memItemLeft" align="right" valign="top"><a id="a77254163029bbffd3f3d4bf04195ffff"></a>
-virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classoversimple_1_1_iir_oversampler.html#a77254163029bbffd3f3d4bf04195ffff">Reset</a> ()=0</td></tr>
-<tr class="memdesc:a77254163029bbffd3f3d4bf04195ffff inherit pub_methods_classoversimple_1_1_iir_oversampler"><td class="mdescLeft">&#160;</td><td class="mdescRight">Resets the state of the processor, clearing the state of the antialiasing filters. <br /></td></tr>
-<tr class="separator:a77254163029bbffd3f3d4bf04195ffff inherit pub_methods_classoversimple_1_1_iir_oversampler"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab66823d86f504201dad6551bf098c761 inherit pub_methods_classoversimple_1_1_iir_oversampler"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="classoversimple_1_1_iir_oversampling_designer.html">IirOversamplingDesigner</a> const  &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classoversimple_1_1_iir_oversampler.html#ab66823d86f504201dad6551bf098c761">GetDesigner</a> () const =0</td></tr>
-<tr class="separator:ab66823d86f504201dad6551bf098c761 inherit pub_methods_classoversimple_1_1_iir_oversampler"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0c7b44bc064b485ecdcd296cd4c24282 inherit pub_methods_classoversimple_1_1_iir_oversampler"><td class="memItemLeft" align="right" valign="top">virtual int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classoversimple_1_1_iir_oversampler.html#a0c7b44bc064b485ecdcd296cd4c24282">getOrder</a> () const =0</td></tr>
+<tr class="separator:a0c7b44bc064b485ecdcd296cd4c24282 inherit pub_methods_classoversimple_1_1_iir_oversampler"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afe1465c5ece02aede47a710276ed5e00 inherit pub_methods_classoversimple_1_1_iir_oversampler"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classoversimple_1_1_iir_oversampler.html#afe1465c5ece02aede47a710276ed5e00">setOrder</a> (int value)=0</td></tr>
+<tr class="memdesc:afe1465c5ece02aede47a710276ed5e00 inherit pub_methods_classoversimple_1_1_iir_oversampler"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the oversampling order.  <a href="classoversimple_1_1_iir_oversampler.html#afe1465c5ece02aede47a710276ed5e00">More...</a><br /></td></tr>
+<tr class="separator:afe1465c5ece02aede47a710276ed5e00 inherit pub_methods_classoversimple_1_1_iir_oversampler"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a42602c6c548f91da07f91ba94707f74a inherit pub_methods_classoversimple_1_1_iir_oversampler"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classoversimple_1_1_iir_oversampler.html#a42602c6c548f91da07f91ba94707f74a">prepareBuffer</a> (int samplesPerBlock)=0</td></tr>
+<tr class="memdesc:a42602c6c548f91da07f91ba94707f74a inherit pub_methods_classoversimple_1_1_iir_oversampler"><td class="mdescLeft">&#160;</td><td class="mdescRight">Preallocates data to process the supplied amount of samples.  <a href="classoversimple_1_1_iir_oversampler.html#a42602c6c548f91da07f91ba94707f74a">More...</a><br /></td></tr>
+<tr class="separator:a42602c6c548f91da07f91ba94707f74a inherit pub_methods_classoversimple_1_1_iir_oversampler"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af9fc99df8c006349c571c7e6c57e2030 inherit pub_methods_classoversimple_1_1_iir_oversampler"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classoversimple_1_1_iir_oversampler.html#af9fc99df8c006349c571c7e6c57e2030">setNumChannels</a> (int value)=0</td></tr>
+<tr class="memdesc:af9fc99df8c006349c571c7e6c57e2030 inherit pub_methods_classoversimple_1_1_iir_oversampler"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the number of channels the processor is capable to work with.  <a href="classoversimple_1_1_iir_oversampler.html#af9fc99df8c006349c571c7e6c57e2030">More...</a><br /></td></tr>
+<tr class="separator:af9fc99df8c006349c571c7e6c57e2030 inherit pub_methods_classoversimple_1_1_iir_oversampler"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a68bed5c6e1b76e948b76e8928d25ab03 inherit pub_methods_classoversimple_1_1_iir_oversampler"><td class="memItemLeft" align="right" valign="top"><a id="a68bed5c6e1b76e948b76e8928d25ab03"></a>
+virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classoversimple_1_1_iir_oversampler.html#a68bed5c6e1b76e948b76e8928d25ab03">reset</a> ()=0</td></tr>
+<tr class="memdesc:a68bed5c6e1b76e948b76e8928d25ab03 inherit pub_methods_classoversimple_1_1_iir_oversampler"><td class="mdescLeft">&#160;</td><td class="mdescRight">Resets the state of the processor, clearing the state of the antialiasing filters. <br /></td></tr>
+<tr class="separator:a68bed5c6e1b76e948b76e8928d25ab03 inherit pub_methods_classoversimple_1_1_iir_oversampler"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a21f12e060c48fae7ec7fb8a92c505cc3 inherit pub_methods_classoversimple_1_1_iir_oversampler"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="classoversimple_1_1_iir_oversampling_designer.html">IirOversamplingDesigner</a> const  &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classoversimple_1_1_iir_oversampler.html#a21f12e060c48fae7ec7fb8a92c505cc3">getDesigner</a> () const =0</td></tr>
+<tr class="separator:a21f12e060c48fae7ec7fb8a92c505cc3 inherit pub_methods_classoversimple_1_1_iir_oversampler"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><h3>template&lt;typename Scalar, int numCoefsStage0, int numCoefsStage1, int numCoefsStage2, int numCoefsStage3, int numCoefsStage4, template&lt; int &gt; class StageVec8, template&lt; int &gt; class StageVec4, template&lt; int &gt; class StageVec2&gt;<br />
@@ -176,8 +176,8 @@ template&lt;typename Scalar , int numCoefsStage0, int numCoefsStage1, int numCoe
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="af4503128c0da2c5d310a15f38bd860e7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af4503128c0da2c5d310a15f38bd860e7">&#9670;&nbsp;</a></span>ProcessBlock() <span class="overload">[1/3]</span></h2>
+<a id="a451a517adcf05bdaceb7cd5ae40931ff"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a451a517adcf05bdaceb7cd5ae40931ff">&#9670;&nbsp;</a></span>processBlock() <span class="overload">[1/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -188,7 +188,7 @@ template&lt;typename Scalar , int numCoefsStage0, int numCoefsStage1, int numCoe
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">void <a class="el" href="classoversimple_1_1_t_iir_upsampler.html">oversimple::TIirUpsampler</a>&lt; Scalar, numCoefsStage0, numCoefsStage1, numCoefsStage2, numCoefsStage3, numCoefsStage4, StageVec8, StageVec4, StageVec2 &gt;::ProcessBlock </td>
+          <td class="memname">void <a class="el" href="classoversimple_1_1_t_iir_upsampler.html">oversimple::TIirUpsampler</a>&lt; Scalar, numCoefsStage0, numCoefsStage1, numCoefsStage2, numCoefsStage3, numCoefsStage4, StageVec8, StageVec4, StageVec2 &gt;::processBlock </td>
           <td>(</td>
           <td class="paramtype">InterleavedBuffer&lt; Scalar &gt; const &amp;&#160;</td>
           <td class="paramname"><em>input</em>, </td>
@@ -235,12 +235,12 @@ template&lt;typename Scalar , int numCoefsStage0, int numCoefsStage1, int numCoe
   </dd>
 </dl>
 
-<p>Implements <a class="el" href="classoversimple_1_1_iir_upsampler.html#aa87ae478871545b3041a12bbfe65ff75">oversimple::IirUpsampler&lt; Scalar &gt;</a>.</p>
+<p>Implements <a class="el" href="classoversimple_1_1_iir_upsampler.html#a69c37f6100d73fb90c5d547310a072be">oversimple::IirUpsampler&lt; Scalar &gt;</a>.</p>
 
 </div>
 </div>
-<a id="a657d9a260dc7a65585141c66efdc9d56"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a657d9a260dc7a65585141c66efdc9d56">&#9670;&nbsp;</a></span>ProcessBlock() <span class="overload">[2/3]</span></h2>
+<a id="a6cfd0f1be0661d5fec8919ccb37e45fd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6cfd0f1be0661d5fec8919ccb37e45fd">&#9670;&nbsp;</a></span>processBlock() <span class="overload">[2/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -251,7 +251,7 @@ template&lt;typename Scalar , int numCoefsStage0, int numCoefsStage1, int numCoe
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">void <a class="el" href="classoversimple_1_1_t_iir_upsampler.html">oversimple::TIirUpsampler</a>&lt; Scalar, numCoefsStage0, numCoefsStage1, numCoefsStage2, numCoefsStage3, numCoefsStage4, StageVec8, StageVec4, StageVec2 &gt;::ProcessBlock </td>
+          <td class="memname">void <a class="el" href="classoversimple_1_1_t_iir_upsampler.html">oversimple::TIirUpsampler</a>&lt; Scalar, numCoefsStage0, numCoefsStage1, numCoefsStage2, numCoefsStage3, numCoefsStage4, StageVec8, StageVec4, StageVec2 &gt;::processBlock </td>
           <td>(</td>
           <td class="paramtype">Scalar *const *&#160;</td>
           <td class="paramname"><em>input</em>, </td>
@@ -298,12 +298,12 @@ template&lt;typename Scalar , int numCoefsStage0, int numCoefsStage1, int numCoe
   </dd>
 </dl>
 
-<p>Implements <a class="el" href="classoversimple_1_1_iir_upsampler.html#a36b230945c0a46957d91efc32879cf8a">oversimple::IirUpsampler&lt; Scalar &gt;</a>.</p>
+<p>Implements <a class="el" href="classoversimple_1_1_iir_upsampler.html#ad0de32153d1dc5152bd972d303f1c0e2">oversimple::IirUpsampler&lt; Scalar &gt;</a>.</p>
 
 </div>
 </div>
-<a id="a88e35a3f41eb736fc9f74e3ddc8d8fb5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a88e35a3f41eb736fc9f74e3ddc8d8fb5">&#9670;&nbsp;</a></span>ProcessBlock() <span class="overload">[3/3]</span></h2>
+<a id="aaf4ee8cb63188316e88a73728b596a03"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aaf4ee8cb63188316e88a73728b596a03">&#9670;&nbsp;</a></span>processBlock() <span class="overload">[3/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -314,7 +314,7 @@ template&lt;typename Scalar , int numCoefsStage0, int numCoefsStage1, int numCoe
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">void <a class="el" href="classoversimple_1_1_t_iir_upsampler.html">oversimple::TIirUpsampler</a>&lt; Scalar, numCoefsStage0, numCoefsStage1, numCoefsStage2, numCoefsStage3, numCoefsStage4, StageVec8, StageVec4, StageVec2 &gt;::ProcessBlock </td>
+          <td class="memname">void <a class="el" href="classoversimple_1_1_t_iir_upsampler.html">oversimple::TIirUpsampler</a>&lt; Scalar, numCoefsStage0, numCoefsStage1, numCoefsStage2, numCoefsStage3, numCoefsStage4, StageVec8, StageVec4, StageVec2 &gt;::processBlock </td>
           <td>(</td>
           <td class="paramtype">ScalarBuffer&lt; Scalar &gt; const &amp;&#160;</td>
           <td class="paramname"><em>input</em>, </td>
@@ -354,7 +354,7 @@ template&lt;typename Scalar , int numCoefsStage0, int numCoefsStage1, int numCoe
   </dd>
 </dl>
 
-<p>Implements <a class="el" href="classoversimple_1_1_iir_upsampler.html#af4c1f63ad119b916e0144004ee342d30">oversimple::IirUpsampler&lt; Scalar &gt;</a>.</p>
+<p>Implements <a class="el" href="classoversimple_1_1_iir_upsampler.html#a314f12a363022abb6ad396117e355e17">oversimple::IirUpsampler&lt; Scalar &gt;</a>.</p>
 
 </div>
 </div>

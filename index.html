@@ -75,8 +75,9 @@ $(function() {
 <p>Aligned memory and interleaved buffers needed by the simd code in HIIR are managed using <a href="https://github.com/unevens/avec">avec</a>.</p>
 <h1><a class="anchor" id="autotoc_md1"></a>
 Usage</h1>
-<p>Just add everything to your project except for the content of the <code>test</code> folders and the .cpp files in <code>audio-vec/vectorclass</code>.</p>
-<p>If you support AVX instructions, you may want to define <code>R8B_PFFFT_DOUBLE=1</code> in <code>r8bconf.h</code> or as a preprocessor definition. See <code>r8brain/README.md</code> for more details.</p>
+<p>Add everything to your project except for the content of the <code>test</code> folders and the .cpp files in <code>avec/vectorclass</code>.</p>
+<p>Add to your include paths the directory in which you put this repository and its subdirectories <code>r8brain</code>, <code>avec</code>, and <code>avec/vectorclass</code>.</p>
+<p>If you support AVX instructions, you may want to define <code>R8B_PFFFT_DOUBLE=1</code> in <code>r8brain/r8bconf.h</code> or as a preprocessor definition. See <code>r8brain/README.md</code> for more details.</p>
 <h1><a class="anchor" id="autotoc_md2"></a>
 Dependencies</h1>
 <ul>

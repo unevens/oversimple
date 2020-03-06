@@ -1,17 +1,17 @@
 var searchData=
 [
-  ['getdesigner_73',['GetDesigner',['../classoversimple_1_1_iir_oversampler.html#ab66823d86f504201dad6551bf098c761',1,'oversimple::IirOversampler']]],
-  ['getgroupdelay_74',['GetGroupDelay',['../classoversimple_1_1_iir_oversampling_designer.html#ae268cbcfe11a6c09eba535a52523aab4',1,'oversimple::IirOversamplingDesigner']]],
-  ['getgroupdelaygraph_75',['GetGroupDelayGraph',['../classoversimple_1_1_iir_oversampling_designer.html#a064aebd3bbab326fd5c7925a289ffd62',1,'oversimple::IirOversamplingDesigner']]],
-  ['getmaxnumoutputsamples_76',['GetMaxNumOutputSamples',['../classoversimple_1_1_fir_resampler_base.html#adc531966f0579af013415c6d8bc911b9',1,'oversimple::FirResamplerBase']]],
-  ['getmaxsamplesperblock_77',['GetMaxSamplesPerBlock',['../classoversimple_1_1_fir_resampler_base.html#ace17c210e4434e810533c670f671a7e5',1,'oversimple::FirResamplerBase']]],
-  ['getmingroupdelay_78',['GetMinGroupDelay',['../classoversimple_1_1_iir_oversampling_designer.html#acb2e8b7bf5042476f37883158047bfa8',1,'oversimple::IirOversamplingDesigner']]],
-  ['getnumchannels_79',['GetNumChannels',['../classoversimple_1_1_fir_resampler_base.html#afe184618128dae3c83b6f62990cf0b33',1,'oversimple::FirResamplerBase']]],
-  ['getnumsamplesbeforeoutputstarts_80',['GetNumSamplesBeforeOutputStarts',['../classoversimple_1_1_fir_resampler_base.html#ad3d333f2101696cfcb8ccc0919af354f',1,'oversimple::FirResamplerBase']]],
-  ['getorder_81',['GetOrder',['../classoversimple_1_1_iir_oversampler.html#ad9f3e19719a7af68c4d4ede81b6dcbb1',1,'oversimple::IirOversampler']]],
-  ['getoutput_82',['GetOutput',['../classoversimple_1_1_iir_downsampler.html#a2cd5fd19204f273aeb2689a8f93deecc',1,'oversimple::IirDownsampler::GetOutput()'],['../classoversimple_1_1_t_iir_downsampler.html#a4b761bf30c3cca6b9cfb738a72008c8b',1,'oversimple::TIirDownsampler::GetOutput()']]],
-  ['getoversamplingfactor_83',['GetOversamplingFactor',['../classoversimple_1_1_fir_resampler_base.html#a88ad037da1748ffd8d7d23343f65617f',1,'oversimple::FirResamplerBase::GetOversamplingFactor()'],['../classoversimple_1_1_fir_downsampler.html#a280f7fa1454524c32017676b2d0567e4',1,'oversimple::FirDownsampler::GetOversamplingFactor()'],['../classoversimple_1_1_t_fir_downsampler.html#aad22d7f29bf5498577e6a19d227e33d6',1,'oversimple::TFirDownsampler::GetOversamplingFactor()']]],
-  ['getphasedelay_84',['GetPhaseDelay',['../classoversimple_1_1_iir_oversampling_designer.html#a2c99157c602713ab0a37ea13102fffe7',1,'oversimple::IirOversamplingDesigner']]],
-  ['getstages_85',['GetStages',['../classoversimple_1_1_iir_oversampling_designer.html#a2e61347e8c66cc7cb65257573475f197',1,'oversimple::IirOversamplingDesigner']]],
-  ['gettransitionband_86',['GetTransitionBand',['../classoversimple_1_1_fir_resampler_base.html#ad08b5d09c802d56ad0c9c46e36720da7',1,'oversimple::FirResamplerBase']]]
+  ['getdesigner_89',['getDesigner',['../classoversimple_1_1_iir_oversampler.html#a21f12e060c48fae7ec7fb8a92c505cc3',1,'oversimple::IirOversampler']]],
+  ['getgroupdelay_90',['getGroupDelay',['../classoversimple_1_1_iir_oversampling_designer.html#a52525496407f94ed0af01fccfd6d539c',1,'oversimple::IirOversamplingDesigner']]],
+  ['getgroupdelaygraph_91',['getGroupDelayGraph',['../classoversimple_1_1_iir_oversampling_designer.html#a9fbec7b705192d66b4e2f850a4ef129a',1,'oversimple::IirOversamplingDesigner']]],
+  ['getmaxnumoutputsamples_92',['getMaxNumOutputSamples',['../classoversimple_1_1_fir_resampler_base.html#abb7266dfdb424f241cfc2bf7bc50d550',1,'oversimple::FirResamplerBase']]],
+  ['getmaxsamplesperblock_93',['getMaxSamplesPerBlock',['../classoversimple_1_1_fir_resampler_base.html#aca75944b79f17c42a5cb9075e76e9da3',1,'oversimple::FirResamplerBase']]],
+  ['getmingroupdelay_94',['getMinGroupDelay',['../classoversimple_1_1_iir_oversampling_designer.html#a9b71d73149014f65d4a38e3c568761b9',1,'oversimple::IirOversamplingDesigner']]],
+  ['getnumchannels_95',['getNumChannels',['../classoversimple_1_1_fir_resampler_base.html#a11aac23a06d2e8069bad77b36e4233f9',1,'oversimple::FirResamplerBase']]],
+  ['getnumsamplesbeforeoutputstarts_96',['getNumSamplesBeforeOutputStarts',['../classoversimple_1_1_fir_resampler_base.html#ac7ae4ec45b76f0aae24ed699d4e8442d',1,'oversimple::FirResamplerBase']]],
+  ['getorder_97',['getOrder',['../classoversimple_1_1_iir_oversampler.html#a0c7b44bc064b485ecdcd296cd4c24282',1,'oversimple::IirOversampler']]],
+  ['getoutput_98',['getOutput',['../classoversimple_1_1_iir_downsampler.html#a0f4de6856f42fa2c50a4cf0442646920',1,'oversimple::IirDownsampler::getOutput()'],['../classoversimple_1_1_t_iir_downsampler.html#a1f0e5cf1fd58997764bf25912b76a4ff',1,'oversimple::TIirDownsampler::getOutput()']]],
+  ['getphasedelay_99',['getPhaseDelay',['../classoversimple_1_1_iir_oversampling_designer.html#a80c9b43c47d98b392a90e0601d6081fd',1,'oversimple::IirOversamplingDesigner']]],
+  ['getrate_100',['getRate',['../classoversimple_1_1_fir_resampler_base.html#a434b63247637616a7625aac7b62edfc6',1,'oversimple::FirResamplerBase::getRate()'],['../classoversimple_1_1_fir_downsampler.html#a68df3672eb367516946de5b8cc7ccc0a',1,'oversimple::FirDownsampler::getRate()'],['../classoversimple_1_1_t_fir_downsampler.html#aac95e7e7c24a9074e45e7c161028f940',1,'oversimple::TFirDownsampler::getRate()']]],
+  ['getstages_101',['getStages',['../classoversimple_1_1_iir_oversampling_designer.html#a2f2237177d0633c0e60ab76dfc0e4802',1,'oversimple::IirOversamplingDesigner']]],
+  ['gettransitionband_102',['getTransitionBand',['../classoversimple_1_1_fir_resampler_base.html#a99c5a33852ca377ebb2ad5def551df05',1,'oversimple::FirResamplerBase']]]
 ];
