@@ -23,7 +23,7 @@ namespace oversimple {
 
 /**
  * A class to control an Oversampling instance. It contains simple fields to
- * setup how to oversample and if any upsampled audio buffers are needed.
+ * setup how to oversample and if any upsampled audio buffer is needed.
  * Then the Oversampling instance will do all the work.
  * @see Oversampling
  */
@@ -81,8 +81,8 @@ struct OversamplingSettings
 };
 
 /**
- * A class to abstract over all the implementations in this library, which you
- * can control with an OversamplingSettings object, and offers a simple api for
+ * A class to abstract over all the implementations in this library, which can
+ * be controlled with an OversamplingSettings object. It offers a simple api for
  * oversampling and management of upsampled audio buffers.
  * @see OversamplingSettings
  */
