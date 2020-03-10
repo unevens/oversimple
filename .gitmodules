@@ -1,6 +1,3 @@
-[submodule "audio-vec"]
-	path = audio-vec
-	url = https://github.com/unevens/audio-vec
 [submodule "hiir"]
 	path = hiir
 	url = https://github.com/unevens/hiir
