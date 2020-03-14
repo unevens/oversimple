@@ -131,7 +131,7 @@ public:
     void prepareBuffers(int numSamples)
     {
       int const oversamplingRate = firUpsampler
-                                     ? firUpsampler->getRate()
+                                     ? (int)firUpsampler->getRate()
                                      : (1 << iirUpsampler->getOrder());
       int const numUpsampledSamples = numSamples * oversamplingRate;
 
@@ -234,7 +234,7 @@ public:
     void prepareBuffers(int numSamples)
     {
       int const oversamplingRate = firUpsampler
-                                     ? firUpsampler->getRate()
+                                     ? (int)firUpsampler->getRate()
                                      : (1 << iirUpsampler->getOrder());
       int const numUpsampledSamples = numSamples * oversamplingRate;
       outputBuffer.setNumSamples(numUpsampledSamples);
@@ -334,7 +334,7 @@ public:
     void prepareBuffers(int numSamples)
     {
       int const oversamplingRate = firUpsampler
-                                     ? firUpsampler->getRate()
+                                     ? (int)firUpsampler->getRate()
                                      : (1 << iirUpsampler->getOrder());
       int const numUpsampledSamples = numSamples * oversamplingRate;
       outputBuffer.setNumSamples(numUpsampledSamples);
@@ -432,7 +432,7 @@ public:
     void prepareBuffers(int numSamples, int maxNumUpsampledSamples)
     {
       int const oversamplingRate = firDownsampler
-                                     ? firDownsampler->getRate()
+                                     ? (int)firDownsampler->getRate()
                                      : (1 << iirDownsampler->getOrder());
       if (firDownsampler) {
         firDownsampler->prepareBuffers(maxNumUpsampledSamples, numSamples);
@@ -468,8 +468,8 @@ public:
     int getLatency()
     {
       if (firDownsampler) {
-        return (double)firDownsampler->getNumSamplesBeforeOutputStarts() /
-               (double)firDownsampler->getRate();
+        return (int)((double)firDownsampler->getNumSamplesBeforeOutputStarts() /
+                     (double)firDownsampler->getRate());
       }
       return 0;
     }
@@ -531,7 +531,7 @@ public:
     void prepareBuffers(int numSamples, int maxNumUpsampledSamples)
     {
       int const oversamplingRate = firDownsampler
-                                     ? firDownsampler->getRate()
+                                     ? (int)firDownsampler->getRate()
                                      : (1 << iirDownsampler->getOrder());
       if (firDownsampler) {
         firDownsampler->prepareBuffers(maxNumUpsampledSamples, numSamples);
@@ -574,8 +574,8 @@ public:
     int getLatency()
     {
       if (firDownsampler) {
-        return (double)firDownsampler->getNumSamplesBeforeOutputStarts() /
-               (double)firDownsampler->getRate();
+        return (int)((double)firDownsampler->getNumSamplesBeforeOutputStarts() /
+                     (double)firDownsampler->getRate());
       }
       return 0;
     }
@@ -631,7 +631,7 @@ public:
     void prepareBuffers(int numSamples, int maxNumUpsampledSamples)
     {
       int const oversamplingRate = firDownsampler
-                                     ? firDownsampler->getRate()
+                                     ? (int)firDownsampler->getRate()
                                      : (1 << iirDownsampler->getOrder());
       if (firDownsampler) {
         firDownsampler->prepareBuffers(maxNumUpsampledSamples, numSamples);
@@ -667,8 +667,8 @@ public:
     int getLatency()
     {
       if (firDownsampler) {
-        return (double)firDownsampler->getNumSamplesBeforeOutputStarts() /
-               (double)firDownsampler->getRate();
+        return (int)((double)firDownsampler->getNumSamplesBeforeOutputStarts() /
+                     (double)firDownsampler->getRate());
       }
       return 0;
     }

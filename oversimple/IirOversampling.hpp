@@ -51,6 +51,9 @@ class Upsampler2x8Avx final : public FakeInterface
 } // namespace hiir
 #endif
 
+#pragma warning(push)
+#pragma warning(disable : 4250)
+
 namespace oversimple {
 
 // interfaces
@@ -914,8 +917,11 @@ public:
                     InterleavedBuffer<Scalar>& output,
                     int numChannelsToProcess) override
   {
-    processBlock(input.get(), input.getNumSamples(), output, numChannelsToProcess);
+    processBlock(
+      input.get(), input.getNumSamples(), output, numChannelsToProcess);
   }
 };
 
 } // namespace oversimple
+
+#pragma warning(pop)

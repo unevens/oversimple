@@ -117,7 +117,7 @@ public:
    * @param numSamples expected number of samples to be processed on each call
    * to processBlock.
    */
-  void prepareBuffers(int numSamples);
+  virtual void prepareBuffers(int numSamples);
 };
 
 /**
@@ -133,7 +133,7 @@ class FirUnbufferedResampler : public FirResamplerBase
 
 public:
   /**
-   * Consructor.
+   * Constructor.
    * @param numChannels the number of channels the processor will be ready to
    * work with.
    * @param transitionBand value the antialiasing filter transition band, in
@@ -198,7 +198,7 @@ protected:
 
 public:
   /**
-   * Consructor.
+   * Constructor.
    * @param numChannels the number of channels the processor will be ready to
    * work with.
    * @param transitionBand value the antialiasing filter transition band, in
@@ -253,7 +253,7 @@ public:
    * @param numInputSamples the expected maximum number input samples
    * @param requiredOutputSamples the required number of output samples
    */
-  void prepareBuffers(int numInputSamples, int requiredOutputSamples);
+  virtual void prepareBuffers(int numInputSamples, int requiredOutputSamples);
 
   /**
    * Resets the state of the processor, clearing the buffers.
@@ -271,7 +271,7 @@ class FirDownsampler : public FirBufferedResampler
 {
 public:
   /**
-   * Consructor.
+   * Constructor.
    * @param numChannels the number of channels the processor will be ready to
    * work with.
    * @param transitionBand value the antialiasing filter transition band, in
@@ -315,7 +315,7 @@ class TFirUnbufferedReampler final : public FirUnbufferedResampler
 {
 public:
   /**
-   * Consructor.
+   * Constructor.
    * @param numChannels the number of channels the processor will be ready to
    * work with.
    * @param transitionBand value the antialiasing filter transition band, in
@@ -343,7 +343,7 @@ class TFirUnbufferedReampler<float> final : public FirUnbufferedResampler
 
 public:
   /**
-   * Consructor.
+   * Constructor.
    * @param numChannels the number of channels the processor will be ready to
    * work with.
    * @param transitionBand value the antialiasing filter transition band, in
@@ -360,32 +360,39 @@ public:
                              transitionBand,
                              maxSamplesPerBlock,
                              oversamplingRate)
+    , floatToDoubleBuffer(numChannels, maxSamplesPerBlock)
+    , doubleToFloatBuffer(numChannels,
+                          (int)std::ceil(maxSamplesPerBlock * oversamplingRate))
   {}
 
   /**
    * Resamples a multi channel input buffer.
    * @param input pointer to the input buffer.
-   * @param numChannels number of channels of the input buffer
+   * @param numChannelsToProcess number of channels to process
    * @param numSamples the number of samples of each channel of the input
    * buffer.
    * @param output ScalarBufffer to hold the upsampled data.
    * @return number of upsampled samples
    */
   int processBlock(float* const* input,
-                   int numChannels,
+                   int numChannelsToProcess,
                    int numSamples,
                    ScalarBuffer<float>& output)
   {
-    floatToDoubleBuffer.setNumChannelsAndSamples(numChannels, numSamples);
-    doubleToFloatBuffer.setNumChannelsAndSamples(
-      numChannels, std::ceil(numSamples * oversamplingRate));
-    for (int c = 0; c < numChannels; ++c) {
+    assert(numChannelsToProcess <= numChannels);
+    floatToDoubleBuffer.setNumSamples(numSamples);
+    doubleToFloatBuffer.setNumSamples(
+      (int)std::ceil(numSamples * oversamplingRate));
+    for (int c = 0; c < numChannelsToProcess; ++c) {
       for (int i = 0; i < numSamples; ++i) {
         floatToDoubleBuffer[c][i] = (double)input[c][i];
       }
     }
-    int samples = FirUnbufferedResampler::processBlock(floatToDoubleBuffer,
-                                                       doubleToFloatBuffer);
+    int samples =
+      FirUnbufferedResampler::processBlock(floatToDoubleBuffer.get(),
+                                           numChannelsToProcess,
+                                           numSamples,
+                                           doubleToFloatBuffer);
     copyScalarBuffer(doubleToFloatBuffer, output);
     return samples;
   }
@@ -401,6 +408,14 @@ public:
   {
     return processBlock(
       input.get(), input.getNumChannels(), input.getNumSamples(), output);
+  }
+
+  void prepareBuffers(int numSamples) override
+  {
+    FirResamplerBase::prepareBuffers(numSamples);
+    floatToDoubleBuffer.setNumSamples(numSamples);
+    doubleToFloatBuffer.setNumSamples(
+      (int)std::ceil(numSamples * oversamplingRate));
   }
 };
 
@@ -420,7 +435,7 @@ class TFirBufferedResampler : public FirBufferedResampler
 {
 public:
   /**
-   * Consructor.
+   * Constructor.
    * @param numChannels the number of channels the processor will be ready to
    * work with.
    * @param transitionBand value the antialiasing filter transition band, in
@@ -448,7 +463,7 @@ class TFirBufferedResampler<float> : public FirBufferedResampler
 
 public:
   /**
-   * Consructor.
+   * Constructor.
    * @param numChannels the number of channels the processor will be ready to
    * work with.
    * @param transitionBand value the antialiasing filter transition band, in
@@ -465,29 +480,37 @@ public:
                            transitionBand,
                            maxSamplesPerBlock,
                            oversamplingRate)
+    , floatToDoubleBuffer(numChannels, maxSamplesPerBlock)
+    , doubleToFloatBuffer(numChannels,
+                          (int)std::ceil(maxSamplesPerBlock * oversamplingRate))
   {}
 
   /**
    * Resamples a multi channel input buffer.
    * @param input pointer to the input buffers.
    * @param output pointer to the memory in which to store the downsampled data.
-   * @param numOutputChannels number of channels of the output buffer
+   * @param numChannelsToProcess number of channels to process
    * @param requiredSamples the number of samples needed as output
    */
   void processBlock(float* const* input,
                     int numSamples,
                     float** output,
-                    int numOutputChannels,
+                    int numChannelsToProcess,
                     int requiredSamples)
   {
-    floatToDoubleBuffer.setNumChannelsAndSamples(numChannels, numSamples);
-    for (int c = 0; c < numChannels; ++c) {
+    assert(numChannelsToProcess <= numChannels);
+
+    floatToDoubleBuffer.setNumSamples(numSamples);
+    doubleToFloatBuffer.setNumSamples(requiredSamples);
+    for (int c = 0; c < numChannelsToProcess; ++c) {
       std::copy(
         &input[c][0], &input[c][0] + numSamples, &floatToDoubleBuffer[c][0]);
     }
-    doubleToFloatBuffer.setNumChannelsAndSamples(numChannels, requiredSamples);
-    FirBufferedResampler::processBlock(
-      floatToDoubleBuffer, doubleToFloatBuffer, requiredSamples);
+    FirBufferedResampler::processBlock(floatToDoubleBuffer.get(),
+                                       numSamples,
+                                       doubleToFloatBuffer.get(),
+                                       numChannelsToProcess,
+                                       requiredSamples);
     for (int c = 0; c < numChannels; ++c) {
       for (int i = 0; i < requiredSamples; ++i) {
         output[c][i] = (float)doubleToFloatBuffer[c][i];
@@ -504,14 +527,17 @@ public:
    */
   void processBlock(ScalarBuffer<float> const& input,
                     float** output,
-                    int numChannels,
+                    int numChannelsToProcess,
                     int requiredSamples)
   {
     copyScalarBuffer(input, floatToDoubleBuffer);
-    doubleToFloatBuffer.setNumChannelsAndSamples(numChannels, requiredSamples);
-    FirBufferedResampler::processBlock(
-      floatToDoubleBuffer, doubleToFloatBuffer, requiredSamples);
-    for (int c = 0; c < numChannels; ++c) {
+    doubleToFloatBuffer.setNumSamples(requiredSamples);
+    FirBufferedResampler::processBlock(floatToDoubleBuffer.get(),
+                                       floatToDoubleBuffer.getNumSamples(),
+                                       doubleToFloatBuffer.get(),
+                                       numChannelsToProcess,
+                                       requiredSamples);
+    for (int c = 0; c < numChannelsToProcess; ++c) {
       for (int i = 0; i < requiredSamples; ++i) {
         output[c][i] = (float)doubleToFloatBuffer[c][i];
       }
@@ -530,6 +556,14 @@ public:
   {
     processBlock(input, output.get(), output.getNumChannels(), requiredSamples);
   }
+
+  void prepareBuffers(int numInputSamples, int requiredOutputSamples) override
+  {
+    FirBufferedResampler::prepareBuffers(numInputSamples,
+                                         requiredOutputSamples);
+    floatToDoubleBuffer.setNumSamples(numInputSamples);
+    doubleToFloatBuffer.setNumSamples(requiredOutputSamples);
+  }
 };
 
 /**
@@ -541,7 +575,7 @@ class TFirDownsampler final : public TFirBufferedResampler<Scalar>
 {
 public:
   /**
-   * Consructor.
+   * Constructor.
    * @param numChannels the number of channels the processor will be ready to
    * work with.
    * @param transitionBand value the antialiasing filter transition band, in
