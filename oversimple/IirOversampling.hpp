@@ -51,8 +51,10 @@ class Upsampler2x8Avx final : public FakeInterface
 } // namespace hiir
 #endif
 
+#ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable : 4250)
+#endif
 
 namespace oversimple {
 
@@ -924,4 +926,6 @@ public:
 
 } // namespace oversimple
 
+#ifdef _MSC_VER
 #pragma warning(pop)
+#endif
