@@ -4,7 +4,7 @@ Oversimple is a C++17 library for audio oversampling, which tries to offer a sim
 
 Oversimple wraps two of the best resampling libraries available: 
 
-- HIIR, by [Laurent De Soras](http://ldesoras.free.fr/) for minimum phase antialiasing, through [my fork](https://github.com/unevens/hiir) which adds support for double precision floating-point numbers, and AVX instructions. HIIR only implements power of two resampling.
+- [HIIR](https://github.com/unevens/hiir), by [Laurent De Soras](http://ldesoras.free.fr/) for minimum phase antialiasing. HIIR only implements power of two resampling.
 
 - and [r8brain-free-src](https://github.com/avaneev/r8brain-free-src) by Aleksey Vaneev, for linear phase antialiasing, through [my fork](https://github.com/unevens/r8brain/tree/include), which adds supports for [my fork of Julien Pommier's PFFFT library](https://github.com/unevens/pffft), which can work with double-precision floating point numbers using AVX instructions.
 
