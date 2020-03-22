@@ -17,16 +17,16 @@ limitations under the License.
 #pragma once
 
 #include "avec/Avec.hpp"
-#include "hiir/Downsampler2x2SseDouble.h"
+#include "hiir/Downsampler2x2F64Sse2.h"
 #include "hiir/Downsampler2x4Sse.h"
-#include "hiir/Upsampler2x2SseDouble.h"
+#include "hiir/Upsampler2x2F64Sse2.h"
 #include "hiir/Upsampler2x4Sse.h"
 #include "oversimple/IirOversamplingDesigner.hpp"
 
 #if __AVX__
-#include "hiir/Downsampler2x4AvxDouble.h"
+#include "hiir/Downsampler2x4F64Avx.h"
 #include "hiir/Downsampler2x8Avx.h"
-#include "hiir/Upsampler2x4AvxDouble.h"
+#include "hiir/Upsampler2x4F64Avx.h"
 #include "hiir/Upsampler2x8Avx.h"
 #else
 namespace hiir {
