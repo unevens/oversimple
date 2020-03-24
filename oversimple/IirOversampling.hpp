@@ -37,13 +37,13 @@ struct FakeInterface
   void process_block(double out_ptr[], const double in_ptr[], long nbr_spl) {}
 };
 template<int NC>
-class Downsampler2x4AvxDouble final : public FakeInterface
+class Downsampler2x4F64Avx final : public FakeInterface
 {};
 template<int NC>
 class Downsampler2x8Avx final : public FakeInterface
 {};
 template<int NC>
-class Upsampler2x4AvxDouble final : public FakeInterface
+class Upsampler2x4F64Avx final : public FakeInterface
 {};
 template<int NC>
 class Upsampler2x8Avx final : public FakeInterface
