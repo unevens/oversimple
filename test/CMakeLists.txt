@@ -3,16 +3,13 @@ cmake_minimum_required(VERSION 3.0.0)
 project(oversimple-tests)
 
 set(CMAKE_CXX_STANDARD 17)
-cmake_policy(SET CMP0074 NEW)
-find_package(Boost)
-include_directories ( ${Boost_INCLUDE_DIRS} )
 
 include_directories(../)
 include_directories(../r8brain)
 include_directories(../avec)
 include_directories(../avec/vectorclass)
 
-file(GLOB_RECURSE src ../r8brain/*.cpp ../r8brain/*.hpp ../oversimple/FirOversampling.cpp)
+file(GLOB src ../r8brain/r8bbase.cpp ../r8brain/pffft_common.cpp ../r8brain/pffft_double.cpp ../r8brain/pffft.cpp ../oversimple/FirOversampling.cpp)
 
 add_executable(iir-design ${src} iir-design.cpp)
 
