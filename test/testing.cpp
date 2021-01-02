@@ -15,7 +15,7 @@ limitations under the License.
 */
 
 #include "oversimple/FirOversampling.hpp"
-#include "oversimple/IiroversamplingFactory.hpp"
+#include "oversimple/IirOversamplingFactory.hpp"
 
 #include <cassert>
 #include <cmath>
