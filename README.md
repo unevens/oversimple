@@ -20,7 +20,6 @@ If you support AVX instructions, you may want to define `R8B_PFFFT_DOUBLE=1` in 
 
 ## Dependencies
 
-- [Boost.Align](https://www.boost.org/doc/libs/1_71_0/doc/html/align.html).
 - `pthread` on *nix (only r8brain).
 
 ## Documentation
