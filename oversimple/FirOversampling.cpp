@@ -33,20 +33,15 @@ DEBUG_MESSAGE(char const* message)
 namespace oversimple {
 
 int
-FirUnbufferedResampler::processBlock(ScalarBuffer<double> const& input,
-                                     ScalarBuffer<double>& output)
+FirUnbufferedResampler::processBlock(ScalarBuffer<double> const& input, ScalarBuffer<double>& output)
 {
-  return processBlock(
-    input.get(), input.getNumChannels(), input.getNumSamples(), output);
+  return processBlock(input.get(), input.getNumChannels(), input.getNumSamples(), output);
 }
 
 void
-FirBufferedResampler::processBlock(ScalarBuffer<double> const& input,
-                                   ScalarBuffer<double>& output,
-                                   int requiredSamples)
+FirBufferedResampler::processBlock(ScalarBuffer<double> const& input, ScalarBuffer<double>& output, int requiredSamples)
 {
-  output.setNumChannelsAndSamples(input.getNumChannels(),
-                                  input.getNumSamples());
+  output.setNumChannelsAndSamples(input.getNumChannels(), input.getNumSamples());
   processBlock(input, output.get(), output.getNumChannels(), requiredSamples);
 }
 
@@ -58,8 +53,7 @@ FirUnbufferedResampler::processBlock(double* const* input,
 {
   assert(numInputChannels <= numChannels);
   int numOutputSamples = (int)std::ceil(numSamples * oversamplingRate);
-  if (output.getNumChannels() < numInputChannels ||
-      output.getCapacity() < numOutputSamples) {
+  if (output.getNumChannels() < numInputChannels || output.getCapacity() < numOutputSamples) {
     DEBUG_MESSAGE("A FirUnbufferedResampler object had to allocate memory! Has "
                   "prepareBuffers been called?\n");
   }
@@ -79,19 +73,16 @@ FirUnbufferedResampler::processBlock(double* const* input,
     int outputCounter = 0;
     while (numInputSamples > 0) {
       int samplesToProcess = std::min(numInputSamples, maxSamplesPerBlock);
-      int numUpsampledSamples = resamplers[c]->process(
-        &input[c][inputCounter], samplesToProcess, outPtr);
+      int numUpsampledSamples = resamplers[c]->process(&input[c][inputCounter], samplesToProcess, outPtr);
       inputCounter += samplesToProcess;
       numInputSamples -= samplesToProcess;
       if (numUpsampledSamples > 0) {
         if (outputCounter + numUpsampledSamples > numOutputSamples) {
-          DEBUG_MESSAGE(
-            "A FirUnbufferedResampler object had to allocate memory due to a "
-            "fluctuation, this shold not happen!\n");
+          DEBUG_MESSAGE("A FirUnbufferedResampler object had to allocate memory due to a "
+                        "fluctuation, this shold not happen!\n");
           output.setNumSamples(outputCounter + numOutputSamples);
         }
-        std::copy(
-          outPtr, outPtr + numUpsampledSamples, &output[c][outputCounter]);
+        std::copy(outPtr, outPtr + numUpsampledSamples, &output[c][outputCounter]);
         outputCounter += numUpsampledSamples;
       }
     }
@@ -119,34 +110,24 @@ FirBufferedResampler::processBlock(double* const* input,
   if (numSamples <= maxSamplesPerBlock) {
     for (int c = 0; c < numOutputChannels; ++c) {
       double* outPtr;
-      int numUpsampledSamples = resamplers[c]->process(
-        const_cast<double*>(&input[c][0]), numSamples, outPtr);
+      int numUpsampledSamples = resamplers[c]->process(const_cast<double*>(&input[c][0]), numSamples, outPtr);
       int diff = requiredSamples - numUpsampledSamples - bufferCounter;
       if (diff >= 0) {
         std::fill_n(&output[c][0], diff, 0.0);
-        std::copy(
-          &buffer[c][0], &buffer[c][0] + bufferCounter, &output[c][diff]);
-        std::copy(outPtr,
-                  outPtr + numUpsampledSamples,
-                  &output[c][diff + bufferCounter]);
+        std::copy(&buffer[c][0], &buffer[c][0] + bufferCounter, &output[c][diff]);
+        std::copy(outPtr, outPtr + numUpsampledSamples, &output[c][diff + bufferCounter]);
         newBufferCounter = 0;
       }
       else { // diff < 0
         int samplesFromBuffer = std::min(bufferCounter, requiredSamples);
-        std::copy(
-          &buffer[c][0], &buffer[c][0] + samplesFromBuffer, &output[c][0]);
-        std::copy(&buffer[c][0] + samplesFromBuffer,
-                  &buffer[c][0] + bufferCounter,
-                  &buffer[c][0]);
+        std::copy(&buffer[c][0], &buffer[c][0] + samplesFromBuffer, &output[c][0]);
+        std::copy(&buffer[c][0] + samplesFromBuffer, &buffer[c][0] + bufferCounter, &buffer[c][0]);
         newBufferCounter = bufferCounter - samplesFromBuffer;
         int wantedSamplesFromResampler = requiredSamples - samplesFromBuffer;
-        int samplesFromResampler =
-          std::min(wantedSamplesFromResampler, numUpsampledSamples);
-        std::copy(
-          outPtr, outPtr + samplesFromResampler, &output[c][samplesFromBuffer]);
+        int samplesFromResampler = std::min(wantedSamplesFromResampler, numUpsampledSamples);
+        std::copy(outPtr, outPtr + samplesFromResampler, &output[c][samplesFromBuffer]);
         // check buffer size
-        int neededBufferSize =
-          newBufferCounter + numUpsampledSamples - samplesFromResampler;
+        int neededBufferSize = newBufferCounter + numUpsampledSamples - samplesFromResampler;
         if (buffer.getNumSamples() < neededBufferSize) {
           if (buffer.getCapacity() < neededBufferSize) {
             DEBUG_MESSAGE("A FirBufferedResampler object had to allocate "
@@ -155,9 +136,7 @@ FirBufferedResampler::processBlock(double* const* input,
           buffer.setNumSamples(neededBufferSize);
         }
         // copy tail to buffer
-        std::copy(outPtr + samplesFromResampler,
-                  outPtr + numUpsampledSamples,
-                  &buffer[c][newBufferCounter]);
+        std::copy(outPtr + samplesFromResampler, outPtr + numUpsampledSamples, &buffer[c][newBufferCounter]);
       }
     }
     bufferCounter = newBufferCounter;
@@ -171,25 +150,19 @@ FirBufferedResampler::processBlock(double* const* input,
         int samplesToProcess = std::min(numInputSamples, maxSamplesPerBlock);
         double* outPtr;
         int numUpsampledSamples =
-          resamplers[c]->process(const_cast<double*>(&input[c][inputCounter]),
-                                 samplesToProcess,
-                                 outPtr);
+          resamplers[c]->process(const_cast<double*>(&input[c][inputCounter]), samplesToProcess, outPtr);
         inputCounter += samplesToProcess;
         numInputSamples -= samplesToProcess;
-        int neededBufferSize =
-          bufferCounter + outputCounter + numUpsampledSamples;
+        int neededBufferSize = bufferCounter + outputCounter + numUpsampledSamples;
         if (buffer.getNumSamples() < neededBufferSize) {
           if (buffer.getCapacity() < neededBufferSize) {
             DEBUG_MESSAGE("A FirBufferedResampler object had to allocate "
                           "memory! Has prepareBuffers been called?");
           }
-          buffer.setNumSamples(bufferCounter + outputCounter +
-                               numUpsampledSamples);
+          buffer.setNumSamples(bufferCounter + outputCounter + numUpsampledSamples);
         }
         if (numUpsampledSamples > 0) {
-          std::copy(outPtr,
-                    outPtr + numUpsampledSamples,
-                    &buffer[c][bufferCounter + outputCounter]);
+          std::copy(outPtr, outPtr + numUpsampledSamples, &buffer[c][bufferCounter + outputCounter]);
           outputCounter += numUpsampledSamples;
         }
       }
@@ -201,18 +174,14 @@ FirBufferedResampler::processBlock(double* const* input,
     if (diff >= 0) {
       for (int c = 0; c < numOutputChannels; ++c) {
         std::fill_n(&output[c][0], diff, 0.0);
-        std::copy(
-          &buffer[c][0], &buffer[c][0] + bufferCounter, &output[c][diff]);
+        std::copy(&buffer[c][0], &buffer[c][0] + bufferCounter, &output[c][diff]);
       }
       bufferCounter = 0;
     }
     else { // diff < 0
       for (int c = 0; c < numOutputChannels; ++c) {
-        std::copy(
-          &buffer[c][0], &buffer[c][0] + requiredSamples, &output[c][0]);
-        std::copy(&buffer[c][0] + requiredSamples,
-                  &buffer[c][0] + bufferCounter,
-                  &buffer[c][0]);
+        std::copy(&buffer[c][0], &buffer[c][0] + requiredSamples, &output[c][0]);
+        std::copy(&buffer[c][0] + requiredSamples, &buffer[c][0] + bufferCounter, &buffer[c][0]);
       }
     }
   }
@@ -224,11 +193,7 @@ FirBufferedResampler::processBlock(ScalarBuffer<double> const& input,
                                    int numOutputChannels,
                                    int requiredSamples)
 {
-  processBlock(input.get(),
-               input.getNumSamples(),
-               output,
-               numOutputChannels,
-               requiredSamples);
+  processBlock(input.get(), input.getNumSamples(), output, numOutputChannels, requiredSamples);
 }
 
 void
@@ -241,8 +206,8 @@ FirResamplerBase::setup()
   }
 
   for (int c = 0; c < numChannels; ++c) {
-    resamplers.push_back(std::make_unique<r8b::CDSPResampler24>(
-      1.0, oversamplingRate, maxSamplesPerBlock, transitionBand));
+    resamplers.push_back(
+      std::make_unique<r8b::CDSPResampler24>(1.0, oversamplingRate, maxSamplesPerBlock, transitionBand));
   }
 }
 
@@ -261,10 +226,7 @@ FirBufferedResampler::FirBufferedResampler(int numChannels,
                                            double transitionBand,
                                            int maxSamplesPerBlock,
                                            double oversamplingRate)
-  : FirResamplerBase(numChannels,
-                     transitionBand,
-                     maxSamplesPerBlock,
-                     oversamplingRate)
+  : FirResamplerBase(numChannels, transitionBand, maxSamplesPerBlock, oversamplingRate)
   , maxRequiredOutputLength(maxSamplesPerBlock)
 {
   setup();
@@ -274,10 +236,7 @@ FirUnbufferedResampler::FirUnbufferedResampler(int numChannels,
                                                double transitionBand,
                                                int maxSamplesPerBlock,
                                                double oversamplingRate)
-  : FirResamplerBase(numChannels,
-                     transitionBand,
-                     maxSamplesPerBlock,
-                     oversamplingRate)
+  : FirResamplerBase(numChannels, transitionBand, maxSamplesPerBlock, oversamplingRate)
 {
   setup();
 }
@@ -323,19 +282,16 @@ FirResamplerBase::prepareBuffers(int numSamples)
 {
   maxInputLength = numSamples;
   auto d = std::div(maxInputLength, maxSamplesPerBlock);
-  int maxResamplerOutputLength =
-    resamplers[0]->getMaxOutLen(maxSamplesPerBlock);
+  int maxResamplerOutputLength = resamplers[0]->getMaxOutLen(maxSamplesPerBlock);
   maxOutputLength = (d.quot + (d.rem > 0 ? 1 : 0)) * maxResamplerOutputLength;
 }
 
 void
-FirBufferedResampler::prepareBuffers(int numInputSamples,
-                                     int requiredOutputSamples)
+FirBufferedResampler::prepareBuffers(int numInputSamples, int requiredOutputSamples)
 {
   FirResamplerBase::prepareBuffers(numInputSamples);
   maxRequiredOutputLength = requiredOutputSamples;
-  int neededBufferSize =
-    maxOutputLength + std::max(maxOutputLength, requiredOutputSamples);
+  int neededBufferSize = maxOutputLength + std::max(maxOutputLength, requiredOutputSamples);
   // maybe buffer.setNumSamples(maxOutputLength); is enough?
   if (buffer.getNumSamples() < neededBufferSize) {
     buffer.setNumSamples(neededBufferSize);

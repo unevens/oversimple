@@ -66,9 +66,7 @@ public:
    * @param transition required normalized transition bandwidth
    * @param numStages number of oversampling stages
    */
-  IirOversamplingDesigner(double attenuation,
-                          double transition,
-                          int numStages = 5);
+  IirOversamplingDesigner(double attenuation, double transition, int numStages = 5);
 
   /**
    * @return a reference to the vector with the information specific to each
@@ -84,10 +82,7 @@ public:
   /**
    * @return data to graph the group delay.
    */
-  GroupDelayGraph getGroupDelayGraph(int resolution) const
-  {
-    return GroupDelayGraph(stages, resolution);
-  }
+  GroupDelayGraph getGroupDelayGraph(int resolution) const { return GroupDelayGraph(stages, resolution); }
 
   /**
    * @param normalizedFrequency
@@ -114,9 +109,7 @@ public:
 
 // implementation
 
-inline IirOversamplingDesigner::IirOversamplingDesigner(double attenuation,
-                                                        double transition,
-                                                        int numStages)
+inline IirOversamplingDesigner::IirOversamplingDesigner(double attenuation, double transition, int numStages)
 {
   assert(numStages > 0);
   stages.push_back(Stage(attenuation, transition));
@@ -152,12 +145,9 @@ IirOversamplingDesigner::print() const
     coef *= 0.5;
   }
   double baseTransition = stages[0].transition;
-  text += "linear badwith at 44.1 KHz = " +
-          std::to_string(22050.0 - baseTransition * 44100.0) + " Hz\n";
-  text += "linear badwith at 96 KHz = " +
-          std::to_string(48000.0 - baseTransition * 96000.0) + " Hz\n";
-  text += "linear badwith at 192 KHz = " +
-          std::to_string(96000.0 - baseTransition * 192000.0) + " Hz\n";
+  text += "linear badwith at 44.1 KHz = " + std::to_string(22050.0 - baseTransition * 44100.0) + " Hz\n";
+  text += "linear badwith at 96 KHz = " + std::to_string(48000.0 - baseTransition * 96000.0) + " Hz\n";
+  text += "linear badwith at 192 KHz = " + std::to_string(96000.0 - baseTransition * 192000.0) + " Hz\n";
   text += "\n";
   return text;
 }
@@ -176,8 +166,7 @@ IirOversamplingDesigner::getMinGroupDelay(int order) const
 }
 
 inline double
-IirOversamplingDesigner::getGroupDelay(double normalizedFrequency,
-                                       int order) const
+IirOversamplingDesigner::getGroupDelay(double normalizedFrequency, int order) const
 {
   assert(order <= stages.size());
   double coef = 0.5;
@@ -190,8 +179,7 @@ IirOversamplingDesigner::getGroupDelay(double normalizedFrequency,
 }
 
 inline double
-IirOversamplingDesigner::getPhaseDelay(double normalizedFrequency,
-                                       int order) const
+IirOversamplingDesigner::getPhaseDelay(double normalizedFrequency, int order) const
 {
   assert(order <= stages.size());
   double coef = 0.5;
@@ -208,8 +196,7 @@ IirOversamplingDesigner::Stage::getGroupDelay(double normalizedFrequency) const
 {
   std::vector<double> coefs;
   computeCoefs(coefs);
-  return hiir::PolyphaseIir2Designer::compute_group_delay(
-    &coefs[0], numCoefs, normalizedFrequency, false);
+  return hiir::PolyphaseIir2Designer::compute_group_delay(&coefs[0], numCoefs, normalizedFrequency, false);
 }
 
 inline double
@@ -219,8 +206,7 @@ IirOversamplingDesigner::Stage::getPhaseDelay(double normalizedFrequency) const
   computeCoefs(coefs);
   double delay = 0.0;
   for (int i = 0; i < coefs.size(); ++i) {
-    delay += hiir::PolyphaseIir2Designer::compute_phase_delay(
-      coefs[i], normalizedFrequency);
+    delay += hiir::PolyphaseIir2Designer::compute_phase_delay(coefs[i], normalizedFrequency);
   }
   return delay;
 }
@@ -237,20 +223,16 @@ IirOversamplingDesigner::Stage::getMaxGroupDelay() const
   return getGroupDelay(0.25);
 }
 
-inline IirOversamplingDesigner::Stage::Stage(double attenuation,
-                                             double transition)
+inline IirOversamplingDesigner::Stage::Stage(double attenuation, double transition)
   : attenuation(attenuation)
   , transition(transition)
-  , numCoefs(
-      hiir::PolyphaseIir2Designer::compute_nbr_coefs_from_proto(attenuation,
-                                                                transition))
+  , numCoefs(hiir::PolyphaseIir2Designer::compute_nbr_coefs_from_proto(attenuation, transition))
 {}
 
 inline std::string
 IirOversamplingDesigner::Stage::print() const
 {
-  return "transition = " + std::to_string(transition) + ", " +
-         "numCoefs = " + std::to_string(numCoefs) + ", " +
+  return "transition = " + std::to_string(transition) + ", " + "numCoefs = " + std::to_string(numCoefs) + ", " +
          "attenuation = " + std::to_string(attenuation);
 }
 
@@ -266,14 +248,11 @@ inline void
 IirOversamplingDesigner::Stage::computeCoefs(std::vector<double>& coefs) const
 {
   coefs.resize(numCoefs);
-  hiir::PolyphaseIir2Designer::compute_coefs(
-    &coefs[0], attenuation, transition);
+  hiir::PolyphaseIir2Designer::compute_coefs(&coefs[0], attenuation, transition);
 }
 
 inline void
-IirOversamplingDesigner::GroupDelayGraph::fromStages(
-  std::vector<Stage> const& stages,
-  int resolution)
+IirOversamplingDesigner::GroupDelayGraph::fromStages(std::vector<Stage> const& stages, int resolution)
 {
   std::vector<double> coefs;
   graph.resize(resolution, 0.0);
@@ -287,9 +266,7 @@ IirOversamplingDesigner::GroupDelayGraph::fromStages(
   }
 }
 
-inline IirOversamplingDesigner::GroupDelayGraph::GroupDelayGraph(
-  std::vector<Stage> const& stages,
-  int resolution)
+inline IirOversamplingDesigner::GroupDelayGraph::GroupDelayGraph(std::vector<Stage> const& stages, int resolution)
 {
   fromStages(stages, resolution);
 }
@@ -297,8 +274,7 @@ inline IirOversamplingDesigner::GroupDelayGraph::GroupDelayGraph(
 inline double
 IirOversamplingDesigner::GroupDelayGraph::getMean() const
 {
-  return std::accumulate(graph.begin(), graph.end(), 0.0) /
-         (double)graph.size();
+  return std::accumulate(graph.begin(), graph.end(), 0.0) / (double)graph.size();
 }
 
 } // namespace oversimple

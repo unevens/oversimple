@@ -104,35 +104,40 @@ public:
   public:
     InterleavedBuffer<Scalar>& getOutput() { return outputBuffer; }
 
-    int processBlock(InterleavedBuffer<Scalar> const& input,
-                     int numChannelsToUpsample,
-                     int numSamples)
+    /**
+     * Resamples a multi channel input buffer.
+     * @param input pointer to the input buffer.
+     * @param numChannelsToUpsample number of channels to upsample of the input buffer
+     * @param numSamples the number of samples of each channel of the input
+     * buffer.
+     * @return number of upsampled samples
+     */
+    int processBlock(InterleavedBuffer<Scalar> const& input, int numChannelsToUpsample, int numSamples)
     {
       if (firUpsampler) {
-        bool ok = input.deinterleave(
-          firInputBuffer.get(), numChannelsToUpsample, numSamples);
+        bool ok = input.deinterleave(firInputBuffer.get(), numChannelsToUpsample, numSamples);
         assert(ok);
         int const numUpsampledSamples =
-          firUpsampler->processBlock(firInputBuffer.get(),
-                                     numChannelsToUpsample,
-                                     numSamples,
-                                     firOutputBuffer);
+          firUpsampler->processBlock(firInputBuffer.get(), numChannelsToUpsample, numSamples, firOutputBuffer);
         ok = outputBuffer.interleave(firOutputBuffer, 2);
         assert(ok);
         return numUpsampledSamples;
       }
       else {
-        iirUpsampler->processBlock(
-          input, numSamples, outputBuffer, numChannelsToUpsample);
+        iirUpsampler->processBlock(input, numSamples, outputBuffer, numChannelsToUpsample);
         return numSamples * (1 << iirUpsampler->getOrder());
       }
     }
 
+    /**
+     * Prepare the resampler to be able to process up to numSamples samples with
+     * each processing call.
+     * @param numSamples expected number of samples to be processed on each
+     * processing call.
+     */
     void prepareBuffers(int numSamples)
     {
-      int const oversamplingRate = firUpsampler
-                                     ? (int)firUpsampler->getRate()
-                                     : (1 << iirUpsampler->getOrder());
+      int const oversamplingRate = firUpsampler ? (int)firUpsampler->getRate() : (1 << iirUpsampler->getOrder());
       int const numUpsampledSamples = numSamples * oversamplingRate;
 
       outputBuffer.setNumSamples(numUpsampledSamples);
@@ -149,15 +154,15 @@ public:
     VecToVecUpsampler(OversamplingSettings const& settings)
     {
       if (settings.linearPhase) {
-        firUpsampler = std::make_unique<TFirUpsampler<double>>(
-          settings.numChannels, settings.firTransitionBand);
+        firUpsampler =
+          std::make_unique<TFirUpsampler<double>>(settings.numChannelsToUpsample, settings.firTransitionBand);
         firUpsampler->setRate(1 << settings.order);
         iirUpsampler = nullptr;
-        firOutputBuffer.setNumChannels(settings.numChannels);
-        firInputBuffer.setNumChannels(settings.numChannels);
+        firOutputBuffer.setNumChannels(settings.numChannelsToUpsample);
+        firInputBuffer.setNumChannels(settings.numChannelsToUpsample);
       }
       else {
-        iirUpsampler = IirUpsamplerFactory<double>::make(settings.numChannels);
+        iirUpsampler = IirUpsamplerFactory<double>::make(settings.numChannelsToUpsample);
         iirUpsampler->setOrder(settings.order);
         firOutputBuffer.setNumChannels(0);
         firInputBuffer.setNumChannels(0);
@@ -166,6 +171,10 @@ public:
       prepareBuffers(settings.numSamplesPerBlock);
     }
 
+    /**
+     * @return the number of input samples needed before a first output sample
+     * is produced.
+     */
     int getLatency()
     {
       if (firUpsampler) {
@@ -182,6 +191,9 @@ public:
       return 0;
     }
 
+    /**
+     * Resets the state of the resampler, clearing its internal buffers.
+     */
     void reset()
     {
       if (firUpsampler) {
@@ -192,6 +204,9 @@ public:
       }
     }
 
+    /**
+     * @return the oversampling rate.
+     */
     int getRate() const
     {
       if (firUpsampler) {
@@ -213,29 +228,37 @@ public:
   public:
     InterleavedBuffer<Scalar>& getOutput() { return outputBuffer; }
 
-    int processBlock(Scalar* const* input,
-                     int numChannelsToUpsample,
-                     int numSamples)
+    /**
+     * Resamples a multi channel input buffer.
+     * @param input pointer to the input buffer.
+     * @param numChannelsToUpsample number of channels to upsample of the input buffer
+     * @param numSamples the number of samples of each channel of the input
+     * buffer.
+     * @return number of upsampled samples
+     */
+    int processBlock(Scalar* const* input, int numChannelsToUpsample, int numSamples)
     {
       if (firUpsampler) {
-        int numUpsampledSamples = firUpsampler->processBlock(
-          input, numChannelsToUpsample, numSamples, firOutputBuffer);
+        int numUpsampledSamples = firUpsampler->processBlock(input, numChannelsToUpsample, numSamples, firOutputBuffer);
         bool ok = outputBuffer.interleave(firOutputBuffer, 2);
         assert(ok);
         return numUpsampledSamples;
       }
       else {
-        iirUpsampler->processBlock(
-          input, numSamples, outputBuffer, numChannelsToUpsample);
+        iirUpsampler->processBlock(input, numSamples, outputBuffer, numChannelsToUpsample);
         return numSamples * (1 << iirUpsampler->getOrder());
       }
     }
 
+    /**
+     * Prepare the resampler to be able to process up to numSamples samples with
+     * each processing call.
+     * @param numSamples expected number of samples to be processed on each
+     * processing call.
+     */
     void prepareBuffers(int numSamples)
     {
-      int const oversamplingRate = firUpsampler
-                                     ? (int)firUpsampler->getRate()
-                                     : (1 << iirUpsampler->getOrder());
+      int const oversamplingRate = firUpsampler ? (int)firUpsampler->getRate() : (1 << iirUpsampler->getOrder());
       int const numUpsampledSamples = numSamples * oversamplingRate;
       outputBuffer.setNumSamples(numUpsampledSamples);
       if (firUpsampler) {
@@ -247,17 +270,20 @@ public:
       }
     }
 
+    /**
+     * Create a ScalarToScalarUpsampler object from an OversamplingSettings object.
+     */
     ScalarToVecUpsampler(OversamplingSettings const& settings)
     {
       if (settings.linearPhase) {
-        firUpsampler = std::make_unique<TFirUpsampler<double>>(
-          settings.numChannels, settings.firTransitionBand);
+        firUpsampler =
+          std::make_unique<TFirUpsampler<double>>(settings.numChannelsToUpsample, settings.firTransitionBand);
         firUpsampler->setRate(1 << settings.order);
         iirUpsampler = nullptr;
-        firOutputBuffer.setNumChannels(settings.numChannels);
+        firOutputBuffer.setNumChannels(settings.numChannelsToUpsample);
       }
       else {
-        iirUpsampler = IirUpsamplerFactory<double>::make(settings.numChannels);
+        iirUpsampler = IirUpsamplerFactory<double>::make(settings.numChannelsToUpsample);
         iirUpsampler->setOrder(settings.order);
         firOutputBuffer.setNumChannels(0);
         firUpsampler = nullptr;
@@ -265,6 +291,10 @@ public:
       prepareBuffers(settings.numSamplesPerBlock);
     }
 
+    /**
+     * @return the number of input samples needed before a first output sample
+     * is produced.
+     */
     int getLatency()
     {
       if (firUpsampler) {
@@ -273,6 +303,12 @@ public:
       return 0;
     }
 
+    /**
+     * @return the maximum number of samples that can be produced by a
+     * processBlock call, assuming it is never called with more samples than those
+     * passed to prepareBuffers. If prepareBuffers has not been called, then no
+     * more samples than maxSamplesPerBlock should be passed to processBlock.
+     */
     int getMaxUpsampledSamples()
     {
       if (firUpsampler) {
@@ -281,6 +317,9 @@ public:
       return 0;
     }
 
+    /**
+     * Resets the state of the resampler, clearing its internal buffers.
+     */
     void reset()
     {
       if (firUpsampler) {
@@ -291,6 +330,9 @@ public:
       }
     }
 
+    /**
+     * @return the oversampling rate.
+     */
     int getRate() const
     {
       if (firUpsampler) {
@@ -312,30 +354,36 @@ public:
   public:
     ScalarBuffer<Scalar>& getOutput() { return outputBuffer; }
 
-    int processBlock(Scalar* const* input,
-                     int numChannelsToUpsample,
-                     int numSamples)
+    /**
+     * Resamples a multi channel input buffer.
+     * @param input pointer to the input buffer.
+     * @param numChannelsToUpsample number of channels to upsample of the input buffer
+     * @param numSamples the number of samples of each channel of the input
+     * buffer.
+     * @return number of upsampled samples
+     */
+    int processBlock(Scalar* const* input, int numChannelsToUpsample, int numSamples)
     {
       if (firUpsampler) {
-        int numUpsampledSamples = firUpsampler->processBlock(
-          input, numChannelsToUpsample, numSamples, outputBuffer);
+        int numUpsampledSamples = firUpsampler->processBlock(input, numChannelsToUpsample, numSamples, outputBuffer);
         return numUpsampledSamples;
       }
       else {
-        iirUpsampler->processBlock(
-          input, numSamples, iirOutputBuffer, numChannelsToUpsample);
-        iirOutputBuffer.deinterleave(outputBuffer.get(),
-                                     numChannelsToUpsample,
-                                     iirOutputBuffer.getNumSamples());
+        iirUpsampler->processBlock(input, numSamples, iirOutputBuffer, numChannelsToUpsample);
+        iirOutputBuffer.deinterleave(outputBuffer.get(), numChannelsToUpsample, iirOutputBuffer.getNumSamples());
         return numSamples * (1 << iirUpsampler->getOrder());
       }
     }
 
+    /**
+     * Prepare the resampler to be able to process up to numSamples samples with
+     * each processing call.
+     * @param numSamples expected number of samples to be processed on each
+     * processing call.
+     */
     void prepareBuffers(int numSamples)
     {
-      int const oversamplingRate = firUpsampler
-                                     ? (int)firUpsampler->getRate()
-                                     : (1 << iirUpsampler->getOrder());
+      int const oversamplingRate = firUpsampler ? (int)firUpsampler->getRate() : (1 << iirUpsampler->getOrder());
       int const numUpsampledSamples = numSamples * oversamplingRate;
       outputBuffer.setNumSamples(numUpsampledSamples);
       if (firUpsampler) {
@@ -347,24 +395,31 @@ public:
       }
     }
 
+    /**
+     * Create a ScalarToScalarUpsampler object from an OversamplingSettings object.
+     */
     ScalarToScalarUpsampler(OversamplingSettings const& settings)
     {
       if (settings.linearPhase) {
-        firUpsampler = std::make_unique<TFirUpsampler<double>>(
-          settings.numChannels, settings.firTransitionBand);
+        firUpsampler =
+          std::make_unique<TFirUpsampler<double>>(settings.numChannelsToUpsample, settings.firTransitionBand);
         firUpsampler->setRate(1 << settings.order);
         iirUpsampler = nullptr;
         iirOutputBuffer.setNumChannels(0);
       }
       else {
-        iirUpsampler = IirUpsamplerFactory<double>::make(settings.numChannels);
+        iirUpsampler = IirUpsamplerFactory<double>::make(settings.numChannelsToUpsample);
         iirUpsampler->setOrder(settings.order);
-        iirOutputBuffer.setNumChannels(settings.numChannels);
+        iirOutputBuffer.setNumChannels(settings.numChannelsToUpsample);
         firUpsampler = nullptr;
       }
       prepareBuffers(settings.numSamplesPerBlock);
     }
 
+    /**
+     * @return the number of input samples needed before a first output sample
+     * is produced.
+     */
     int getLatency()
     {
       if (firUpsampler) {
@@ -373,6 +428,12 @@ public:
       return 0;
     }
 
+    /**
+     * @return the maximum number of samples that can be produced by a
+     * processBlock call, assuming it is never called with more samples than those
+     * passed to prepareBuffers. If prepareBuffers has not been called, then no
+     * more samples than maxSamplesPerBlock should be passed to processBlock.
+     */
     int getMaxUpsampledSamples()
     {
       if (firUpsampler) {
@@ -381,6 +442,9 @@ public:
       return 0;
     }
 
+    /**
+     * Resets the state of the resampler, clearing its internal buffers.
+     */
     void reset()
     {
       if (firUpsampler) {
@@ -391,6 +455,9 @@ public:
       }
     }
 
+    /**
+     * @return the oversampling rate.
+     */
     int getRate() const
     {
       if (firUpsampler) {
@@ -409,31 +476,35 @@ public:
     ScalarBuffer<Scalar> firInputBuffer;
 
   public:
+    /**
+     * Create a VecToScalarDownsampler object from an OversamplingSettings object.
+     */
     VecToScalarDownsampler(OversamplingSettings const& settings)
     {
       if (settings.linearPhase) {
-        firDownsampler = std::make_unique<TFirDownsampler<double>>(
-          settings.numChannels, settings.firTransitionBand);
+        firDownsampler = std::make_unique<TFirDownsampler<double>>(settings.numChannels, settings.firTransitionBand);
         firDownsampler->setRate(1 << settings.order);
         iirDownsampler = nullptr;
         firInputBuffer.setNumChannels(settings.numChannels);
       }
       else {
-        iirDownsampler =
-          IirDownsamplerFactory<double>::make(settings.numChannels);
+        iirDownsampler = IirDownsamplerFactory<double>::make(settings.numChannels);
         iirDownsampler->setOrder(settings.order);
         firInputBuffer.setNumChannels(0);
         firDownsampler = nullptr;
       }
-      prepareBuffers(settings.numSamplesPerBlock,
-                     settings.numSamplesPerBlock * (1 << settings.order));
+      prepareBuffers(settings.numSamplesPerBlock, settings.numSamplesPerBlock * (1 << settings.order));
     }
 
+    /**
+     * Prepare the resampler to be able to process up to numSamples samples with
+     * each processing call.
+     * @param numSamples expected number of samples to be processed on each
+     * processing call.
+     */
     void prepareBuffers(int numSamples, int maxNumUpsampledSamples)
     {
-      int const oversamplingRate = firDownsampler
-                                     ? (int)firDownsampler->getRate()
-                                     : (1 << iirDownsampler->getOrder());
+      int const oversamplingRate = firDownsampler ? (int)firDownsampler->getRate() : (1 << iirDownsampler->getOrder());
       if (firDownsampler) {
         firDownsampler->prepareBuffers(maxNumUpsampledSamples, numSamples);
         firInputBuffer.setNumSamples(maxNumUpsampledSamples);
@@ -443,37 +514,46 @@ public:
       }
     }
 
+    /**
+     * Resamples a multi channel input buffer.
+     * @param input a InterleavedBuffer that holds the input buffer.
+     * @param output pointer to the memory in which to store the downsampled data.
+     * @param numChannelsToDownsample number of channels to downsample to the output buffer
+     * @param numUpsampledSamples the number of input upsampled samples
+     * @param requiredSamples the number of samples needed as output
+     */
     void processBlock(InterleavedBuffer<Scalar> const& input,
                       Scalar** output,
                       int numChannelsToDownsample,
                       int numUpsampledSamples,
-                      int numSamples)
+                      int requiredSamples)
     {
       if (firDownsampler) {
         input.deinterleave(firInputBuffer);
-        firDownsampler->processBlock(firInputBuffer.get(),
-                                     numUpsampledSamples,
-                                     output,
-                                     numChannelsToDownsample,
-                                     numSamples);
+        firDownsampler->processBlock(
+          firInputBuffer.get(), numUpsampledSamples, output, numChannelsToDownsample, requiredSamples);
       }
       else {
-        iirDownsampler->processBlock(
-          input, numSamples * (1 << iirDownsampler->getOrder()));
-        iirDownsampler->getOutput().deinterleave(
-          output, numChannelsToDownsample, numSamples);
+        iirDownsampler->processBlock(input, requiredSamples * (1 << iirDownsampler->getOrder()));
+        iirDownsampler->getOutput().deinterleave(output, numChannelsToDownsample, requiredSamples);
       }
     }
 
+    /**
+     * @return the number of input samples needed before a first output sample
+     * is produced.
+     */
     int getLatency()
     {
       if (firDownsampler) {
-        return (int)((double)firDownsampler->getNumSamplesBeforeOutputStarts() /
-                     (double)firDownsampler->getRate());
+        return (int)((double)firDownsampler->getNumSamplesBeforeOutputStarts() / (double)firDownsampler->getRate());
       }
       return 0;
     }
 
+    /**
+     * Resets the state of the resampler, clearing its internal buffers.
+     */
     void reset()
     {
       if (firDownsampler) {
@@ -484,6 +564,9 @@ public:
       }
     }
 
+    /**
+     * @return the oversampling rate.
+     */
     int getRate() const
     {
       if (firDownsampler) {
@@ -504,11 +587,13 @@ public:
     InterleavedBuffer<Scalar> outputBuffer;
 
   public:
+    /**
+     * Create a VecToVecDownsampler object from an OversamplingSettings object.
+     */
     VecToVecDownsampler(OversamplingSettings const& settings)
     {
       if (settings.linearPhase) {
-        firDownsampler = std::make_unique<TFirDownsampler<double>>(
-          settings.numChannels, settings.firTransitionBand);
+        firDownsampler = std::make_unique<TFirDownsampler<double>>(settings.numChannels, settings.firTransitionBand);
         firDownsampler->setRate(1 << settings.order);
         iirDownsampler = nullptr;
         firInputBuffer.setNumChannels(settings.numChannels);
@@ -516,23 +601,25 @@ public:
         outputBuffer.setNumChannels(settings.numChannels);
       }
       else {
-        iirDownsampler =
-          IirDownsamplerFactory<double>::make(settings.numChannels);
+        iirDownsampler = IirDownsamplerFactory<double>::make(settings.numChannels);
         iirDownsampler->setOrder(settings.order);
         firInputBuffer.setNumChannels(0);
         firOutputBuffer.setNumChannels(0);
         outputBuffer.setNumChannels(0);
         firDownsampler = nullptr;
       }
-      prepareBuffers(settings.numSamplesPerBlock,
-                     settings.numSamplesPerBlock * (1 << settings.order));
+      prepareBuffers(settings.numSamplesPerBlock, settings.numSamplesPerBlock * (1 << settings.order));
     }
 
+    /**
+     * Prepare the resampler to be able to process up to numSamples samples with
+     * each processing call.
+     * @param numSamples expected number of samples to be processed on each
+     * processing call.
+     */
     void prepareBuffers(int numSamples, int maxNumUpsampledSamples)
     {
-      int const oversamplingRate = firDownsampler
-                                     ? (int)firDownsampler->getRate()
-                                     : (1 << iirDownsampler->getOrder());
+      int const oversamplingRate = firDownsampler ? (int)firDownsampler->getRate() : (1 << iirDownsampler->getOrder());
       if (firDownsampler) {
         firDownsampler->prepareBuffers(maxNumUpsampledSamples, numSamples);
         firInputBuffer.setNumSamples(maxNumUpsampledSamples);
@@ -544,42 +631,45 @@ public:
       outputBuffer.setNumSamples(numSamples);
     }
 
+    /**
+     * Resamples a multi channel input buffer.
+     * @param input a InterleavedBuffer that holds the input buffer.
+     * @param numChannelsToDownsample number of channels to downsample to the output buffer
+     * @param requiredSamples the number of samples needed as output
+     */
     void processBlock(InterleavedBuffer<Scalar> const& input,
                       int numChannelsToDownsample,
                       int numUpsampledSamples,
-                      int numSamples)
+                      int requiredSamples)
     {
       if (firDownsampler) {
-        input.deinterleave(
-          firInputBuffer.get(), numChannelsToDownsample, numUpsampledSamples);
-        firDownsampler->processBlock(firInputBuffer.get(),
-                                     numUpsampledSamples,
-                                     firOutputBuffer.get(),
-                                     numChannelsToDownsample,
-                                     numSamples);
-        outputBuffer.interleave(
-          firOutputBuffer.get(), numChannelsToDownsample, numSamples);
+        input.deinterleave(firInputBuffer.get(), numChannelsToDownsample, numUpsampledSamples);
+        firDownsampler->processBlock(
+          firInputBuffer.get(), numUpsampledSamples, firOutputBuffer.get(), numChannelsToDownsample, numSamples);
+        outputBuffer.interleave(firOutputBuffer.get(), numChannelsToDownsample, numSamples);
       }
       else {
-        iirDownsampler->processBlock(
-          input, numSamples * (1 << iirDownsampler->getOrder()));
+        iirDownsampler->processBlock(input, numSamples * (1 << iirDownsampler->getOrder()));
       }
     }
 
-    InterleavedBuffer<Scalar>& getOutput()
-    {
-      return firDownsampler ? outputBuffer : iirDownsampler->getOutput();
-    }
+    InterleavedBuffer<Scalar>& getOutput() { return firDownsampler ? outputBuffer : iirDownsampler->getOutput(); }
 
+    /**
+     * @return the number of input samples needed before a first output sample
+     * is produced.
+     */
     int getLatency()
     {
       if (firDownsampler) {
-        return (int)((double)firDownsampler->getNumSamplesBeforeOutputStarts() /
-                     (double)firDownsampler->getRate());
+        return (int)((double)firDownsampler->getNumSamplesBeforeOutputStarts() / (double)firDownsampler->getRate());
       }
       return 0;
     }
 
+    /**
+     * Resets the state of the resampler, clearing its internal buffers.
+     */
     void reset()
     {
       if (firDownsampler) {
@@ -590,6 +680,9 @@ public:
       }
     }
 
+    /**
+     * @return the oversampling rate.
+     */
     int getRate() const
     {
       if (firDownsampler) {
@@ -608,31 +701,35 @@ public:
     InterleavedBuffer<Scalar> iirInputBuffer;
 
   public:
+    /**
+     * Create a ScalarToScalarDownsampler object from an OversamplingSettings object.
+     */
     ScalarToScalarDownsampler(OversamplingSettings const& settings)
     {
       if (settings.linearPhase) {
-        firDownsampler = std::make_unique<TFirDownsampler<double>>(
-          settings.numChannels, settings.firTransitionBand);
+        firDownsampler = std::make_unique<TFirDownsampler<double>>(settings.numChannels, settings.firTransitionBand);
         firDownsampler->setRate(1 << settings.order);
         iirDownsampler = nullptr;
         iirInputBuffer.setNumChannels(0);
       }
       else {
-        iirDownsampler =
-          IirDownsamplerFactory<double>::make(settings.numChannels);
+        iirDownsampler = IirDownsamplerFactory<double>::make(settings.numChannels);
         iirDownsampler->setOrder(settings.order);
         iirInputBuffer.setNumChannels(2);
         firDownsampler = nullptr;
       }
-      prepareBuffers(settings.numSamplesPerBlock,
-                     settings.numSamplesPerBlock * (1 << settings.order));
+      prepareBuffers(settings.numSamplesPerBlock, settings.numSamplesPerBlock * (1 << settings.order));
     }
 
+    /**
+     * Prepare the resampler to be able to process up to numSamples samples with
+     * each processing call.
+     * @param numSamples expected number of samples to be processed on each
+     * processing call.
+     */
     void prepareBuffers(int numSamples, int maxNumUpsampledSamples)
     {
-      int const oversamplingRate = firDownsampler
-                                     ? (int)firDownsampler->getRate()
-                                     : (1 << iirDownsampler->getOrder());
+      int const oversamplingRate = firDownsampler ? (int)firDownsampler->getRate() : (1 << iirDownsampler->getOrder());
       if (firDownsampler) {
         firDownsampler->prepareBuffers(maxNumUpsampledSamples, numSamples);
       }
@@ -642,37 +739,44 @@ public:
       }
     }
 
+    /**
+     * Resamples a multi channel input buffer.
+     * @param input pointer to the input buffers.
+     * @param output pointer to the memory in which to store the downsampled data.
+     * @param numChannelsToDownsample number of channels to downsample to the output buffer
+     * @param requiredSamples the number of samples needed as output
+     */
     void processBlock(Scalar* const* input,
                       Scalar** output,
                       int numChannelsToDownsample,
                       int numUpsampledSamples,
-                      int numSamples)
+                      int requiredSamples)
     {
       if (firDownsampler) {
-        firDownsampler->processBlock(input,
-                                     numUpsampledSamples,
-                                     output,
-                                     numChannelsToDownsample,
-                                     numSamples);
+        firDownsampler->processBlock(input, numUpsampledSamples, output, numChannelsToDownsample, requiredSamples);
       }
       else {
-        iirInputBuffer.interleave(input, numChannelsToDownsample, numSamples);
-        iirDownsampler->processBlock(
-          iirInputBuffer, numSamples * (1 << iirDownsampler->getOrder()));
-        iirDownsampler->getOutput().deinterleave(
-          output, numChannelsToDownsample, numSamples);
+        iirInputBuffer.interleave(input, numChannelsToDownsample, requiredSamples);
+        iirDownsampler->processBlock(iirInputBuffer, requiredSamples * (1 << iirDownsampler->getOrder()));
+        iirDownsampler->getOutput().deinterleave(output, numChannelsToDownsample, requiredSamples);
       }
     }
 
+    /**
+     * @return the number of input samples needed before a first output sample
+     * is produced.
+     */
     int getLatency()
     {
       if (firDownsampler) {
-        return (int)((double)firDownsampler->getNumSamplesBeforeOutputStarts() /
-                     (double)firDownsampler->getRate());
+        return (int)((double)firDownsampler->getNumSamplesBeforeOutputStarts() / (double)firDownsampler->getRate());
       }
       return 0;
     }
 
+    /**
+     * Resets the state of the resampler, clearing its internal buffers.
+     */
     void reset()
     {
       if (firDownsampler) {
@@ -683,6 +787,9 @@ public:
       }
     }
 
+    /**
+     * @return the oversampling rate.
+     */
     int getRate() const
     {
       if (firDownsampler) {
@@ -698,47 +805,42 @@ public:
 
   std::vector<std::unique_ptr<VecToVecUpsampler>> vecToVecUpsamplers;
 
-  std::vector<std::unique_ptr<ScalarToScalarUpsampler>>
-    scalarToScalarUpsamplers;
+  std::vector<std::unique_ptr<ScalarToScalarUpsampler>> scalarToScalarUpsamplers;
 
   std::vector<std::unique_ptr<VecToScalarDownsampler>> vecToScalarDownsamplers;
 
   std::vector<std::unique_ptr<VecToVecDownsampler>> vecToVecDownsamplers;
 
-  std::vector<std::unique_ptr<ScalarToScalarDownsampler>>
-    scalarToScalarDownsamplers;
+  std::vector<std::unique_ptr<ScalarToScalarDownsampler>> scalarToScalarDownsamplers;
 
   std::vector<InterleavedBuffer<Scalar>> interleavedBuffers;
 
   std::vector<ScalarBuffer<Scalar>> scalarBuffers;
 
+  /**
+   * Create an Oversampling object from an OversamplingSettings object.
+   */
   Oversampling(OversamplingSettings const& settings)
     : numSamplesPerBlock(settings.numSamplesPerBlock)
     , rate(1 << settings.order)
   {
     for (int i = 0; i < settings.numScalarToVecUpsamplers; ++i) {
-      scalarToVecUpsamplers.push_back(
-        std::make_unique<ScalarToVecUpsampler>(settings));
+      scalarToVecUpsamplers.push_back(std::make_unique<ScalarToVecUpsampler>(settings));
     }
     for (int i = 0; i < settings.numVecToVecUpsamplers; ++i) {
-      vecToVecUpsamplers.push_back(
-        std::make_unique<VecToVecUpsampler>(settings));
+      vecToVecUpsamplers.push_back(std::make_unique<VecToVecUpsampler>(settings));
     }
     for (int i = 0; i < settings.numScalarToScalarUpsamplers; ++i) {
-      scalarToScalarUpsamplers.push_back(
-        std::make_unique<ScalarToScalarUpsampler>(settings));
+      scalarToScalarUpsamplers.push_back(std::make_unique<ScalarToScalarUpsampler>(settings));
     }
     for (int i = 0; i < settings.numVecToScalarDownsamplers; ++i) {
-      vecToScalarDownsamplers.push_back(
-        std::make_unique<VecToScalarDownsampler>(settings));
+      vecToScalarDownsamplers.push_back(std::make_unique<VecToScalarDownsampler>(settings));
     }
     for (int i = 0; i < settings.numVecToVecDownsamplers; ++i) {
-      vecToVecDownsamplers.push_back(
-        std::make_unique<VecToVecDownsampler>(settings));
+      vecToVecDownsamplers.push_back(std::make_unique<VecToVecDownsampler>(settings));
     }
     for (int i = 0; i < settings.numScalarToScalarDownsamplers; ++i) {
-      scalarToScalarDownsamplers.push_back(
-        std::make_unique<ScalarToScalarDownsampler>(settings));
+      scalarToScalarDownsamplers.push_back(std::make_unique<ScalarToScalarDownsampler>(settings));
     }
     if (settings.updateLatency) {
       settings.updateLatency(getLatency());
@@ -756,6 +858,12 @@ public:
     }
   }
 
+  /**
+   * Prepare the resampler to be able to process up to numSamples samples with
+   * each processing call.
+   * @param numSamples expected number of samples to be processed on each
+   * processing call.
+   */
   void prepareBuffers(int numSamples)
   {
     if (numSamplesPerBlock < numSamples) {
@@ -775,16 +883,13 @@ public:
       int maxNumUpsampledSamples = rate * numSamples;
 
       if (scalarToVecUpsamplers.size() > 0) {
-        maxNumUpsampledSamples =
-          scalarToVecUpsamplers[0]->getMaxUpsampledSamples();
+        maxNumUpsampledSamples = scalarToVecUpsamplers[0]->getMaxUpsampledSamples();
       }
       else if (vecToVecUpsamplers.size() > 0) {
-        maxNumUpsampledSamples =
-          vecToVecUpsamplers[0]->getMaxUpsampledSamples();
+        maxNumUpsampledSamples = vecToVecUpsamplers[0]->getMaxUpsampledSamples();
       }
       else if (scalarToScalarUpsamplers.size() > 0) {
-        maxNumUpsampledSamples =
-          scalarToScalarUpsamplers[0]->getMaxUpsampledSamples();
+        maxNumUpsampledSamples = scalarToScalarUpsamplers[0]->getMaxUpsampledSamples();
       }
 
       for (auto& downsampler : scalarToScalarDownsamplers) {
@@ -807,6 +912,10 @@ public:
     }
   }
 
+  /**
+   * @return the number of input samples needed before a first output sample is
+   * produced.
+   */
   int getLatency()
   {
     int latency = 0;
@@ -828,6 +937,9 @@ public:
     return latency;
   }
 
+  /**
+   * Resets the state of the resamplers, clears all the internal buffers.
+   */
   void reset()
   {
     for (auto& upsampler : scalarToVecUpsamplers) {
@@ -847,8 +959,16 @@ public:
     }
   }
 
+  /**
+   * @return the oversampling rate.
+   */
   int getRate() const { return rate; }
 
+  /**
+   * @return the maximum number of samples that can be processed by a single
+   * process call. It is the same number passed to prepareBuffers or set in the
+   * OversamplingSettings (numSamplesPerBlock)
+   */
   int getNumSamplesPerBlock() const { return numSamplesPerBlock; }
 };
 

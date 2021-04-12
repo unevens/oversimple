@@ -159,9 +159,7 @@ public:
    * @param numChannelsToProcess the number of channels to process. If negative,
    * all channels will be processed.
    */
-  virtual void processBlock(InterleavedBuffer<Scalar> const& input,
-                            int numSamples,
-                            int numChannelsToProcess = -1) = 0;
+  virtual void processBlock(InterleavedBuffer<Scalar> const& input, int numSamples, int numChannelsToProcess = -1) = 0;
 
   /**
    * @return a reference to the InterleavedBuffer holding the donwsampled
@@ -236,8 +234,7 @@ protected:
   void setupStages()
   {
     int num2, num4, num8;
-    avec::getNumOfVecBuffersUsedByInterleavedBuffer<Scalar>(
-      numChannels, num2, num4, num8);
+    avec::getNumOfVecBuffersUsedByInterleavedBuffer<Scalar>(numChannels, num2, num4, num8);
     stage2_0.resize(num2);
     stage2_1.resize(num2);
     stage2_2.resize(num2);
@@ -332,10 +329,7 @@ protected:
     }
   }
 
-  IirOversamplingDesigner const& getDesigner() const override
-  {
-    return designer;
-  }
+  IirOversamplingDesigner const& getDesigner() const override { return designer; }
   int getOrder() const override { return order; }
   void setOrder(int value) override
   {
@@ -687,9 +681,7 @@ public:
                            StageVec2>(designer, numChannels)
   {}
 
-  void processBlock(InterleavedBuffer<Scalar> const& input,
-                    int numSamples,
-                    int numChannelsToProcess) override
+  void processBlock(InterleavedBuffer<Scalar> const& input, int numSamples, int numChannelsToProcess) override
   {
     if (numChannelsToProcess < 0) {
       numChannelsToProcess = this->numChannels;
@@ -815,35 +807,25 @@ public:
       } break;
       case 2: {
         this->applyStage0(temp, input, numInputSamples, numChannelsToProcess);
-        this->applyStage1(
-          output, temp, numInputSamples * 2, numChannelsToProcess);
+        this->applyStage1(output, temp, numInputSamples * 2, numChannelsToProcess);
       } break;
       case 3: {
         this->applyStage0(output, input, numInputSamples, numChannelsToProcess);
-        this->applyStage1(
-          temp, output, numInputSamples * 2, numChannelsToProcess);
-        this->applyStage2(
-          output, temp, numInputSamples * 4, numChannelsToProcess);
+        this->applyStage1(temp, output, numInputSamples * 2, numChannelsToProcess);
+        this->applyStage2(output, temp, numInputSamples * 4, numChannelsToProcess);
       } break;
       case 4: {
         this->applyStage0(temp, input, numInputSamples, numChannelsToProcess);
-        this->applyStage1(
-          temp2, temp, numInputSamples * 2, numChannelsToProcess);
-        this->applyStage2(
-          temp, temp2, numInputSamples * 4, numChannelsToProcess);
-        this->applyStage3(
-          output, temp, numInputSamples * 8, numChannelsToProcess);
+        this->applyStage1(temp2, temp, numInputSamples * 2, numChannelsToProcess);
+        this->applyStage2(temp, temp2, numInputSamples * 4, numChannelsToProcess);
+        this->applyStage3(output, temp, numInputSamples * 8, numChannelsToProcess);
       } break;
       case 5: {
         this->applyStage0(output, input, numInputSamples, numChannelsToProcess);
-        this->applyStage1(
-          temp, output, numInputSamples * 2, numChannelsToProcess);
-        this->applyStage2(
-          output, temp, numInputSamples * 4, numChannelsToProcess);
-        this->applyStage3(
-          temp, output, numInputSamples * 8, numChannelsToProcess);
-        this->applyStage4(
-          output, temp, numInputSamples * 16, numChannelsToProcess);
+        this->applyStage1(temp, output, numInputSamples * 2, numChannelsToProcess);
+        this->applyStage2(output, temp, numInputSamples * 4, numChannelsToProcess);
+        this->applyStage3(temp, output, numInputSamples * 8, numChannelsToProcess);
+        this->applyStage4(output, temp, numInputSamples * 16, numChannelsToProcess);
       } break;
       default:
         assert(false);
@@ -877,38 +859,28 @@ public:
       case 2: {
         input.interleave(inputs, output.getNumChannels(), numInputSamples);
         this->applyStage0(temp, input, numInputSamples, numChannelsToProcess);
-        this->applyStage1(
-          output, temp, numInputSamples * 2, numChannelsToProcess);
+        this->applyStage1(output, temp, numInputSamples * 2, numChannelsToProcess);
       } break;
       case 3: {
         input.interleave(inputs, output.getNumChannels(), numInputSamples);
         this->applyStage0(output, input, numInputSamples, numChannelsToProcess);
-        this->applyStage1(
-          temp, output, numInputSamples * 2, numChannelsToProcess);
-        this->applyStage2(
-          output, temp, numInputSamples * 4, numChannelsToProcess);
+        this->applyStage1(temp, output, numInputSamples * 2, numChannelsToProcess);
+        this->applyStage2(output, temp, numInputSamples * 4, numChannelsToProcess);
       } break;
       case 4: {
         input.interleave(inputs, output.getNumChannels(), numInputSamples);
         this->applyStage0(temp, input, numInputSamples, numChannelsToProcess);
-        this->applyStage1(
-          input, temp, numInputSamples * 2, numChannelsToProcess);
-        this->applyStage2(
-          temp, input, numInputSamples * 4, numChannelsToProcess);
-        this->applyStage3(
-          output, temp, numInputSamples * 8, numChannelsToProcess);
+        this->applyStage1(input, temp, numInputSamples * 2, numChannelsToProcess);
+        this->applyStage2(temp, input, numInputSamples * 4, numChannelsToProcess);
+        this->applyStage3(output, temp, numInputSamples * 8, numChannelsToProcess);
       } break;
       case 5: {
         input.interleave(inputs, output.getNumChannels(), numInputSamples);
         this->applyStage0(output, input, numInputSamples, numChannelsToProcess);
-        this->applyStage1(
-          temp, output, numInputSamples * 2, numChannelsToProcess);
-        this->applyStage2(
-          output, temp, numInputSamples * 4, numChannelsToProcess);
-        this->applyStage3(
-          temp, output, numInputSamples * 8, numChannelsToProcess);
-        this->applyStage4(
-          output, temp, numInputSamples * 16, numChannelsToProcess);
+        this->applyStage1(temp, output, numInputSamples * 2, numChannelsToProcess);
+        this->applyStage2(output, temp, numInputSamples * 4, numChannelsToProcess);
+        this->applyStage3(temp, output, numInputSamples * 8, numChannelsToProcess);
+        this->applyStage4(output, temp, numInputSamples * 16, numChannelsToProcess);
       } break;
       default:
         assert(false);
@@ -919,8 +891,7 @@ public:
                     InterleavedBuffer<Scalar>& output,
                     int numChannelsToProcess) override
   {
-    processBlock(
-      input.get(), input.getNumSamples(), output, numChannelsToProcess);
+    processBlock(input.get(), input.getNumSamples(), output, numChannelsToProcess);
   }
 };
 

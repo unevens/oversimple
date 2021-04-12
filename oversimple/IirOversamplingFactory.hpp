@@ -67,17 +67,14 @@ class IirUpsamplerFactory final
 
 public:
   template<int NC>
-  using Stage8 = typename std::conditional<std::is_same<Scalar, float>::value,
-                                           hiir::Upsampler2x8Avx<NC>,
-                                           FakeUpsamplerStage8Double<NC>>::type;
+  using Stage8 = typename std::
+    conditional<std::is_same<Scalar, float>::value, hiir::Upsampler2x8Avx<NC>, FakeUpsamplerStage8Double<NC>>::type;
   template<int NC>
-  using Stage4 = typename std::conditional<std::is_same<Scalar, float>::value,
-                                           hiir::Upsampler2x4Sse<NC>,
-                                           hiir::Upsampler2x4F64Avx<NC>>::type;
+  using Stage4 = typename std::
+    conditional<std::is_same<Scalar, float>::value, hiir::Upsampler2x4Sse<NC>, hiir::Upsampler2x4F64Avx<NC>>::type;
   template<int NC>
-  using Stage2 = typename std::conditional<std::is_same<Scalar, float>::value,
-                                           FakeUpsamplerStage2Float<NC>,
-                                           hiir::Upsampler2x2F64Sse2<NC>>::type;
+  using Stage2 = typename std::
+    conditional<std::is_same<Scalar, float>::value, FakeUpsamplerStage2Float<NC>, hiir::Upsampler2x2F64Sse2<NC>>::type;
 
   /**
    * @param numChannels the number of channels to initialize the IirUpsampler
@@ -85,20 +82,17 @@ public:
    * @param presetIndex the quality preset index used to create the IirUpsampler
    * antialiasing filters
    */
-  static std::unique_ptr<IirUpsampler<Scalar>> make(int numChannels,
-                                                    int presetIndex = 0)
+  static std::unique_ptr<IirUpsampler<Scalar>> make(int numChannels, int presetIndex = 0)
   {
     auto preset = getIirOversamplingPreset(presetIndex);
     switch (presetIndex) {
       case 0:
       default:
         return std::unique_ptr<IirUpsampler<Scalar>>(
-          new TIirUpsampler<Scalar, 11, 5, 3, 3, 2, Stage8, Stage4, Stage2>(
-            preset, numChannels));
+          new TIirUpsampler<Scalar, 11, 5, 3, 3, 2, Stage8, Stage4, Stage2>(preset, numChannels));
       case 1:
         return std::unique_ptr<IirUpsampler<Scalar>>(
-          new TIirUpsampler<Scalar, 11, 5, 4, 3, 2, Stage8, Stage4, Stage2>(
-            preset, numChannels));
+          new TIirUpsampler<Scalar, 11, 5, 4, 3, 2, Stage8, Stage4, Stage2>(preset, numChannels));
     }
   }
 };
@@ -116,22 +110,17 @@ class IirDownsamplerFactory final
 
 public:
   template<int NC>
-  using Stage8 =
-    typename std::conditional<std::is_same<Scalar, float>::value,
-                              hiir::Downsampler2x8Avx<NC>,
-                              FakeDownsamplerStage8Double<NC>>::type;
+  using Stage8 = typename std::
+    conditional<std::is_same<Scalar, float>::value, hiir::Downsampler2x8Avx<NC>, FakeDownsamplerStage8Double<NC>>::type;
 
   template<int NC>
-  using Stage4 =
-    typename std::conditional<std::is_same<Scalar, float>::value,
-                              hiir::Downsampler2x4Sse<NC>,
-                              hiir::Downsampler2x4F64Avx<NC>>::type;
+  using Stage4 = typename std::
+    conditional<std::is_same<Scalar, float>::value, hiir::Downsampler2x4Sse<NC>, hiir::Downsampler2x4F64Avx<NC>>::type;
 
   template<int NC>
-  using Stage2 =
-    typename std::conditional<std::is_same<Scalar, float>::value,
-                              FakeDownsamplerStage2Float<NC>,
-                              hiir::Downsampler2x2F64Sse2<NC>>::type;
+  using Stage2 = typename std::conditional<std::is_same<Scalar, float>::value,
+                                           FakeDownsamplerStage2Float<NC>,
+                                           hiir::Downsampler2x2F64Sse2<NC>>::type;
 
   /**
    * @param numChannels the number of channels to initialize the IirDownsampler
@@ -139,20 +128,17 @@ public:
    * @param presetIndex the quality preset index used to create the
    * IirDownsampler antialiasing filters
    */
-  static std::unique_ptr<IirDownsampler<Scalar>> make(int numChannels,
-                                                      int presetIndex = 0)
+  static std::unique_ptr<IirDownsampler<Scalar>> make(int numChannels, int presetIndex = 0)
   {
     auto preset = getIirOversamplingPreset(presetIndex);
     switch (presetIndex) {
       case 0:
       default:
         return std::unique_ptr<IirDownsampler<Scalar>>(
-          new TIirDownsampler<Scalar, 11, 5, 3, 3, 2, Stage8, Stage4, Stage2>(
-            preset, numChannels));
+          new TIirDownsampler<Scalar, 11, 5, 3, 3, 2, Stage8, Stage4, Stage2>(preset, numChannels));
       case 1:
         return std::unique_ptr<IirDownsampler<Scalar>>(
-          new TIirDownsampler<Scalar, 11, 5, 4, 3, 2, Stage8, Stage4, Stage2>(
-            preset, numChannels));
+          new TIirDownsampler<Scalar, 11, 5, 4, 3, 2, Stage8, Stage4, Stage2>(preset, numChannels));
     }
   }
 };
