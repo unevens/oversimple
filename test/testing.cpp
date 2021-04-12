@@ -68,9 +68,9 @@ testFirOversampler(int numChannels,
                    int oversamplingRate,
                    double transitionBand)
 {
-  cout << "testing FirOversampler with oversamplingRate "
-       << oversamplingRate << " and " << numChannels << " channels and "
-       << samplesPerBlock << " samples per block"
+  cout << "testing FirOversampler with oversamplingRate " << oversamplingRate
+       << " and " << numChannels << " channels and " << samplesPerBlock
+       << " samples per block"
        << " and transitionBand = " << transitionBand << "%"
        << "\n";
   TFirUpsampler<Scalar> firUpsampler(numChannels, transitionBand);
@@ -86,8 +86,8 @@ testFirOversampler(int numChannels,
   ScalarBuffer<Scalar> input(numChannels, samplesPerBlock + padding);
   ScalarBuffer<Scalar> inputCopy(numChannels, samplesPerBlock + padding);
   ScalarBuffer<Scalar> output(numChannels, samplesPerBlock + padding);
-  ScalarBuffer<Scalar> upsampled(
-    numChannels, samplesPerBlock * oversamplingRate + padding);
+  ScalarBuffer<Scalar> upsampled(numChannels,
+                                 samplesPerBlock * oversamplingRate + padding);
   input.fill(0.0);
   inputCopy.fill(0.0);
   output.fill(0.0);
@@ -207,7 +207,24 @@ inspectIirOversampling(int numChannels,
 int
 main()
 {
-  cout << "avx? " << AVX_AVAILABLE << "\n";
+  if constexpr (AVEC_HAS_AVX512) {
+    cout << "AVX512 AVAILABLE\n";
+  }
+  else if constexpr (AVEC_HAS_AVX) {
+    cout << "AVX AVAILABLE\n";
+  }
+  else if constexpr (AVEC_HAS_SSE2) {
+    cout << "SSE2 AVAILABLE\n";
+  }
+  else if constexpr (AVEC_NEON_64) {
+    cout << "NEON WITH 64 BIT AVAILABLE\n";
+  }
+  else if constexpr (AVEC_NEON) {
+    cout << "NEON WITH 32 BIT AVAILABLE\n";
+  }
+  else {
+    cout << "NO SIMD INSTRUCTIONS AVAILABLE\n";
+  }
 
   inspectIirOversampling<double>(2, 1024, 4, 128);
   inspectIirOversampling<float>(2, 1024, 4, 128);
