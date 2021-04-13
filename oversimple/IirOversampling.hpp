@@ -17,39 +17,8 @@ limitations under the License.
 #pragma once
 
 #include "avec/Avec.hpp"
-#include "hiir/Downsampler2x2F64Sse2.h"
-#include "hiir/Downsampler2x4Sse.h"
-#include "hiir/Upsampler2x2F64Sse2.h"
-#include "hiir/Upsampler2x4Sse.h"
-#include "oversimple/IirOversamplingDesigner.hpp"
 
-#if __AVX__
-#include "hiir/Downsampler2x4F64Avx.h"
-#include "hiir/Downsampler2x8Avx.h"
-#include "hiir/Upsampler2x4F64Avx.h"
-#include "hiir/Upsampler2x8Avx.h"
-#else
-namespace hiir {
-struct FakeInterface
-{
-  void clear_buffers() {}
-  void set_coefs(const double coef_arr[]) {}
-  void process_block(double out_ptr[], const double in_ptr[], long nbr_spl) {}
-};
-template<int NC>
-class Downsampler2x4F64Avx final : public FakeInterface
-{};
-template<int NC>
-class Downsampler2x8Avx final : public FakeInterface
-{};
-template<int NC>
-class Upsampler2x4F64Avx final : public FakeInterface
-{};
-template<int NC>
-class Upsampler2x8Avx final : public FakeInterface
-{};
-} // namespace hiir
-#endif
+#include "oversimple/IirOversamplingDesigner.hpp"
 
 #ifdef _MSC_VER
 #pragma warning(push)
