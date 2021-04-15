@@ -93,6 +93,9 @@ class Oversampling
   int rate;
 
 public:
+  /**
+   * Class to upsample an already interleaved buffer onto an interleaved buffer.
+   */
   class VecToVecUpsampler
   {
     std::unique_ptr<IirUpsampler<Scalar>> iirUpsampler;
@@ -218,6 +221,9 @@ public:
     }
   };
 
+  /**
+   * Class to upsample a non interleaved buffer onto an interleaved buffer.
+   */
   class ScalarToVecUpsampler
   {
     std::unique_ptr<IirUpsampler<Scalar>> iirUpsampler;
@@ -344,6 +350,9 @@ public:
     }
   };
 
+  /**
+   * Class to upsample a non interleaved buffer onto a non interleaved buffer.
+   */
   class ScalarToScalarUpsampler
   {
     std::unique_ptr<IirUpsampler<Scalar>> iirUpsampler;
@@ -469,6 +478,9 @@ public:
     }
   };
 
+  /**
+   * Class to downsample an already interleaved buffer onto a non interleaved buffer.
+   */
   struct VecToScalarDownsampler
   {
     std::unique_ptr<IirDownsampler<Scalar>> iirDownsampler;
@@ -578,6 +590,9 @@ public:
     }
   };
 
+  /**
+   * Class to downsample an already interleaved buffer onto an interleaved buffer.
+   */
   struct VecToVecDownsampler
   {
     std::unique_ptr<IirDownsampler<Scalar>> iirDownsampler;
@@ -694,6 +709,9 @@ public:
     }
   };
 
+  /**
+   * Class to downsample a non interleaved buffer onto a non interleaved buffer.
+   */
   struct ScalarToScalarDownsampler
   {
     std::unique_ptr<IirDownsampler<Scalar>> iirDownsampler;
@@ -801,20 +819,44 @@ public:
     }
   };
 
+  /**
+   * The requested ScalarToVecUpsampler instances.
+   */
   std::vector<std::unique_ptr<ScalarToVecUpsampler>> scalarToVecUpsamplers;
 
+  /**
+   * The requested VecToVecUpsampler instances.
+   */
   std::vector<std::unique_ptr<VecToVecUpsampler>> vecToVecUpsamplers;
 
+  /**
+   * The requested ScalarToScalarUpsampler instances.
+   */
   std::vector<std::unique_ptr<ScalarToScalarUpsampler>> scalarToScalarUpsamplers;
 
+  /**
+   * The requested VecToScalarDownsampler instances.
+   */
   std::vector<std::unique_ptr<VecToScalarDownsampler>> vecToScalarDownsamplers;
 
+  /**
+   * The requested VecToVecDownsampler instances.
+   */
   std::vector<std::unique_ptr<VecToVecDownsampler>> vecToVecDownsamplers;
 
+  /**
+   * The requested ScalarToScalarDownsampler instances.
+   */
   std::vector<std::unique_ptr<ScalarToScalarDownsampler>> scalarToScalarDownsamplers;
 
+  /**
+   * The requested InterleavedBuffer instances.
+   */
   std::vector<InterleavedBuffer<Scalar>> interleavedBuffers;
 
+  /**
+   * The requested ScalarBuffer instances.
+   */
   std::vector<ScalarBuffer<Scalar>> scalarBuffers;
 
   /**
