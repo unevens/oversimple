@@ -207,13 +207,13 @@ inspectIirOversampling(int numChannels,
 int
 main()
 {
-  if constexpr (AVEC_HAS_AVX512) {
+  if constexpr (AVEC_AVX512) {
     cout << "AVX512 AVAILABLE\n";
   }
-  else if constexpr (AVEC_HAS_AVX) {
+  else if constexpr (AVEC_AVX) {
     cout << "AVX AVAILABLE\n";
   }
-  else if constexpr (AVEC_HAS_SSE2) {
+  else if constexpr (AVEC_SSE2) {
     cout << "SSE2 AVAILABLE\n";
   }
   else if constexpr (AVEC_NEON_64) {

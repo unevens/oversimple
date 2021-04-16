@@ -76,6 +76,21 @@ class Upsampler2x8Avx final : public FakeInterface
 #include "hiir/Downsampler2x4Sse.h"
 #include "hiir/Upsampler2x2F64Sse2.h"
 #include "hiir/Upsampler2x4Sse.h"
+#else
+namespace hiir {
+template<int NC>
+class Downsampler2x2F64Sse2 final : public FakeInterface
+{};
+template<int NC>
+class Downsampler2x4Sse final : public FakeInterface
+{};
+template<int NC>
+class Upsampler2x2F64Sse2 final : public FakeInterface
+{};
+template<int NC>
+class Upsampler2x4Sse final : public FakeInterface
+{};
+} // namespace hiir
 #endif
 
 #if AVEC_NEON_64
@@ -149,9 +164,9 @@ template<typename Scalar>
 class IirUpsamplerFactory final
 {
   template<int NC>
-  using FakeUpsamplerStage8Double = hiir::Upsampler2x4F64Avx<NC>;
+  using FakeUpsamplerStage8Double = hiir::FakeInterface;
   template<int NC>
-  using FakeUpsamplerStage2Float = hiir::Upsampler2x4Sse<NC>;
+  using FakeUpsamplerStage2Float = hiir::FakeInterface;
 
 #if AVEC_X86
 
@@ -174,7 +189,7 @@ private:
 
 public:
   template<int NC>
-  using Stage8 = FakeUpsamplerStage8Double;
+  using Stage8 = FakeUpsamplerStage8Double<NC>;
   template<int NC>
   using Stage4 = typename std::
     conditional<std::is_same<Scalar, float>::value, hiir::Upsampler2x4Neon<NC>, FakeUpsamplerStage4Double<NC>>::type;
@@ -245,7 +260,7 @@ private:
 
 public:
   template<int NC>
-  using Stage8 = FakeDownsamplerStage8Double;
+  using Stage8 = FakeDownsamplerStage8Double<NC>;
   template<int NC>
   using Stage4 = typename std::conditional<std::is_same<Scalar, float>::value,
                                            hiir::Downsampler2x4Neon<NC>,
