@@ -1,9 +1,6 @@
 [submodule "hiir"]
 	path = hiir
 	url = https://github.com/unevens/hiir
-[submodule "r8brain"]
-	path = r8brain
-	url = https://github.com/unevens/r8brain
 [submodule "avec"]
 	path = avec
 	url = https://github.com/unevens/avec
