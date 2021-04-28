@@ -4,3 +4,6 @@
 [submodule "avec"]
 	path = avec
 	url = https://github.com/unevens/avec
+[submodule "r8brain"]
+	path = r8brain
+	url = https://github.com/avaneev/r8brain-free-src

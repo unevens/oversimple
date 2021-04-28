@@ -6,7 +6,9 @@ Oversimple wraps two of the best resampling libraries available:
 
 - [HIIR](https://github.com/unevens/hiir), by [Laurent De Soras](http://ldesoras.free.fr/) for minimum phase antialiasing. HIIR only implements power of two resampling.
 
-- and [r8brain-free-src](https://github.com/avaneev/r8brain-free-src) by Aleksey Vaneev, for linear phase antialiasing, through [my fork](https://github.com/unevens/r8brain/tree/with-pffft-double), which adds supports for the latest [PFFFT implementation](https://github.com/marton78/pffft) which uses SIMD instructions for both single and double precision floating point numbers on all platforms where they are supported (including double precision on ARM AArch64).
+- and [r8brain-free-src](https://github.com/avaneev/r8brain-free-src) by Aleksey Vaneev, for linear phase antialiasing.
+
+Both libraries use SIMD instructions for both single and double precision floating point numbers on all platforms where they are supported (including double precision on ARM AArch64).
 
 Aligned memory and interleaved buffers needed by the simd code in HIIR are managed using [avec](https://github.com/unevens/avec).
 
