@@ -26,11 +26,11 @@ int
 main()
 {
   for (int i = 0; i < 2; ++i) {
-    auto preset = GetIirOversamplingPreset(i);
+    auto preset = getIirOversamplingPreset(i);
     cout << "preset " << i << ":\n";
-    cout << preset.Print();
+    cout << preset.print();
     cout << "\n\n";
-    auto groupDelay = preset.GetGroupDelayGraph(20050).GetGraph();
+    auto groupDelay = preset.getGroupDelayGraph(20050).getGraph();
     ofstream file("groupDelay_" + std::to_string(i) + ".json");
     file << "{ \"groupDelay\": [ ";
     for (int i = 0; i < groupDelay.size(); ++i) {
