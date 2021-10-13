@@ -165,7 +165,7 @@ public:
    * together.
    * @param oversamplingRate the oversampling factor
    */
-  FirUnbufferedResampler(int numChannels,
+  explicit FirUnbufferedResampler(int numChannels,
                          double transitionBand = 2.0,
                          int maxSamplesPerBlock = 1024,
                          double oversamplingRate = 1.0);
@@ -226,7 +226,7 @@ public:
    * together.
    * @param oversamplingRate the oversampling factor
    */
-  FirBufferedResampler(int numChannels,
+  explicit FirBufferedResampler(int numChannels,
                        double transitionBand = 2.0,
                        int maxSamplesPerBlock = 1024,
                        double oversamplingRate = 1.0);
@@ -290,7 +290,7 @@ public:
    * together.
    * @param oversamplingRate the oversampling factor
    */
-  FirDownsampler(int numChannels,
+  explicit FirDownsampler(int numChannels,
                  double transitionBand = 2.0,
                  int maxSamplesPerBlock = 1024,
                  double oversamplingRate = 1.0)
@@ -334,7 +334,7 @@ public:
    * together.
    * @param oversamplingRate the oversampling factor
    */
-  TFirUnbufferedReampler(int numChannels,
+  explicit TFirUnbufferedReampler(int numChannels,
                          double transitionBand = 2.0,
                          int maxSamplesPerBlock = 1024,
                          double oversamplingRate = 1.0)
@@ -359,7 +359,7 @@ public:
    * together.
    * @param oversamplingRate the oversampling factor
    */
-  TFirUnbufferedReampler(int numChannels,
+  explicit TFirUnbufferedReampler(int numChannels,
                          double transitionBand = 2.0,
                          int maxSamplesPerBlock = 1024,
                          double oversamplingRate = 1.0)
@@ -437,7 +437,7 @@ public:
    * together.
    * @param oversamplingRate the oversampling factor
    */
-  TFirBufferedResampler(int numChannels,
+  explicit TFirBufferedResampler(int numChannels,
                         double transitionBand = 2.0,
                         int maxSamplesPerBlock = 1024,
                         double oversamplingRate = 1.0)
@@ -462,7 +462,7 @@ public:
    * together.
    * @param oversamplingRate the oversampling factor
    */
-  TFirBufferedResampler(int numChannels,
+  explicit TFirBufferedResampler(int numChannels,
                         double transitionBand = 2.0,
                         int maxSamplesPerBlock = 1024,
                         double oversamplingRate = 1.0)
@@ -556,7 +556,7 @@ public:
    * together.
    * @param oversamplingRate the oversampling factor
    */
-  TFirDownsampler(int numChannels,
+  explicit TFirDownsampler(int numChannels,
                   double transitionBand = 2.0,
                   int maxSamplesPerBlock = 1024,
                   double oversamplingRate = 1.0)
