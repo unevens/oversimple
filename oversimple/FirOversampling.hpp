@@ -19,14 +19,14 @@ limitations under the License.
 #define NOMINMAX
 #endif
 
-#if defined(__clang__ ) || defined(__GNUC__)
+#if defined(__clang__) || defined(__GNUC__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wsuggest-override"
 #endif
 
 #include "CDSPResampler.h"
 
-#if defined(__clang__ ) || defined(__GNUC__)
+#if defined(__clang__) || defined(__GNUC__)
 #pragma GCC diagnostic pop
 #endif
 
@@ -63,7 +63,10 @@ public:
   /**
    * @return the number of channels the processor is ready to work with.
    */
-  int getNumChannels() const { return numChannels; }
+  int getNumChannels() const
+  {
+    return numChannels;
+  }
 
   /**
    * Sets the overampling rate.
@@ -74,7 +77,10 @@ public:
   /**
    * @return the oversampling rate.
    */
-  virtual double getRate() const { return oversamplingRate; }
+  virtual double getRate() const
+  {
+    return oversamplingRate;
+  }
 
   /**
    * Sets the number of samples that will be processed together.
@@ -85,7 +91,10 @@ public:
   /**
    * @return the number of samples that will be processed together.
    */
-  int getMaxSamplesPerBlock() const { return maxSamplesPerBlock; }
+  int getMaxSamplesPerBlock() const
+  {
+    return maxSamplesPerBlock;
+  }
 
   /**
    * Sets the antialiasing filter transition band.
@@ -98,7 +107,10 @@ public:
    * @return value the antialiasing filter transition band, in percentage of the
    * sample rate.
    */
-  double getTransitionBand() const { return transitionBand; }
+  double getTransitionBand() const
+  {
+    return transitionBand;
+  }
 
   /**
    * @return the number of input samples needed before a first output sample is
@@ -112,7 +124,10 @@ public:
    * passed to prepareBuffers. If prepareBuffers has not been called, then no
    * more samples than maxSamplesPerBlock should be passed to processBlock.
    */
-  int getMaxNumOutputSamples() { return maxOutputLength; }
+  int getMaxNumOutputSamples()
+  {
+    return maxOutputLength;
+  }
 
   /**
    * Resets the state of the processor, clearing the buffers.
@@ -295,7 +310,10 @@ public:
   /**
    * @return the oversampling rate.
    */
-  double getRate() const override { return 1.0 / oversamplingRate; }
+  double getRate() const override
+  {
+    return 1.0 / oversamplingRate;
+  }
 };
 
 /**
@@ -558,7 +576,10 @@ public:
   /**
    * @return the oversampling factor.
    */
-  double getRate() const override { return 1.0 / this->oversamplingRate; }
+  double getRate() const override
+  {
+    return 1.0 / this->oversamplingRate;
+  }
 };
 
 } // namespace oversimple

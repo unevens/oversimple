@@ -129,8 +129,7 @@ namespace oversimple {
  * @param presetIndex an index identifying the preset
  * @return the IirOversamplingDesigner corresponding to the index
  */
-inline IirOversamplingDesigner
-getIirOversamplingPreset(int presetIndex = 0)
+inline IirOversamplingDesigner getIirOversamplingPreset(int presetIndex = 0)
 {
   switch (presetIndex) {
     case 0:
@@ -148,8 +147,7 @@ getIirOversamplingPreset(int presetIndex = 0)
  * @param presetIndex the oversampling quality preset
  * @return the minimum group delay
  */
-inline double
-getIirOversamplingMinGroupDelay(int order, int presetIndex = 0)
+inline double getIirOversamplingMinGroupDelay(int order, int presetIndex = 0)
 {
   if (order == 0) {
     return 0.0;

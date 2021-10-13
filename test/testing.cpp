@@ -45,16 +45,14 @@ limitations under the License.
 using namespace oversimple;
 using namespace std;
 
-std::string
-n2s(double x)
+std::string n2s(double x)
 {
   stringstream stream;
   stream << fixed << showpos << setprecision(6) << x;
   return stream.str();
 }
 
-std::string
-i2s(int x)
+std::string i2s(int x)
 {
   stringstream stream;
   stream << setw(4) << setfill(' ') << x;
@@ -62,15 +60,10 @@ i2s(int x)
 }
 
 template<typename Scalar>
-void
-testFirOversampler(int numChannels,
-                   int samplesPerBlock,
-                   int oversamplingRate,
-                   double transitionBand)
+void testFirOversampler(int numChannels, int samplesPerBlock, int oversamplingRate, double transitionBand)
 {
-  cout << "testing FirOversampler with oversamplingRate " << oversamplingRate
-       << " and " << numChannels << " channels and " << samplesPerBlock
-       << " samples per block"
+  cout << "testing FirOversampler with oversamplingRate " << oversamplingRate << " and " << numChannels
+       << " channels and " << samplesPerBlock << " samples per block"
        << " and transitionBand = " << transitionBand << "%"
        << "\n";
   TFirUpsampler<Scalar> firUpsampler(numChannels, transitionBand);
@@ -86,8 +79,7 @@ testFirOversampler(int numChannels,
   ScalarBuffer<Scalar> input(numChannels, samplesPerBlock + padding);
   ScalarBuffer<Scalar> inputCopy(numChannels, samplesPerBlock + padding);
   ScalarBuffer<Scalar> output(numChannels, samplesPerBlock + padding);
-  ScalarBuffer<Scalar> upsampled(numChannels,
-                                 samplesPerBlock * oversamplingRate + padding);
+  ScalarBuffer<Scalar> upsampled(numChannels, samplesPerBlock * oversamplingRate + padding);
   input.fill(0.0);
   inputCopy.fill(0.0);
   output.fill(0.0);
@@ -119,30 +111,23 @@ testFirOversampler(int numChannels,
     signalPower /= 0.5 * (double)samplesPerBlock;
     noisePower /= 0.5 * (double)samplesPerBlock;
 
-    cout << "channel " << c
-         << " snr = " << 10.0 * log10(signalPower / noisePower) << " dB\n";
+    cout << "channel " << c << " snr = " << 10.0 * log10(signalPower / noisePower) << " dB\n";
   }
   CHECK_MEMORY;
 
-  cout << "completed testing FirOversampler with oversamplingRate "
-       << oversamplingRate << " and " << numChannels << " channels and "
-       << samplesPerBlock << " samples per block"
+  cout << "completed testing FirOversampler with oversamplingRate " << oversamplingRate << " and " << numChannels
+       << " channels and " << samplesPerBlock << " samples per block"
        << " and transitionBand = " << transitionBand << "%"
        << "\n";
 }
 
 template<typename Scalar>
-void
-inspectIirOversampling(int numChannels,
-                       int samplesPerBlock,
-                       int order,
-                       int offset)
+void inspectIirOversampling(int numChannels, int samplesPerBlock, int order, int offset)
 {
   int factor = (int)std::pow(2, order);
   cout << "beginning to test " << factor << "x "
        << "IirOversampling with " << numChannels << "channels and "
-       << (typeid(Scalar) == typeid(float) ? "single" : "double")
-       << " precision\n";
+       << (typeid(Scalar) == typeid(float) ? "single" : "double") << " precision\n";
   // prepare data
   // Scalar normalizedFrequency =  0.05;
   Scalar normalizedFrequency = 0.125;
@@ -172,8 +157,7 @@ inspectIirOversampling(int numChannels,
   auto downsampling = IirDownsamplerFactory<Scalar>::make(numChannels);
   upsampling->setOrder(order);
   downsampling->setOrder(order);
-  auto buffer =
-    InterleavedBuffer<Scalar>(numChannels, factor * samplesPerBlock);
+  auto buffer = InterleavedBuffer<Scalar>(numChannels, factor * samplesPerBlock);
   CHECK_MEMORY;
   upsampling->processBlock(in, samplesPerBlock, buffer);
   CHECK_MEMORY;
@@ -186,8 +170,7 @@ inspectIirOversampling(int numChannels,
   for (int i = 0; i < numChannels; ++i) {
     cout << "channel " << i << "\n";
     for (int s = 0; s < samplesPerBlock; ++s) {
-      cout << i2s(s) << ":   " << n2s(in[i][s]) << "  |  "
-           << n2s(*output.at(i, s)) << "\n";
+      cout << i2s(s) << ":   " << n2s(in[i][s]) << "  |  " << n2s(*output.at(i, s)) << "\n";
     }
     cout << "\n";
   }
@@ -200,12 +183,10 @@ inspectIirOversampling(int numChannels,
   delete[] in;
   cout << "completed testing " << factor << "x "
        << "IirOversampling with " << numChannels << "channels and "
-       << (typeid(Scalar) == typeid(float) ? "single" : "double")
-       << " precision\n";
+       << (typeid(Scalar) == typeid(float) ? "single" : "double") << " precision\n";
 }
 
-int
-main()
+int main()
 {
   if constexpr (AVEC_AVX512) {
     cout << "AVX512 AVAILABLE\n";

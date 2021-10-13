@@ -115,7 +115,10 @@ public:
     InterleavedBuffer<Scalar> outputBuffer;
 
   public:
-    InterleavedBuffer<Scalar>& getOutput() { return outputBuffer; }
+    InterleavedBuffer<Scalar>& getOutput()
+    {
+      return outputBuffer;
+    }
 
     /**
      * Resamples a multi channel input buffer.
@@ -241,7 +244,10 @@ public:
     InterleavedBuffer<Scalar> outputBuffer;
 
   public:
-    InterleavedBuffer<Scalar>& getOutput() { return outputBuffer; }
+    InterleavedBuffer<Scalar>& getOutput()
+    {
+      return outputBuffer;
+    }
 
     /**
      * Resamples a multi channel input buffer.
@@ -369,7 +375,10 @@ public:
     InterleavedBuffer<Scalar> iirOutputBuffer;
 
   public:
-    ScalarBuffer<Scalar>& getOutput() { return outputBuffer; }
+    ScalarBuffer<Scalar>& getOutput()
+    {
+      return outputBuffer;
+    }
 
     /**
      * Resamples a multi channel input buffer.
@@ -675,7 +684,10 @@ public:
       }
     }
 
-    InterleavedBuffer<Scalar>& getOutput() { return firDownsampler ? outputBuffer : iirDownsampler->getOutput(); }
+    InterleavedBuffer<Scalar>& getOutput()
+    {
+      return firDownsampler ? outputBuffer : iirDownsampler->getOutput();
+    }
 
     /**
      * @return the number of input samples needed before a first output sample
@@ -1009,14 +1021,20 @@ public:
   /**
    * @return the oversampling rate.
    */
-  int getRate() const { return rate; }
+  int getRate() const
+  {
+    return rate;
+  }
 
   /**
    * @return the maximum number of samples that can be processed by a single
    * process call. It is the same number passed to prepareBuffers or set in the
    * OversamplingSettings (numSamplesPerBlock)
    */
-  int getNumSamplesPerBlock() const { return numSamplesPerBlock; }
+  int getNumSamplesPerBlock() const
+  {
+    return numSamplesPerBlock;
+  }
 };
 
 /**
@@ -1080,15 +1098,13 @@ private:
 };
 
 template<>
-inline TOversampling<float>&
-Oversampling::get<float>()
+inline TOversampling<float>& Oversampling::get<float>()
 {
   return *oversampling32;
 }
 
 template<>
-inline TOversampling<double>&
-Oversampling::get<double>()
+inline TOversampling<double>& Oversampling::get<double>()
 {
   return *oversampling64;
 }

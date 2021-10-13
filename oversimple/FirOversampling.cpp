@@ -21,8 +21,7 @@ limitations under the License.
 #if (defined _DEBUG) && (defined _WIN32)
 #include "FirOversampling.hpp"
 #include <Windows.h>
-inline void
-DEBUG_MESSAGE(char const* message)
+inline void DEBUG_MESSAGE(char const* message)
 {
   OutputDebugString(message);
 }
@@ -32,24 +31,23 @@ DEBUG_MESSAGE(char const* message)
 
 namespace oversimple {
 
-int
-FirUnbufferedResampler::processBlock(ScalarBuffer<double> const& input, ScalarBuffer<double>& output)
+int FirUnbufferedResampler::processBlock(ScalarBuffer<double> const& input, ScalarBuffer<double>& output)
 {
   return processBlock(input.get(), input.getNumChannels(), input.getNumSamples(), output);
 }
 
-void
-FirBufferedResampler::processBlock(ScalarBuffer<double> const& input, ScalarBuffer<double>& output, int requiredSamples)
+void FirBufferedResampler::processBlock(ScalarBuffer<double> const& input,
+                                        ScalarBuffer<double>& output,
+                                        int requiredSamples)
 {
   output.setNumChannelsAndSamples(input.getNumChannels(), input.getNumSamples());
   processBlock(input, output.get(), output.getNumChannels(), requiredSamples);
 }
 
-int
-FirUnbufferedResampler::processBlock(double* const* input,
-                                     int numInputChannels,
-                                     int numSamples,
-                                     ScalarBuffer<double>& output)
+int FirUnbufferedResampler::processBlock(double* const* input,
+                                         int numInputChannels,
+                                         int numSamples,
+                                         ScalarBuffer<double>& output)
 {
   assert(numInputChannels <= numChannels);
   int numOutputSamples = (int)std::ceil(numSamples * oversamplingRate);
@@ -90,12 +88,11 @@ FirUnbufferedResampler::processBlock(double* const* input,
   }
   return totalUpsampledSamples;
 }
-void
-FirBufferedResampler::processBlock(double* const* input,
-                                   int numSamples,
-                                   double** output,
-                                   int numOutputChannels,
-                                   int requiredSamples)
+void FirBufferedResampler::processBlock(double* const* input,
+                                        int numSamples,
+                                        double** output,
+                                        int numOutputChannels,
+                                        int requiredSamples)
 {
   assert(numOutputChannels <= numChannels);
 
@@ -187,17 +184,15 @@ FirBufferedResampler::processBlock(double* const* input,
   }
 }
 
-void
-FirBufferedResampler::processBlock(ScalarBuffer<double> const& input,
-                                   double** output,
-                                   int numOutputChannels,
-                                   int requiredSamples)
+void FirBufferedResampler::processBlock(ScalarBuffer<double> const& input,
+                                        double** output,
+                                        int numOutputChannels,
+                                        int requiredSamples)
 {
   processBlock(input.get(), input.getNumSamples(), output, numOutputChannels, requiredSamples);
 }
 
-void
-FirResamplerBase::setup()
+void FirResamplerBase::setup()
 {
   resamplers.clear();
 
@@ -241,44 +236,38 @@ FirUnbufferedResampler::FirUnbufferedResampler(int numChannels,
   setup();
 }
 
-void
-FirResamplerBase::setNumChannels(int value)
+void FirResamplerBase::setNumChannels(int value)
 {
   numChannels = value;
   setup();
 }
 
-void
-FirResamplerBase::setRate(double value)
+void FirResamplerBase::setRate(double value)
 {
   oversamplingRate = value;
   setup();
 }
 
-void
-FirResamplerBase::setMaxSamplesPerBlock(int value)
+void FirResamplerBase::setMaxSamplesPerBlock(int value)
 {
   maxSamplesPerBlock = value;
   setup();
 }
 
-void
-FirResamplerBase::setTransitionBand(int value)
+void FirResamplerBase::setTransitionBand(int value)
 {
   transitionBand = value;
   setup();
 }
 
-void
-FirResamplerBase::reset()
+void FirResamplerBase::reset()
 {
   for (auto& resampler : resamplers) {
     resampler->clear();
   }
 }
 
-void
-FirResamplerBase::prepareBuffers(int numSamples)
+void FirResamplerBase::prepareBuffers(int numSamples)
 {
   maxInputLength = numSamples;
   auto d = std::div(maxInputLength, maxSamplesPerBlock);
@@ -286,8 +275,7 @@ FirResamplerBase::prepareBuffers(int numSamples)
   maxOutputLength = (d.quot + (d.rem > 0 ? 1 : 0)) * maxResamplerOutputLength;
 }
 
-void
-FirBufferedResampler::prepareBuffers(int numInputSamples, int requiredOutputSamples)
+void FirBufferedResampler::prepareBuffers(int numInputSamples, int requiredOutputSamples)
 {
   FirResamplerBase::prepareBuffers(numInputSamples);
   maxRequiredOutputLength = requiredOutputSamples;
@@ -298,15 +286,13 @@ FirBufferedResampler::prepareBuffers(int numInputSamples, int requiredOutputSamp
   }
 }
 
-void
-FirBufferedResampler::reset()
+void FirBufferedResampler::reset()
 {
   FirResamplerBase::reset();
   bufferCounter = 0;
 }
 
-void
-FirUnbufferedResampler::setup()
+void FirUnbufferedResampler::setup()
 {
   FirResamplerBase::setup();
 
@@ -314,8 +300,7 @@ FirUnbufferedResampler::setup()
   reset();
 }
 
-void
-FirBufferedResampler::setup()
+void FirBufferedResampler::setup()
 {
   FirResamplerBase::setup();
 
@@ -325,8 +310,7 @@ FirBufferedResampler::setup()
   reset();
 }
 
-int
-FirResamplerBase::getNumSamplesBeforeOutputStarts()
+int FirResamplerBase::getNumSamplesBeforeOutputStarts()
 {
   if (resamplers.size() == 0) {
     DEBUG_MESSAGE("Asking the number of samples before the output of the "

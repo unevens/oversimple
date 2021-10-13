@@ -298,8 +298,14 @@ protected:
     }
   }
 
-  IirOversamplingDesigner const& getDesigner() const override { return designer; }
-  int getOrder() const override { return order; }
+  IirOversamplingDesigner const& getDesigner() const override
+  {
+    return designer;
+  }
+  int getOrder() const override
+  {
+    return order;
+  }
   void setOrder(int value) override
   {
     assert(order >= 0 && order <= 5);

@@ -1,11 +1,14 @@
 ---
 Language:        Cpp
 BasedOnStyle:  Mozilla
+ColumnLimit: 120
 FixNamespaceComments: true
 BreakBeforeBraces: Custom
-BraceWrapping:   
+AlwaysBreakAfterReturnType: None
+AlwaysBreakAfterDefinitionReturnType: None
+BraceWrapping:
   AfterClass:      true
-  AfterControlStatement: false
+  AfterControlStatement: MultiLine
   AfterEnum:       true
   AfterFunction:   true
   AfterNamespace:  false
