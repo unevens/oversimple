@@ -30,6 +30,14 @@ namespace oversimple {
 
 struct OversamplingSettings
 {
+  enum class SupportedScalarTypes
+  {
+    onlyFloat,
+    onlyDouble,
+    floatAndDouble
+  };
+
+  SupportedScalarTypes supportedScalarTypes;
   int numChannels;
 
   int numScalarToVecUpsamplers;
@@ -47,20 +55,22 @@ struct OversamplingSettings
   int numSamplesPerBlock;
   double firTransitionBand;
 
-  explicit OversamplingSettings(int numChannels = 2,
-                       int numScalarToVecUpsamplers = 0,
-                       int numVecToScalarDownsamplers = 0,
-                       int numScalarToScalarUpsamplers = 0,
-                       int numScalarToScalarDownsamplers = 0,
-                       int numVecToVecUpsamplers = 0,
-                       int numVecToVecDownsamplers = 0,
-                       int numScalarBuffers = 0,
-                       int numInterleavedBuffers = 0,
-                       double firTransitionBand = 4.0,
-                       int order = 0,
-                       bool linearPhase = false,
-                       int numSamplesPerBlock = 256)
-    : numChannels(numChannels)
+  explicit OversamplingSettings(SupportedScalarTypes supportedScalarTypes = SupportedScalarTypes::floatAndDouble,
+                                int numChannels = 2,
+                                int numScalarToVecUpsamplers = 0,
+                                int numVecToScalarDownsamplers = 0,
+                                int numScalarToScalarUpsamplers = 0,
+                                int numScalarToScalarDownsamplers = 0,
+                                int numVecToVecUpsamplers = 0,
+                                int numVecToVecDownsamplers = 0,
+                                int numScalarBuffers = 0,
+                                int numInterleavedBuffers = 0,
+                                double firTransitionBand = 4.0,
+                                int order = 0,
+                                bool linearPhase = false,
+                                int numSamplesPerBlock = 256)
+    : supportedScalarTypes(supportedScalarTypes)
+    , numChannels(numChannels)
     , numScalarToVecUpsamplers(numScalarToVecUpsamplers)
     , numVecToScalarDownsamplers(numVecToScalarDownsamplers)
     , numScalarToScalarDownsamplers(numScalarToScalarDownsamplers)
@@ -83,11 +93,11 @@ struct OversamplingSettings
 /**
  * A class to abstract over all the implementations in this library, which can
  * be setup with an OversamplingSettings object. It offers a simple api for
- * oversampling and management of upsampled audio buffers.
+ * oversampling and management of upsampled audio buffers. Templated over the sample type.
  * @see OversamplingSettings
  */
 template<typename Scalar>
-class Oversampling
+class TOversampling
 {
   int numSamplesPerBlock;
   int rate;
@@ -857,9 +867,10 @@ public:
   std::vector<ScalarBuffer<Scalar>> scalarBuffers;
 
   /**
-   * Create an Oversampling object from an OversamplingSettings object.
+   * Creates a TOversampling object from an OversamplingSettings object.
+   * @param settings the settings to initialize from
    */
-  Oversampling(OversamplingSettings const& settings)
+  TOversampling(OversamplingSettings const& settings)
     : numSamplesPerBlock(settings.numSamplesPerBlock)
     , rate(1 << settings.order)
   {
@@ -1007,5 +1018,79 @@ public:
    */
   int getNumSamplesPerBlock() const { return numSamplesPerBlock; }
 };
+
+/**
+ * A class that holds TOversampling instances for float and double,
+ */
+class Oversampling final
+{
+public:
+  /**
+   * Creates a Oversampling object from an OversamplingSettings object.
+   * @param settings the settings to initialize from
+   */
+  explicit Oversampling(OversamplingSettings const& settings)
+  {
+    switch (settings.supportedScalarTypes) {
+      case OversamplingSettings::SupportedScalarTypes::floatAndDouble:
+        oversampling32 = std::make_unique<TOversampling<float>>(settings);
+        oversampling64 = std::make_unique<TOversampling<double>>(settings);
+        break;
+      case OversamplingSettings::SupportedScalarTypes::onlyFloat:
+        oversampling32 = std::make_unique<TOversampling<float>>(settings);
+        break;
+      case OversamplingSettings::SupportedScalarTypes::onlyDouble:
+        oversampling64 = std::make_unique<TOversampling<double>>(settings);
+        break;
+    }
+  }
+
+  /**
+   * @return the oversampling object relative to the Scalar type
+   */
+  template<class Scalar>
+  TOversampling<Scalar>& get();
+
+  /**
+   * @return the number of input samples needed before a first output sample is
+   * produced.
+   */
+  int getLatency() const
+  {
+    if (oversampling64)
+      return oversampling64->getLatency();
+    else
+      return oversampling32->getLatency();
+  }
+
+  /**
+   * @return the oversampling rate.
+   */
+  int getRate() const
+  {
+    if (oversampling64)
+      return oversampling64->getRate();
+    else
+      return oversampling32->getLatency();
+  }
+
+private:
+  std::unique_ptr<TOversampling<float>> oversampling32;
+  std::unique_ptr<TOversampling<double>> oversampling64;
+};
+
+template<>
+inline TOversampling<float>&
+Oversampling::get<float>()
+{
+  return *oversampling32;
+}
+
+template<>
+inline TOversampling<double>&
+Oversampling::get<double>()
+{
+  return *oversampling64;
+}
 
 } // namespace oversimple
