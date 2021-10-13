@@ -157,14 +157,14 @@ public:
     VecToVecUpsampler(OversamplingSettings const& settings)
     {
       if (settings.linearPhase) {
-        firUpsampler = std::make_unique<TFirUpsampler<double>>(settings.numChannels, settings.firTransitionBand);
+        firUpsampler = std::make_unique<TFirUpsampler<Scalar>>(settings.numChannels, settings.firTransitionBand);
         firUpsampler->setRate(1 << settings.order);
         iirUpsampler = nullptr;
         firOutputBuffer.setNumChannels(settings.numChannels);
         firInputBuffer.setNumChannels(settings.numChannels);
       }
       else {
-        iirUpsampler = IirUpsamplerFactory<double>::make(settings.numChannels);
+        iirUpsampler = IirUpsamplerFactory<Scalar>::make(settings.numChannels);
         iirUpsampler->setOrder(settings.order);
         firOutputBuffer.setNumChannels(0);
         firInputBuffer.setNumChannels(0);
@@ -281,13 +281,13 @@ public:
     ScalarToVecUpsampler(OversamplingSettings const& settings)
     {
       if (settings.linearPhase) {
-        firUpsampler = std::make_unique<TFirUpsampler<double>>(settings.numChannels, settings.firTransitionBand);
+        firUpsampler = std::make_unique<TFirUpsampler<Scalar>>(settings.numChannels, settings.firTransitionBand);
         firUpsampler->setRate(1 << settings.order);
         iirUpsampler = nullptr;
         firOutputBuffer.setNumChannels(settings.numChannels);
       }
       else {
-        iirUpsampler = IirUpsamplerFactory<double>::make(settings.numChannels);
+        iirUpsampler = IirUpsamplerFactory<Scalar>::make(settings.numChannels);
         iirUpsampler->setOrder(settings.order);
         firOutputBuffer.setNumChannels(0);
         firUpsampler = nullptr;
@@ -408,13 +408,13 @@ public:
     ScalarToScalarUpsampler(OversamplingSettings const& settings)
     {
       if (settings.linearPhase) {
-        firUpsampler = std::make_unique<TFirUpsampler<double>>(settings.numChannels, settings.firTransitionBand);
+        firUpsampler = std::make_unique<TFirUpsampler<Scalar>>(settings.numChannels, settings.firTransitionBand);
         firUpsampler->setRate(1 << settings.order);
         iirUpsampler = nullptr;
         iirOutputBuffer.setNumChannels(0);
       }
       else {
-        iirUpsampler = IirUpsamplerFactory<double>::make(settings.numChannels);
+        iirUpsampler = IirUpsamplerFactory<Scalar>::make(settings.numChannels);
         iirUpsampler->setOrder(settings.order);
         iirOutputBuffer.setNumChannels(settings.numChannels);
         firUpsampler = nullptr;
@@ -491,13 +491,13 @@ public:
     VecToScalarDownsampler(OversamplingSettings const& settings)
     {
       if (settings.linearPhase) {
-        firDownsampler = std::make_unique<TFirDownsampler<double>>(settings.numChannels, settings.firTransitionBand);
+        firDownsampler = std::make_unique<TFirDownsampler<Scalar>>(settings.numChannels, settings.firTransitionBand);
         firDownsampler->setRate(1 << settings.order);
         iirDownsampler = nullptr;
         firInputBuffer.setNumChannels(settings.numChannels);
       }
       else {
-        iirDownsampler = IirDownsamplerFactory<double>::make(settings.numChannels);
+        iirDownsampler = IirDownsamplerFactory<Scalar>::make(settings.numChannels);
         iirDownsampler->setOrder(settings.order);
         firInputBuffer.setNumChannels(0);
         firDownsampler = nullptr;
@@ -605,7 +605,7 @@ public:
     VecToVecDownsampler(OversamplingSettings const& settings)
     {
       if (settings.linearPhase) {
-        firDownsampler = std::make_unique<TFirDownsampler<double>>(settings.numChannels, settings.firTransitionBand);
+        firDownsampler = std::make_unique<TFirDownsampler<Scalar>>(settings.numChannels, settings.firTransitionBand);
         firDownsampler->setRate(1 << settings.order);
         iirDownsampler = nullptr;
         firInputBuffer.setNumChannels(settings.numChannels);
@@ -613,7 +613,7 @@ public:
         outputBuffer.setNumChannels(settings.numChannels);
       }
       else {
-        iirDownsampler = IirDownsamplerFactory<double>::make(settings.numChannels);
+        iirDownsampler = IirDownsamplerFactory<Scalar>::make(settings.numChannels);
         iirDownsampler->setOrder(settings.order);
         firInputBuffer.setNumChannels(0);
         firOutputBuffer.setNumChannels(0);
@@ -722,13 +722,13 @@ public:
     ScalarToScalarDownsampler(OversamplingSettings const& settings)
     {
       if (settings.linearPhase) {
-        firDownsampler = std::make_unique<TFirDownsampler<double>>(settings.numChannels, settings.firTransitionBand);
+        firDownsampler = std::make_unique<TFirDownsampler<Scalar>>(settings.numChannels, settings.firTransitionBand);
         firDownsampler->setRate(1 << settings.order);
         iirDownsampler = nullptr;
         iirInputBuffer.setNumChannels(0);
       }
       else {
-        iirDownsampler = IirDownsamplerFactory<double>::make(settings.numChannels);
+        iirDownsampler = IirDownsamplerFactory<Scalar>::make(settings.numChannels);
         iirDownsampler->setOrder(settings.order);
         iirInputBuffer.setNumChannels(2);
         firDownsampler = nullptr;
