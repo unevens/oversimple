@@ -47,10 +47,7 @@ struct OversamplingSettings
   int numSamplesPerBlock;
   double firTransitionBand;
 
-  std::function<void(int)> updateLatency;
-
-  OversamplingSettings(std::function<void(int)> updateLatency = nullptr,
-                       int numChannels = 2,
+  explicit OversamplingSettings(int numChannels = 2,
                        int numScalarToVecUpsamplers = 0,
                        int numVecToScalarDownsamplers = 0,
                        int numScalarToScalarUpsamplers = 0,
@@ -63,8 +60,7 @@ struct OversamplingSettings
                        int order = 0,
                        bool linearPhase = false,
                        int numSamplesPerBlock = 256)
-    : updateLatency(updateLatency)
-    , numChannels(numChannels)
+    : numChannels(numChannels)
     , numScalarToVecUpsamplers(numScalarToVecUpsamplers)
     , numVecToScalarDownsamplers(numVecToScalarDownsamplers)
     , numScalarToScalarDownsamplers(numScalarToScalarDownsamplers)
@@ -78,6 +74,10 @@ struct OversamplingSettings
     , numScalarBuffers(numScalarBuffers)
     , numInterleavedBuffers(numInterleavedBuffers)
   {}
+
+#if __cplusplus >= 202002L
+  bool operator==(OversamplingSettings const& other) const = default;
+#endif
 };
 
 /**
@@ -408,8 +408,7 @@ public:
     ScalarToScalarUpsampler(OversamplingSettings const& settings)
     {
       if (settings.linearPhase) {
-        firUpsampler =
-          std::make_unique<TFirUpsampler<double>>(settings.numChannels, settings.firTransitionBand);
+        firUpsampler = std::make_unique<TFirUpsampler<double>>(settings.numChannels, settings.firTransitionBand);
         firUpsampler->setRate(1 << settings.order);
         iirUpsampler = nullptr;
         iirOutputBuffer.setNumChannels(0);
@@ -881,9 +880,6 @@ public:
     }
     for (int i = 0; i < settings.numScalarToScalarDownsamplers; ++i) {
       scalarToScalarDownsamplers.push_back(std::make_unique<ScalarToScalarDownsampler>(settings));
-    }
-    if (settings.updateLatency) {
-      settings.updateLatency(getLatency());
     }
     int maxNumUpsampledSamples = rate * settings.numSamplesPerBlock;
     interleavedBuffers.resize(settings.numInterleavedBuffers);
