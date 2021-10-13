@@ -18,7 +18,18 @@ limitations under the License.
 #ifndef NOMINMAX
 #define NOMINMAX
 #endif
+
+#if defined(__clang__ ) || defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wsuggest-override"
+#endif
+
 #include "CDSPResampler.h"
+
+#if defined(__clang__ ) || defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
+
 #include "avec/Avec.hpp"
 
 namespace oversimple {
