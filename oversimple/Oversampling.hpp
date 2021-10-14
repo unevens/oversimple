@@ -27,7 +27,6 @@ namespace oversimple {
  * Then the Oversampling object will do all the work.
  * @see Oversampling
  */
-
 struct OversamplingSettings
 {
   enum class SupportedScalarTypes
@@ -37,53 +36,41 @@ struct OversamplingSettings
     floatAndDouble
   };
 
-  SupportedScalarTypes supportedScalarTypes;
-  int numChannels;
+  struct Requirements
+  {
+    int order = 0; // the number of stages: 0 for no oversampling, 1 for 2x oversampling, 2 for 4x oversampling...
 
-  int numScalarToVecUpsamplers;
-  int numVecToVecUpsamplers;
-  int numScalarToScalarUpsamplers;
-  int numScalarToScalarDownsamplers;
-  int numVecToScalarDownsamplers;
-  int numVecToVecDownsamplers;
+    int numScalarToVecUpsamplers = 0;
+    int numVecToVecUpsamplers = 0;
+    int numScalarToScalarUpsamplers = 0;
+    int numScalarToScalarDownsamplers = 0;
+    int numVecToScalarDownsamplers = 0;
+    int numVecToVecDownsamplers = 0;
 
-  int numScalarBuffers;
-  int numInterleavedBuffers;
+    int numScalarBuffers = 0;
+    int numInterleavedBuffers = 0;
 
-  int order;
-  bool linearPhase;
-  int numSamplesPerBlock;
-  double firTransitionBand;
+    bool linearPhase = false;
+    double firTransitionBand = 4.0;
 
-  explicit OversamplingSettings(SupportedScalarTypes supportedScalarTypes = SupportedScalarTypes::floatAndDouble,
-                                int numChannels = 2,
-                                int numScalarToVecUpsamplers = 0,
-                                int numVecToScalarDownsamplers = 0,
-                                int numScalarToScalarUpsamplers = 0,
-                                int numScalarToScalarDownsamplers = 0,
-                                int numVecToVecUpsamplers = 0,
-                                int numVecToVecDownsamplers = 0,
-                                int numScalarBuffers = 0,
-                                int numInterleavedBuffers = 0,
-                                double firTransitionBand = 4.0,
-                                int order = 0,
-                                bool linearPhase = false,
-                                int numSamplesPerBlock = 256)
-    : supportedScalarTypes(supportedScalarTypes)
-    , numChannels(numChannels)
-    , numScalarToVecUpsamplers(numScalarToVecUpsamplers)
-    , numVecToScalarDownsamplers(numVecToScalarDownsamplers)
-    , numScalarToScalarDownsamplers(numScalarToScalarDownsamplers)
-    , numScalarToScalarUpsamplers(numScalarToScalarUpsamplers)
-    , numVecToVecUpsamplers(numVecToVecUpsamplers)
-    , numVecToVecDownsamplers(numVecToVecDownsamplers)
-    , order(order)
-    , linearPhase(linearPhase)
-    , numSamplesPerBlock(numSamplesPerBlock)
-    , firTransitionBand(firTransitionBand)
-    , numScalarBuffers(numScalarBuffers)
-    , numInterleavedBuffers(numInterleavedBuffers)
-  {}
+#if __cplusplus >= 202002L
+    bool operator==(Requirements const& other) const = default;
+#endif
+  };
+
+  struct Context
+  {
+    SupportedScalarTypes supportedScalarTypes = SupportedScalarTypes::floatAndDouble;
+    int numChannels = 2;
+    int numSamplesPerBlock = 256;
+
+#if __cplusplus >= 202002L
+    bool operator==(Context const& other) const = default;
+#endif
+  };
+
+  Requirements requirements;
+  Context context;
 
 #if __cplusplus >= 202002L
   bool operator==(OversamplingSettings const& other) const = default;
@@ -167,23 +154,24 @@ public:
       }
     }
 
-    VecToVecUpsampler(OversamplingSettings const& settings)
+    explicit VecToVecUpsampler(OversamplingSettings const& settings)
     {
-      if (settings.linearPhase) {
-        firUpsampler = std::make_unique<TFirUpsampler<Scalar>>(settings.numChannels, settings.firTransitionBand);
-        firUpsampler->setRate(1 << settings.order);
+      if (settings.requirements.linearPhase) {
+        firUpsampler = std::make_unique<TFirUpsampler<Scalar>>(settings.context.numChannels,
+                                                               settings.requirements.firTransitionBand);
+        firUpsampler->setRate(1 << settings.requirements.order);
         iirUpsampler = nullptr;
-        firOutputBuffer.setNumChannels(settings.numChannels);
-        firInputBuffer.setNumChannels(settings.numChannels);
+        firOutputBuffer.setNumChannels(settings.context.numChannels);
+        firInputBuffer.setNumChannels(settings.context.numChannels);
       }
       else {
-        iirUpsampler = IirUpsamplerFactory<Scalar>::make(settings.numChannels);
-        iirUpsampler->setOrder(settings.order);
+        iirUpsampler = IirUpsamplerFactory<Scalar>::make(settings.context.numChannels);
+        iirUpsampler->setOrder(settings.requirements.order);
         firOutputBuffer.setNumChannels(0);
         firInputBuffer.setNumChannels(0);
         firUpsampler = nullptr;
       }
-      prepareBuffers(settings.numSamplesPerBlock);
+      prepareBuffers(settings.context.numSamplesPerBlock);
     }
 
     /**
@@ -296,19 +284,20 @@ public:
      */
     ScalarToVecUpsampler(OversamplingSettings const& settings)
     {
-      if (settings.linearPhase) {
-        firUpsampler = std::make_unique<TFirUpsampler<Scalar>>(settings.numChannels, settings.firTransitionBand);
-        firUpsampler->setRate(1 << settings.order);
+      if (settings.requirements.linearPhase) {
+        firUpsampler = std::make_unique<TFirUpsampler<Scalar>>(settings.context.numChannels,
+                                                               settings.requirements.firTransitionBand);
+        firUpsampler->setRate(1 << settings.requirements.order);
         iirUpsampler = nullptr;
-        firOutputBuffer.setNumChannels(settings.numChannels);
+        firOutputBuffer.setNumChannels(settings.context.numChannels);
       }
       else {
-        iirUpsampler = IirUpsamplerFactory<Scalar>::make(settings.numChannels);
-        iirUpsampler->setOrder(settings.order);
+        iirUpsampler = IirUpsamplerFactory<Scalar>::make(settings.context.numChannels);
+        iirUpsampler->setOrder(settings.requirements.order);
         firOutputBuffer.setNumChannels(0);
         firUpsampler = nullptr;
       }
-      prepareBuffers(settings.numSamplesPerBlock);
+      prepareBuffers(settings.context.numSamplesPerBlock);
     }
 
     /**
@@ -426,19 +415,20 @@ public:
      */
     ScalarToScalarUpsampler(OversamplingSettings const& settings)
     {
-      if (settings.linearPhase) {
-        firUpsampler = std::make_unique<TFirUpsampler<Scalar>>(settings.numChannels, settings.firTransitionBand);
-        firUpsampler->setRate(1 << settings.order);
+      if (settings.requirements.linearPhase) {
+        firUpsampler = std::make_unique<TFirUpsampler<Scalar>>(settings.context.numChannels,
+                                                               settings.requirements.firTransitionBand);
+        firUpsampler->setRate(1 << settings.requirements.order);
         iirUpsampler = nullptr;
         iirOutputBuffer.setNumChannels(0);
       }
       else {
-        iirUpsampler = IirUpsamplerFactory<Scalar>::make(settings.numChannels);
-        iirUpsampler->setOrder(settings.order);
-        iirOutputBuffer.setNumChannels(settings.numChannels);
+        iirUpsampler = IirUpsamplerFactory<Scalar>::make(settings.context.numChannels);
+        iirUpsampler->setOrder(settings.requirements.order);
+        iirOutputBuffer.setNumChannels(settings.context.numChannels);
         firUpsampler = nullptr;
       }
-      prepareBuffers(settings.numSamplesPerBlock);
+      prepareBuffers(settings.context.numSamplesPerBlock);
     }
 
     /**
@@ -509,19 +499,21 @@ public:
      */
     VecToScalarDownsampler(OversamplingSettings const& settings)
     {
-      if (settings.linearPhase) {
-        firDownsampler = std::make_unique<TFirDownsampler<Scalar>>(settings.numChannels, settings.firTransitionBand);
-        firDownsampler->setRate(1 << settings.order);
+      if (settings.requirements.linearPhase) {
+        firDownsampler = std::make_unique<TFirDownsampler<Scalar>>(settings.context.numChannels,
+                                                                   settings.requirements.firTransitionBand);
+        firDownsampler->setRate(1 << settings.requirements.order);
         iirDownsampler = nullptr;
-        firInputBuffer.setNumChannels(settings.numChannels);
+        firInputBuffer.setNumChannels(settings.context.numChannels);
       }
       else {
-        iirDownsampler = IirDownsamplerFactory<Scalar>::make(settings.numChannels);
-        iirDownsampler->setOrder(settings.order);
+        iirDownsampler = IirDownsamplerFactory<Scalar>::make(settings.context.numChannels);
+        iirDownsampler->setOrder(settings.requirements.order);
         firInputBuffer.setNumChannels(0);
         firDownsampler = nullptr;
       }
-      prepareBuffers(settings.numSamplesPerBlock, settings.numSamplesPerBlock * (1 << settings.order));
+      prepareBuffers(settings.context.numSamplesPerBlock,
+                     settings.context.numSamplesPerBlock * (1 << settings.requirements.order));
     }
 
     /**
@@ -623,23 +615,25 @@ public:
      */
     VecToVecDownsampler(OversamplingSettings const& settings)
     {
-      if (settings.linearPhase) {
-        firDownsampler = std::make_unique<TFirDownsampler<Scalar>>(settings.numChannels, settings.firTransitionBand);
-        firDownsampler->setRate(1 << settings.order);
+      if (settings.requirements.linearPhase) {
+        firDownsampler = std::make_unique<TFirDownsampler<Scalar>>(settings.context.numChannels,
+                                                                   settings.requirements.firTransitionBand);
+        firDownsampler->setRate(1 << settings.requirements.order);
         iirDownsampler = nullptr;
-        firInputBuffer.setNumChannels(settings.numChannels);
-        firOutputBuffer.setNumChannels(settings.numChannels);
-        outputBuffer.setNumChannels(settings.numChannels);
+        firInputBuffer.setNumChannels(settings.context.numChannels);
+        firOutputBuffer.setNumChannels(settings.context.numChannels);
+        outputBuffer.setNumChannels(settings.context.numChannels);
       }
       else {
-        iirDownsampler = IirDownsamplerFactory<Scalar>::make(settings.numChannels);
-        iirDownsampler->setOrder(settings.order);
+        iirDownsampler = IirDownsamplerFactory<Scalar>::make(settings.context.numChannels);
+        iirDownsampler->setOrder(settings.requirements.order);
         firInputBuffer.setNumChannels(0);
         firOutputBuffer.setNumChannels(0);
         outputBuffer.setNumChannels(0);
         firDownsampler = nullptr;
       }
-      prepareBuffers(settings.numSamplesPerBlock, settings.numSamplesPerBlock * (1 << settings.order));
+      prepareBuffers(settings.context.numSamplesPerBlock,
+                     settings.context.numSamplesPerBlock * (1 << settings.requirements.order));
     }
 
     /**
@@ -743,19 +737,21 @@ public:
      */
     ScalarToScalarDownsampler(OversamplingSettings const& settings)
     {
-      if (settings.linearPhase) {
-        firDownsampler = std::make_unique<TFirDownsampler<Scalar>>(settings.numChannels, settings.firTransitionBand);
-        firDownsampler->setRate(1 << settings.order);
+      if (settings.requirements.linearPhase) {
+        firDownsampler = std::make_unique<TFirDownsampler<Scalar>>(settings.context.numChannels,
+                                                                   settings.requirements.firTransitionBand);
+        firDownsampler->setRate(1 << settings.requirements.order);
         iirDownsampler = nullptr;
         iirInputBuffer.setNumChannels(0);
       }
       else {
-        iirDownsampler = IirDownsamplerFactory<Scalar>::make(settings.numChannels);
-        iirDownsampler->setOrder(settings.order);
+        iirDownsampler = IirDownsamplerFactory<Scalar>::make(settings.context.numChannels);
+        iirDownsampler->setOrder(settings.requirements.order);
         iirInputBuffer.setNumChannels(2);
         firDownsampler = nullptr;
       }
-      prepareBuffers(settings.numSamplesPerBlock, settings.numSamplesPerBlock * (1 << settings.order));
+      prepareBuffers(settings.context.numSamplesPerBlock,
+                     settings.context.numSamplesPerBlock * (1 << settings.requirements.order));
     }
 
     /**
@@ -883,37 +879,37 @@ public:
    * @param settings the settings to initialize from
    */
   TOversampling(OversamplingSettings const& settings)
-    : numSamplesPerBlock(settings.numSamplesPerBlock)
-    , rate(1 << settings.order)
+    : numSamplesPerBlock(settings.context.numSamplesPerBlock)
+    , rate(1 << settings.requirements.order)
   {
-    for (int i = 0; i < settings.numScalarToVecUpsamplers; ++i) {
+    for (int i = 0; i < settings.requirements.numScalarToVecUpsamplers; ++i) {
       scalarToVecUpsamplers.push_back(std::make_unique<ScalarToVecUpsampler>(settings));
     }
-    for (int i = 0; i < settings.numVecToVecUpsamplers; ++i) {
+    for (int i = 0; i < settings.requirements.numVecToVecUpsamplers; ++i) {
       vecToVecUpsamplers.push_back(std::make_unique<VecToVecUpsampler>(settings));
     }
-    for (int i = 0; i < settings.numScalarToScalarUpsamplers; ++i) {
+    for (int i = 0; i < settings.requirements.numScalarToScalarUpsamplers; ++i) {
       scalarToScalarUpsamplers.push_back(std::make_unique<ScalarToScalarUpsampler>(settings));
     }
-    for (int i = 0; i < settings.numVecToScalarDownsamplers; ++i) {
+    for (int i = 0; i < settings.requirements.numVecToScalarDownsamplers; ++i) {
       vecToScalarDownsamplers.push_back(std::make_unique<VecToScalarDownsampler>(settings));
     }
-    for (int i = 0; i < settings.numVecToVecDownsamplers; ++i) {
+    for (int i = 0; i < settings.requirements.numVecToVecDownsamplers; ++i) {
       vecToVecDownsamplers.push_back(std::make_unique<VecToVecDownsampler>(settings));
     }
-    for (int i = 0; i < settings.numScalarToScalarDownsamplers; ++i) {
+    for (int i = 0; i < settings.requirements.numScalarToScalarDownsamplers; ++i) {
       scalarToScalarDownsamplers.push_back(std::make_unique<ScalarToScalarDownsampler>(settings));
     }
-    int maxNumUpsampledSamples = rate * settings.numSamplesPerBlock;
-    interleavedBuffers.resize(settings.numInterleavedBuffers);
+    int maxNumUpsampledSamples = rate * settings.context.numSamplesPerBlock;
+    interleavedBuffers.resize(settings.requirements.numInterleavedBuffers);
     for (auto& buffer : interleavedBuffers) {
       buffer.setNumSamples(maxNumUpsampledSamples);
-      buffer.setNumChannels(settings.numChannels);
+      buffer.setNumChannels(settings.context.numChannels);
     }
-    scalarBuffers.resize(settings.numScalarBuffers);
+    scalarBuffers.resize(settings.requirements.numScalarBuffers);
     for (auto& buffer : scalarBuffers) {
       buffer.setNumSamples(maxNumUpsampledSamples);
-      buffer.setNumChannels(settings.numChannels);
+      buffer.setNumChannels(settings.context.numChannels);
     }
   }
 
@@ -1049,7 +1045,7 @@ public:
    */
   explicit Oversampling(OversamplingSettings const& settings)
   {
-    switch (settings.supportedScalarTypes) {
+    switch (settings.context.supportedScalarTypes) {
       case OversamplingSettings::SupportedScalarTypes::floatAndDouble:
         oversampling32 = std::make_unique<TOversampling<float>>(settings);
         oversampling64 = std::make_unique<TOversampling<double>>(settings);
