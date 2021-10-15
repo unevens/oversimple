@@ -18,12 +18,10 @@ limitations under the License.
 #include <algorithm>
 
 // macro to send debug messages using Visual Studio
-#if (defined _DEBUG) && (defined _WIN32)
-#include "FirOversampling.hpp"
-#include <Windows.h>
+#if (defined _DEBUG)
 inline void DEBUG_MESSAGE(char const* message)
 {
-  OutputDebugString(message);
+  OutputDebugStringA(message);
 }
 #else
 #define DEBUG_MESSAGE(x) /*nohing*/
