@@ -87,6 +87,7 @@ template<typename Scalar>
 class TOversampling
 {
   int numSamplesPerBlock;
+  int numChannels;
   int rate;
 
 public:
@@ -735,7 +736,7 @@ public:
     /**
      * Create a ScalarToScalarDownsampler object from an OversamplingSettings object.
      */
-    ScalarToScalarDownsampler(OversamplingSettings const& settings)
+    explicit ScalarToScalarDownsampler(OversamplingSettings const& settings)
     {
       if (settings.requirements.linearPhase) {
         firDownsampler = std::make_unique<TFirDownsampler<Scalar>>(settings.context.numChannels,
@@ -881,6 +882,7 @@ public:
   TOversampling(OversamplingSettings const& settings)
     : numSamplesPerBlock(settings.context.numSamplesPerBlock)
     , rate(1 << settings.requirements.order)
+    , numChannels(settings.context.numChannels)
   {
     for (int i = 0; i < settings.requirements.numScalarToVecUpsamplers; ++i) {
       scalarToVecUpsamplers.push_back(std::make_unique<ScalarToVecUpsampler>(settings));
@@ -1031,6 +1033,14 @@ public:
   {
     return numSamplesPerBlock;
   }
+
+  /**
+   * @return the maximum number of channels supported
+   */
+  int getNumChannels() const
+  {
+    return numChannels;
+  }
 };
 
 /**
@@ -1086,6 +1096,17 @@ public:
       return oversampling64->getRate();
     else
       return oversampling32->getLatency();
+  }
+
+  /**
+   * @return the maximum number of channels supported
+   */
+  int getNumChannels() const
+  {
+    if (oversampling64)
+      return oversampling64->getNumChannels();
+    else
+      return oversampling32->getNumChannels();
   }
 
 private:
