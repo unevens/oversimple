@@ -975,22 +975,27 @@ public:
    */
   int getLatency()
   {
-    int latency = 0;
+    int upsamplingLatency = 0;
+    if (scalarToScalarUpsamplers.size() > 0) {
+      upsamplingLatency = scalarToScalarUpsamplers[0]->getLatency();
+    }
     if (scalarToVecUpsamplers.size() > 0) {
-      latency += scalarToVecUpsamplers[0]->getLatency();
+      upsamplingLatency = std::max(upsamplingLatency, scalarToVecUpsamplers[0]->getLatency());
     }
-    else if (vecToVecUpsamplers.size() > 0) {
-      latency += vecToVecUpsamplers[0]->getLatency();
+    if (vecToVecUpsamplers.size() > 0) {
+      upsamplingLatency = std::max(upsamplingLatency, vecToVecUpsamplers[0]->getLatency());
     }
+    int downsamplingLatency = 0;
     if (vecToScalarDownsamplers.size() > 0) {
-      latency += vecToScalarDownsamplers[0]->getLatency();
+      downsamplingLatency = vecToScalarDownsamplers[0]->getLatency();
     }
-    else if (scalarToScalarDownsamplers.size() > 0) {
-      latency += scalarToScalarDownsamplers[0]->getLatency();
+    if (scalarToScalarDownsamplers.size() > 0) {
+      downsamplingLatency = std::max(downsamplingLatency, scalarToScalarDownsamplers[0]->getLatency());
     }
-    else if (vecToVecDownsamplers.size() > 0) {
-      latency += vecToVecDownsamplers[0]->getLatency();
+    if (vecToVecDownsamplers.size() > 0) {
+      downsamplingLatency = std::max(downsamplingLatency, vecToVecDownsamplers[0]->getLatency());
     }
+    auto const latency = upsamplingLatency + downsamplingLatency;
     return latency;
   }
 
