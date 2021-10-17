@@ -1100,7 +1100,7 @@ public:
     if (oversampling64)
       return oversampling64->getRate();
     else
-      return oversampling32->getLatency();
+      return oversampling32->getRate();
   }
 
   /**
