@@ -1,5 +1,5 @@
 /*
-Copyright 2019 Dario Mambro
+Copyright 2019*2021 Dario Mambro
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -22,13 +22,13 @@ limitations under the License.
 #include <string>
 #include <vector>
 
-namespace oversimple {
+namespace oversimple::iir::detail {
 
 /**
  * Class to design IIR antialiasing filters.
  */
 
-class IirOversamplingDesigner final
+class OversamplingDesigner final
 {
   struct Stage
   {
@@ -72,7 +72,7 @@ public:
    * @param transition required normalized transition bandwidth
    * @param numStages number of oversampling stages
    */
-  IirOversamplingDesigner(double attenuation, double transition, int numStages = 5);
+  OversamplingDesigner(double attenuation, double transition, int numStages = 5);
 
   /**
    * @return a reference to the vector with the information specific to each
@@ -121,7 +121,7 @@ public:
 
 // implementation
 
-inline IirOversamplingDesigner::IirOversamplingDesigner(double attenuation, double transition, int numStages)
+inline OversamplingDesigner::OversamplingDesigner(double attenuation, double transition, int numStages)
 {
   assert(numStages > 0);
   stages.push_back(Stage(attenuation, transition));
@@ -130,7 +130,7 @@ inline IirOversamplingDesigner::IirOversamplingDesigner(double attenuation, doub
   }
 }
 
-inline std::string IirOversamplingDesigner::print() const
+inline std::string OversamplingDesigner::print() const
 {
   std::string text;
   int i = 0;
@@ -163,7 +163,7 @@ inline std::string IirOversamplingDesigner::print() const
   return text;
 }
 
-inline double IirOversamplingDesigner::getMinGroupDelay(int order) const
+inline double OversamplingDesigner::getMinGroupDelay(int order) const
 {
   assert(order <= stages.size());
   double coef = 0.5;
@@ -175,7 +175,7 @@ inline double IirOversamplingDesigner::getMinGroupDelay(int order) const
   return latency;
 }
 
-inline double IirOversamplingDesigner::getGroupDelay(double normalizedFrequency, int order) const
+inline double OversamplingDesigner::getGroupDelay(double normalizedFrequency, int order) const
 {
   assert(order <= stages.size());
   double coef = 0.5;
@@ -187,7 +187,7 @@ inline double IirOversamplingDesigner::getGroupDelay(double normalizedFrequency,
   return groupDelay;
 }
 
-inline double IirOversamplingDesigner::getPhaseDelay(double normalizedFrequency, int order) const
+inline double OversamplingDesigner::getPhaseDelay(double normalizedFrequency, int order) const
 {
   assert(order <= stages.size());
   double coef = 0.5;
@@ -199,14 +199,14 @@ inline double IirOversamplingDesigner::getPhaseDelay(double normalizedFrequency,
   return phaseDelay;
 }
 
-inline double IirOversamplingDesigner::Stage::getGroupDelay(double normalizedFrequency) const
+inline double OversamplingDesigner::Stage::getGroupDelay(double normalizedFrequency) const
 {
   std::vector<double> coefs;
   computeCoefs(coefs);
   return hiir::PolyphaseIir2Designer::compute_group_delay(&coefs[0], numCoefs, normalizedFrequency, false);
 }
 
-inline double IirOversamplingDesigner::Stage::getPhaseDelay(double normalizedFrequency) const
+inline double OversamplingDesigner::Stage::getPhaseDelay(double normalizedFrequency) const
 {
   std::vector<double> coefs;
   computeCoefs(coefs);
@@ -217,42 +217,42 @@ inline double IirOversamplingDesigner::Stage::getPhaseDelay(double normalizedFre
   return delay;
 }
 
-inline double IirOversamplingDesigner::Stage::getMinGroupDelay() const
+inline double OversamplingDesigner::Stage::getMinGroupDelay() const
 {
   return getGroupDelay(0.0);
 }
 
-inline double IirOversamplingDesigner::Stage::getMaxGroupDelay() const
+inline double OversamplingDesigner::Stage::getMaxGroupDelay() const
 {
   return getGroupDelay(0.25);
 }
 
-inline IirOversamplingDesigner::Stage::Stage(double attenuation, double transition)
+inline OversamplingDesigner::Stage::Stage(double attenuation, double transition)
   : attenuation(attenuation)
   , transition(transition)
   , numCoefs(hiir::PolyphaseIir2Designer::compute_nbr_coefs_from_proto(attenuation, transition))
 {}
 
-inline std::string IirOversamplingDesigner::Stage::print() const
+inline std::string OversamplingDesigner::Stage::print() const
 {
   return "transition = " + std::to_string(transition) + ", " + "numCoefs = " + std::to_string(numCoefs) + ", " +
          "attenuation = " + std::to_string(attenuation);
 }
 
-inline std::vector<double> IirOversamplingDesigner::Stage::computeCoefs() const
+inline std::vector<double> OversamplingDesigner::Stage::computeCoefs() const
 {
   std::vector<double> coefs;
   computeCoefs(coefs);
   return coefs;
 }
 
-inline void IirOversamplingDesigner::Stage::computeCoefs(std::vector<double>& coefs) const
+inline void OversamplingDesigner::Stage::computeCoefs(std::vector<double>& coefs) const
 {
   coefs.resize(numCoefs);
   hiir::PolyphaseIir2Designer::compute_coefs(&coefs[0], attenuation, transition);
 }
 
-inline void IirOversamplingDesigner::GroupDelayGraph::fromStages(std::vector<Stage> const& stages, int resolution)
+inline void OversamplingDesigner::GroupDelayGraph::fromStages(std::vector<Stage> const& stages, int resolution)
 {
   std::vector<double> coefs;
   graph.resize(resolution, 0.0);
@@ -266,12 +266,12 @@ inline void IirOversamplingDesigner::GroupDelayGraph::fromStages(std::vector<Sta
   }
 }
 
-inline IirOversamplingDesigner::GroupDelayGraph::GroupDelayGraph(std::vector<Stage> const& stages, int resolution)
+inline OversamplingDesigner::GroupDelayGraph::GroupDelayGraph(std::vector<Stage> const& stages, int resolution)
 {
   fromStages(stages, resolution);
 }
 
-inline double IirOversamplingDesigner::GroupDelayGraph::getMean() const
+inline double OversamplingDesigner::GroupDelayGraph::getMean() const
 {
   return std::accumulate(graph.begin(), graph.end(), 0.0) / (double)graph.size();
 }

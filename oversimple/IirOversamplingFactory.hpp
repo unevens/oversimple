@@ -121,22 +121,22 @@ class Upsampler2x4Neon final : public FakeInterface
 } // namespace hiir
 #endif
 
-namespace oversimple {
-
+namespace oversimple::iir {
+namespace detail {
 /**
- * Returns an IirOversamplingDesigner object implementing a quality preset for
- * Iir Oversampling.
+ * Returns an OversamplingDesigner object implementing a quality preset for
+ *  Oversampling.
  * @param presetIndex an index identifying the preset
- * @return the IirOversamplingDesigner corresponding to the index
+ * @return the OversamplingDesigner corresponding to the index
  */
-inline IirOversamplingDesigner getIirOversamplingPreset(int presetIndex = 0)
+inline OversamplingDesigner getOversamplingPreset(int presetIndex = 0)
 {
   switch (presetIndex) {
     case 0:
     default:
-      return {140.0, 0.0443};
+      return { 140.0, 0.0443 };
     case 1:
-      return {142.0, 0.0464};
+      return { 142.0, 0.0464 };
   }
 }
 
@@ -147,19 +147,19 @@ inline IirOversamplingDesigner getIirOversamplingPreset(int presetIndex = 0)
  * @param presetIndex the oversampling quality preset
  * @return the minimum group delay
  */
-inline double getIirOversamplingMinGroupDelay(int order, int presetIndex = 0)
+inline double getOversamplingMinGroupDelay(int order, int presetIndex = 0)
 {
   if (order == 0) {
     return 0.0;
   }
-  return getIirOversamplingPreset(presetIndex).getMinGroupDelay(order);
+  return getOversamplingPreset(presetIndex).getMinGroupDelay(order);
 }
 
 /**
- * Static class implementing a factory for IirUpSampler.
+ * Static class implementing a factory for UpSampler.
  */
 template<typename Scalar>
-class IirUpSamplerFactory final
+class UpSamplerFactory final
 {
   template<int NC>
   using FakeUpsamplerStage8Double = hiir::FakeInterface;
@@ -203,31 +203,33 @@ public:
 
 public:
   /**
-   * @param numChannels the number of channels to initialize the IirUpSampler
+   * @param numChannels the number of channels to initialize the UpSampler
    * with
-   * @param presetIndex the quality preset index used to create the IirUpSampler
+   * @param presetIndex the quality preset index used to create the UpSampler
    * antialiasing filters
    */
-  static std::unique_ptr<IirUpSampler<Scalar>> make(int numChannels, int presetIndex = 0)
+  static std::unique_ptr<UpSamplerBase<Scalar>> make(int numChannels, int presetIndex = 0)
   {
-    auto preset = getIirOversamplingPreset(presetIndex);
+    auto preset = getOversamplingPreset(presetIndex);
     switch (presetIndex) {
       case 0:
       default:
-        return std::unique_ptr<IirUpSampler<Scalar>>(
-          new TIirUpSampler<Scalar, 11, 5, 3, 3, 2, Stage8, Stage4, Stage2>(preset, numChannels));
+        return std::unique_ptr<UpSamplerBase<Scalar>>(
+          new TUpSampler<Scalar, 11, 5, 3, 3, 2, Stage8, Stage4, Stage2>(preset, numChannels));
       case 1:
-        return std::unique_ptr<IirUpSampler<Scalar>>(
-          new TIirUpSampler<Scalar, 11, 5, 4, 3, 2, Stage8, Stage4, Stage2>(preset, numChannels));
+        return std::unique_ptr<UpSamplerBase<Scalar>>(
+          new TUpSampler<Scalar, 11, 5, 4, 3, 2, Stage8, Stage4, Stage2>(preset, numChannels));
     }
   }
+
+  using UpSampler = TUpSampler<Scalar, 11, 5, 3, 3, 2, Stage8, Stage4, Stage2>;
 };
 
 /**
- * Static class implementing a factory for IirDownSamplers.
+ * Static class implementing a factory for DownSamplers.
  */
 template<typename Scalar>
-class IirDownSamplerFactory final
+class DownSamplerFactory final
 {
   template<int NC>
   using FakeDownsamplerStage8Double = hiir::Downsampler2x4F64Avx<NC>;
@@ -276,24 +278,47 @@ public:
 
 public:
   /**
-   * @param numChannels the number of channels to initialize the IirDownSampler
+   * @param numChannels the number of channels to initialize the DownSampler
    * with
    * @param presetIndex the quality preset index used to create the
-   * IirDownSampler antialiasing filters
+   * DownSampler antialiasing filters
    */
-  static std::unique_ptr<IirDownSampler<Scalar>> make(int numChannels, int presetIndex = 0)
+  static std::unique_ptr<DownSamplerBase<Scalar>> make(int numChannels, int presetIndex = 0)
   {
-    auto preset = getIirOversamplingPreset(presetIndex);
+    auto preset = getOversamplingPreset(presetIndex);
     switch (presetIndex) {
       case 0:
       default:
-        return std::unique_ptr<IirDownSampler<Scalar>>(
-          new TIirDownSampler<Scalar, 11, 5, 3, 3, 2, Stage8, Stage4, Stage2>(preset, numChannels));
+        return std::unique_ptr<DownSamplerBase<Scalar>>(
+          new TDownSampler<Scalar, 11, 5, 3, 3, 2, Stage8, Stage4, Stage2>(preset, numChannels));
       case 1:
-        return std::unique_ptr<IirDownSampler<Scalar>>(
-          new TIirDownSampler<Scalar, 11, 5, 4, 3, 2, Stage8, Stage4, Stage2>(preset, numChannels));
+        return std::unique_ptr<DownSamplerBase<Scalar>>(
+          new TDownSampler<Scalar, 11, 5, 4, 3, 2, Stage8, Stage4, Stage2>(preset, numChannels));
     }
   }
+
+  using DownSampler = TDownSampler<Scalar, 11, 5, 3, 3, 2, Stage8, Stage4, Stage2>;
+};
+} // namespace detail
+
+template<typename Scalar>
+class DownSampler final : public detail::DownSamplerFactory<Scalar>::DownSampler
+{
+public:
+  explicit DownSampler(int numChannels, int orderToPreallocateFor = 0)
+    : detail::DownSamplerFactory<Scalar>::DownSampler(detail::getOversamplingPreset(0),
+                                                      numChannels,
+                                                      orderToPreallocateFor)
+  {}
 };
 
-} // namespace oversimple
+template<typename Scalar>
+class UpSampler final : public detail::UpSamplerFactory<Scalar>::UpSampler
+{
+public:
+  explicit UpSampler(int numChannels, int orderToPreallocateFor = 0)
+    : detail::UpSamplerFactory<Scalar>::UpSampler(detail::getOversamplingPreset(0), numChannels, orderToPreallocateFor)
+  {}
+};
+
+} // namespace oversimple::iir

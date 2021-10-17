@@ -1,5 +1,5 @@
 /*
-Copyright 2019-2020 Dario Mambro
+Copyright 2019-2021 Dario Mambro
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -27,14 +27,13 @@ limitations under the License.
 #pragma warning(disable : 4250)
 #endif
 
-namespace oversimple {
-
+namespace oversimple::iir::detail {
 // interfaces
 
 /**
  * Abstract class for IIR resamplers.
  */
-class IirOversampler
+class ReSampler
 {
 public:
   /**
@@ -56,84 +55,85 @@ public:
    * @param value the new number of channels.
    */
   virtual void setNumChannels(int value) = 0;
+  virtual int getNumChannels() const = 0;
   /**
    * Resets the state of the processor, clearing the state of the antialiasing
    * filters.
    */
   virtual void reset() = 0;
   /**
-   * @return the IirOversamplingDesigner used to create the processor.
+   * @return the OversamplingDesigner used to create the processor.
    */
-  virtual IirOversamplingDesigner const& getDesigner() const = 0;
-  virtual ~IirOversampler() {}
+  virtual OversamplingDesigner const& getDesigner() const = 0;
+  virtual ~ReSampler() = default;
 };
 
 /**
  * Abstract class for IIR UpSamplers.
  */
 template<typename Scalar>
-class IirUpSampler : public virtual IirOversampler
+class UpSamplerBase : public virtual ReSampler
 {
 public:
   /**
-   * Upsamples the input.
+   * Up-samples the input.
    * @param input a ScalarBuffer that holds the input samples
-   * @param output an InterleavedBuffer to hold the upsampled samples
+   * @param output an InterleavedBuffer to hold the up-sampled samples
    * @param numChannelsToProcess the number of channels to process. If negative,
    * all channels will be processed.
    */
   virtual void processBlock(ScalarBuffer<Scalar> const& input,
                             InterleavedBuffer<Scalar>& output,
-                            int numChannelsToProcess = -1) = 0;
+                            int numChannelsToProcess) = 0;
 
   /**
-   * Upsamples the input.
+   * Up-samples the input.
    * @param input a pointer to the memory holding the input samples
    * @param numInputSamples the number of samples in each channel of the input
    * buffer
-   * @param output an InterleavedBuffer to hold the upsampled samples
+   * @param output an InterleavedBuffer to hold the up-sampled samples
    * @param numChannelsToProcess the number of channels to process. If negative,
    * all channels will be processed.
    */
   virtual void processBlock(Scalar* const* input,
                             int numInputSamples,
                             InterleavedBuffer<Scalar>& output,
-                            int numChannelsToProcess = -1) = 0;
+                            int numChannelsToProcess) = 0;
 
   /**
-   * Upsamples an already interleaved input.
+   * Up-samples an already interleaved input.
    * @param input an InterleavedBuffer<Scalar> holding the input samples
    * @param numInputSamples the number of samples in each channel of the input
    * buffer
-   * @param output an InterleavedBuffer to hold the upsampled samples
+   * @param output an InterleavedBuffer to hold the up-sampled samples
    * @param numChannelsToProcess the number of channels to process. If negative,
    * all channels will be processed.
    */
   virtual void processBlock(InterleavedBuffer<Scalar> const& input,
                             int numInputSamples,
                             InterleavedBuffer<Scalar>& output,
-                            int numChannelsToProcess = -1) = 0;
+                            int numChannelsToProcess) = 0;
 };
 
 /**
  * Abstract class for IIR DownSamplers.
  */
 template<typename Scalar>
-class IirDownSampler : public virtual IirOversampler
+class DownSamplerBase : public virtual ReSampler
 {
 public:
   /**
-   * Downsamples the input.
+   * Down-samples the input.
    * @param input InterleavedBuffer holding the interleaved input samples.
-   * @param numSamples the number of samples to donwsample from each channel of
+   * @param numSamples the number of samples to down-sample from each channel of
    * the input
    * @param numChannelsToProcess the number of channels to process. If negative,
    * all channels will be processed.
    */
-  virtual void processBlock(InterleavedBuffer<Scalar> const& input, int numSamples, int numChannelsToProcess = -1) = 0;
+  virtual void processBlock(InterleavedBuffer<Scalar> const& input, int numSamples, int numChannelsToProcess) = 0;
 
   /**
-   * @return a reference to the InterleavedBuffer holding the donwsampled
+   * @return a reference to the InterleavedBuffer holding the down-sampled
    * samples.
    */
   virtual InterleavedBuffer<Scalar>& getOutput() = 0;
@@ -155,7 +155,7 @@ template<typename Scalar,
          class StageVec4,
          template<int>
          class StageVec2>
-class IirOversamplingChain : public virtual IirOversampler
+class OversamplingChain : public virtual ReSampler
 {
 protected:
   static constexpr bool VEC8_AVAILABLE = SimdTypes<Scalar>::VEC8_AVAILABLE;
@@ -183,7 +183,7 @@ protected:
   aligned_vector<StageVec2<numCoefsStage3>> stage2_3;
   aligned_vector<StageVec2<numCoefsStage4>> stage2_4;
 
-  IirOversamplingDesigner designer;
+  OversamplingDesigner designer;
   int numChannels;
   int order;
   int maxOrder;
@@ -191,7 +191,7 @@ protected:
   int maxInputSamples;
   InterleavedBuffer<Scalar> buffer[2];
 
-  IirOversamplingChain(IirOversamplingDesigner designer_, int numChannels_, int orderToPreallocateFor = 0)
+  OversamplingChain(OversamplingDesigner designer_, int numChannels_, int orderToPreallocateFor = 0)
     : designer(std::move(designer_))
     , numChannels(numChannels_)
     , maxInputSamples(256)
@@ -304,32 +304,9 @@ protected:
     }
   }
 
-  IirOversamplingDesigner const& getDesigner() const override
+  OversamplingDesigner const& getDesigner() const override
   {
     return designer;
-  }
-  int getOrder() const override
-  {
-    return order;
-  }
-  void setOrder(int value) override
-  {
-    order = value;
-    assert(order >= 0 && order <= 5);
-    maxOrder = std::max(order, maxOrder);
-    factor = 1 << order;
-    setupBuffer();
-  }
-  void prepareBuffer(int maxInputSamples_) override
-  {
-    maxInputSamples = maxInputSamples_;
-    setupBuffer();
-  }
-  void setNumChannels(int value) override
-  {
-    numChannels = value;
-    setupBuffer();
-    setupStages();
   }
 
   void applyStage0(InterleavedBuffer<Scalar>& output,
@@ -562,6 +539,35 @@ protected:
     }
   }
 
+public:
+  int getOrder() const override
+  {
+    return order;
+  }
+  void setOrder(int value) override
+  {
+    order = value;
+    assert(order >= 0 && order <= 5);
+    maxOrder = std::max(order, maxOrder);
+    factor = 1 << order;
+    setupBuffer();
+  }
+  void prepareBuffer(int maxInputSamples_) override
+  {
+    maxInputSamples = maxInputSamples_;
+    setupBuffer();
+  }
+  void setNumChannels(int value) override
+  {
+    numChannels = value;
+    setupBuffer();
+    setupStages();
+  }
+  int getNumChannels() const override
+  {
+    return numChannels;
+  }
+
   void reset() override
   {
     for (auto& stage : stage8_0) {
@@ -629,38 +635,38 @@ template<typename Scalar,
          class StageVec4,
          template<int>
          class StageVec2>
-class TIirDownSampler final
-  : public virtual IirDownSampler<Scalar>
-  , public IirOversamplingChain<Scalar,
-                                numCoefsStage0,
-                                numCoefsStage1,
-                                numCoefsStage2,
-                                numCoefsStage3,
-                                numCoefsStage4,
-                                StageVec8,
-                                StageVec4,
-                                StageVec2>
+class TDownSampler
+  : public virtual DownSamplerBase<Scalar>
+  , public OversamplingChain<Scalar,
+                             numCoefsStage0,
+                             numCoefsStage1,
+                             numCoefsStage2,
+                             numCoefsStage3,
+                             numCoefsStage4,
+                             StageVec8,
+                             StageVec4,
+                             StageVec2>
 {
   InterleavedBuffer<Scalar>* output = nullptr;
 
 public:
   /**
    * Constructor.
-   * @param designer an IirOversamplerDesigner instance to use to setup the
+   * @param designer an ReSamplerDesigner instance to use to setup the
    * antialiasing filters
    * @param numChannels the number of channels to initialize the DownSampler
    * with
    */
-  TIirDownSampler(IirOversamplingDesigner const& designer, int numChannels, int orderToPreallocateFor = 0)
-    : IirOversamplingChain<Scalar,
-                           numCoefsStage0,
-                           numCoefsStage1,
-                           numCoefsStage2,
-                           numCoefsStage3,
-                           numCoefsStage4,
-                           StageVec8,
-                           StageVec4,
-                           StageVec2>(designer, numChannels, orderToPreallocateFor)
+  TDownSampler(OversamplingDesigner const& designer, int numChannels, int orderToPreallocateFor = 0)
+    : OversamplingChain<Scalar,
+                        numCoefsStage0,
+                        numCoefsStage1,
+                        numCoefsStage2,
+                        numCoefsStage3,
+                        numCoefsStage4,
+                        StageVec8,
+                        StageVec4,
+                        StageVec2>(designer, numChannels, orderToPreallocateFor)
   {}
 
   void processBlock(InterleavedBuffer<Scalar> const& input, int numSamples, int numChannelsToProcess) override
@@ -730,37 +736,37 @@ template<typename Scalar,
          class StageVec4,
          template<int>
          class StageVec2>
-class TIirUpSampler final
-  : public virtual IirUpSampler<Scalar>
-  , public IirOversamplingChain<Scalar,
-                                numCoefsStage0,
-                                numCoefsStage1,
-                                numCoefsStage2,
-                                numCoefsStage3,
-                                numCoefsStage4,
-                                StageVec8,
-                                StageVec4,
-                                StageVec2>
+class TUpSampler
+  : public virtual UpSamplerBase<Scalar>
+  , public OversamplingChain<Scalar,
+                             numCoefsStage0,
+                             numCoefsStage1,
+                             numCoefsStage2,
+                             numCoefsStage3,
+                             numCoefsStage4,
+                             StageVec8,
+                             StageVec4,
+                             StageVec2>
 {
 
 public:
   /**
    * Constructor.
-   * @param designer an IirOversamplerDesigner instance to use to setup the
+   * @param designer an ReSamplerDesigner instance to use to setup the
    * antialiasing filters
    * @param numChannels the number of channels to initialize the UpSampler
    * with
    */
-  TIirUpSampler(IirOversamplingDesigner const& designer, int numChannels, int orderToPreallocateFor)
-    : IirOversamplingChain<Scalar,
-                           numCoefsStage0,
-                           numCoefsStage1,
-                           numCoefsStage2,
-                           numCoefsStage3,
-                           numCoefsStage4,
-                           StageVec8,
-                           StageVec4,
-                           StageVec2>(designer, numChannels, orderToPreallocateFor)
+  TUpSampler(OversamplingDesigner const& designer, int numChannels, int orderToPreallocateFor)
+    : OversamplingChain<Scalar,
+                        numCoefsStage0,
+                        numCoefsStage1,
+                        numCoefsStage2,
+                        numCoefsStage3,
+                        numCoefsStage4,
+                        StageVec8,
+                        StageVec4,
+                        StageVec2>(designer, numChannels, orderToPreallocateFor)
   {}
 
   void processBlock(InterleavedBuffer<Scalar> const& input,
@@ -877,7 +883,7 @@ public:
   }
 };
 
-} // namespace oversimple
+} // namespace oversimple::iir::detail
 
 #ifdef _MSC_VER
 #pragma warning(pop)

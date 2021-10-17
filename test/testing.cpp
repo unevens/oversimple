@@ -14,8 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#include "oversimple/FirOversampling.hpp"
-#include "oversimple/IirOversamplingFactory.hpp"
+#include "oversimple/Oversampling.hpp"
 
 #include <cassert>
 #include <cmath>
@@ -60,26 +59,28 @@ std::string i2s(int x)
 }
 
 template<typename Scalar>
-void testFirOversampler(int numChannels, int samplesPerBlock, int oversamplingRate, double transitionBand)
+void testFirOversampler(int numChannels, int samplesPerBlock, int oversamplingOrder, double transitionBand)
 {
-  cout << "testing FirOversampler with oversamplingRate " << oversamplingRate << " and " << numChannels
+  cout << "testing FirOversampler with oversamplingOrder " << oversamplingOrder << " and " << numChannels
        << " channels and " << samplesPerBlock << " samples per block"
        << " and transitionBand = " << transitionBand << "%"
        << "\n";
-  TFirUpsampler<Scalar> firUpsampler(numChannels, transitionBand);
-  TFirDownsampler<Scalar> firDownsampler(numChannels, transitionBand);
-  firDownsampler.setRate(oversamplingRate);
-  firUpsampler.setRate(oversamplingRate);
+  auto firUpsampler = fir::UpSamplerScalarToScalar<Scalar>(numChannels, transitionBand);
+  auto firDownsampler = fir::DownSamplerScalarToScalar<Scalar>(numChannels, transitionBand);
+  firDownsampler.setOrder(oversamplingOrder);
+  firUpsampler.setOrder(oversamplingOrder);
   int upsamplePadding = firUpsampler.getNumSamplesBeforeOutputStarts();
   int downsamplePadding = firDownsampler.getNumSamplesBeforeOutputStarts();
   int padding = upsamplePadding + downsamplePadding;
   cout << "NumSamplesBeforeUpsamplingStarts = " << upsamplePadding << "\n";
   cout << "NumSamplesBeforeDownsamplingStarts  = " << downsamplePadding << "\n";
 
+  auto const rate = 1<<oversamplingOrder;
+
   ScalarBuffer<Scalar> input(numChannels, samplesPerBlock + padding);
   ScalarBuffer<Scalar> inputCopy(numChannels, samplesPerBlock + padding);
   ScalarBuffer<Scalar> output(numChannels, samplesPerBlock + padding);
-  ScalarBuffer<Scalar> upsampled(numChannels, samplesPerBlock * oversamplingRate + padding);
+  ScalarBuffer<Scalar> upsampled(numChannels, samplesPerBlock * rate + padding);
   input.fill(0.0);
   inputCopy.fill(0.0);
   output.fill(0.0);
@@ -115,7 +116,7 @@ void testFirOversampler(int numChannels, int samplesPerBlock, int oversamplingRa
   }
   CHECK_MEMORY;
 
-  cout << "completed testing FirOversampler with oversamplingRate " << oversamplingRate << " and " << numChannels
+  cout << "completed testing FirOversampler with oversamplingOrder " << oversamplingOrder << " and " << numChannels
        << " channels and " << samplesPerBlock << " samples per block"
        << " and transitionBand = " << transitionBand << "%"
        << "\n";
@@ -153,18 +154,18 @@ void inspectIirOversampling(int numChannels, int samplesPerBlock, int order, int
     }
   }
   // Oversampling test
-  auto upsampling = IirUpsamplerFactory<Scalar>::make(numChannels);
-  auto downsampling = IirDownsamplerFactory<Scalar>::make(numChannels);
-  upsampling->setOrder(order);
-  downsampling->setOrder(order);
+  auto upsampling = iir::UpSamplerScalarToVec<Scalar>(numChannels);
+  auto downsampling = iir::DownSamplerVecToScalar<Scalar>(numChannels);
+  upsampling.setOrder(order);
+  downsampling.setOrder(order);
   auto buffer = InterleavedBuffer<Scalar>(numChannels, factor * samplesPerBlock);
   CHECK_MEMORY;
-  upsampling->processBlock(in, samplesPerBlock, buffer);
+  upsampling.processBlock(in, samplesPerBlock, buffer);
   CHECK_MEMORY;
-  downsampling->processBlock(buffer, factor * samplesPerBlock);
+  downsampling.processBlock(buffer, factor * samplesPerBlock);
   CHECK_MEMORY;
-  auto& output = downsampling->getOutput();
-  auto preset = getIirOversamplingPreset(order);
+  auto& output = downsampling.getOutput();
+  auto preset = iir::detail::getOversamplingPreset(order);
   double groupDelay = 2.0 * preset.getGroupDelay(normalizedFrequency, order);
   double phaseDelay = 2.0 * preset.getPhaseDelay(normalizedFrequency, order);
   for (int i = 0; i < numChannels; ++i) {
