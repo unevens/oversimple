@@ -156,10 +156,10 @@ inline double getIirOversamplingMinGroupDelay(int order, int presetIndex = 0)
 }
 
 /**
- * Static class implementing a factory for IirUpsamplers.
+ * Static class implementing a factory for IirUpSampler.
  */
 template<typename Scalar>
-class IirUpsamplerFactory final
+class IirUpSamplerFactory final
 {
   template<int NC>
   using FakeUpsamplerStage8Double = hiir::FakeInterface;
@@ -203,31 +203,31 @@ public:
 
 public:
   /**
-   * @param numChannels the number of channels to initialize the IirUpsampler
+   * @param numChannels the number of channels to initialize the IirUpSampler
    * with
-   * @param presetIndex the quality preset index used to create the IirUpsampler
+   * @param presetIndex the quality preset index used to create the IirUpSampler
    * antialiasing filters
    */
-  static std::unique_ptr<IirUpsampler<Scalar>> make(int numChannels, int presetIndex = 0)
+  static std::unique_ptr<IirUpSampler<Scalar>> make(int numChannels, int presetIndex = 0)
   {
     auto preset = getIirOversamplingPreset(presetIndex);
     switch (presetIndex) {
       case 0:
       default:
-        return std::unique_ptr<IirUpsampler<Scalar>>(
-          new TIirUpsampler<Scalar, 11, 5, 3, 3, 2, Stage8, Stage4, Stage2>(preset, numChannels));
+        return std::unique_ptr<IirUpSampler<Scalar>>(
+          new TIirUpSampler<Scalar, 11, 5, 3, 3, 2, Stage8, Stage4, Stage2>(preset, numChannels));
       case 1:
-        return std::unique_ptr<IirUpsampler<Scalar>>(
-          new TIirUpsampler<Scalar, 11, 5, 4, 3, 2, Stage8, Stage4, Stage2>(preset, numChannels));
+        return std::unique_ptr<IirUpSampler<Scalar>>(
+          new TIirUpSampler<Scalar, 11, 5, 4, 3, 2, Stage8, Stage4, Stage2>(preset, numChannels));
     }
   }
 };
 
 /**
- * Static class implementing a factory for IirDownsamplers.
+ * Static class implementing a factory for IirDownSamplers.
  */
 template<typename Scalar>
-class IirDownsamplerFactory final
+class IirDownSamplerFactory final
 {
   template<int NC>
   using FakeDownsamplerStage8Double = hiir::Downsampler2x4F64Avx<NC>;
@@ -276,22 +276,22 @@ public:
 
 public:
   /**
-   * @param numChannels the number of channels to initialize the IirDownsampler
+   * @param numChannels the number of channels to initialize the IirDownSampler
    * with
    * @param presetIndex the quality preset index used to create the
-   * IirDownsampler antialiasing filters
+   * IirDownSampler antialiasing filters
    */
-  static std::unique_ptr<IirDownsampler<Scalar>> make(int numChannels, int presetIndex = 0)
+  static std::unique_ptr<IirDownSampler<Scalar>> make(int numChannels, int presetIndex = 0)
   {
     auto preset = getIirOversamplingPreset(presetIndex);
     switch (presetIndex) {
       case 0:
       default:
-        return std::unique_ptr<IirDownsampler<Scalar>>(
-          new TIirDownsampler<Scalar, 11, 5, 3, 3, 2, Stage8, Stage4, Stage2>(preset, numChannels));
+        return std::unique_ptr<IirDownSampler<Scalar>>(
+          new TIirDownSampler<Scalar, 11, 5, 3, 3, 2, Stage8, Stage4, Stage2>(preset, numChannels));
       case 1:
-        return std::unique_ptr<IirDownsampler<Scalar>>(
-          new TIirDownsampler<Scalar, 11, 5, 4, 3, 2, Stage8, Stage4, Stage2>(preset, numChannels));
+        return std::unique_ptr<IirDownSampler<Scalar>>(
+          new TIirDownSampler<Scalar, 11, 5, 4, 3, 2, Stage8, Stage4, Stage2>(preset, numChannels));
     }
   }
 };

@@ -69,10 +69,10 @@ public:
 };
 
 /**
- * Abstract class for IIR upsamplers.
+ * Abstract class for IIR UpSamplers.
  */
 template<typename Scalar>
-class IirUpsampler : public virtual IirOversampler
+class IirUpSampler : public virtual IirOversampler
 {
 public:
   /**
@@ -116,10 +116,10 @@ public:
 };
 
 /**
- * Abstract class for IIR downsamplers.
+ * Abstract class for IIR DownSamplers.
  */
 template<typename Scalar>
-class IirDownsampler : public virtual IirOversampler
+class IirDownSampler : public virtual IirOversampler
 {
 public:
   /**
@@ -629,8 +629,8 @@ template<typename Scalar,
          class StageVec4,
          template<int>
          class StageVec2>
-class TIirDownsampler final
-  : public virtual IirDownsampler<Scalar>
+class TIirDownSampler final
+  : public virtual IirDownSampler<Scalar>
   , public IirOversamplingChain<Scalar,
                                 numCoefsStage0,
                                 numCoefsStage1,
@@ -648,10 +648,10 @@ public:
    * Constructor.
    * @param designer an IirOversamplerDesigner instance to use to setup the
    * antialiasing filters
-   * @param numChannels the number of channels to initialize the downsampler
+   * @param numChannels the number of channels to initialize the DownSampler
    * with
    */
-  TIirDownsampler(IirOversamplingDesigner const& designer, int numChannels, int orderToPreallocateFor = 0)
+  TIirDownSampler(IirOversamplingDesigner const& designer, int numChannels, int orderToPreallocateFor = 0)
     : IirOversamplingChain<Scalar,
                            numCoefsStage0,
                            numCoefsStage1,
@@ -716,7 +716,7 @@ public:
 };
 
 /**
- * Upsampler with IIR antialiasing filters.
+ * UpSampler with IIR antialiasing filters.
  */
 template<typename Scalar,
          int numCoefsStage0,
@@ -730,8 +730,8 @@ template<typename Scalar,
          class StageVec4,
          template<int>
          class StageVec2>
-class TIirUpsampler final
-  : public virtual IirUpsampler<Scalar>
+class TIirUpSampler final
+  : public virtual IirUpSampler<Scalar>
   , public IirOversamplingChain<Scalar,
                                 numCoefsStage0,
                                 numCoefsStage1,
@@ -748,10 +748,10 @@ public:
    * Constructor.
    * @param designer an IirOversamplerDesigner instance to use to setup the
    * antialiasing filters
-   * @param numChannels the number of channels to initialize the upsampler
+   * @param numChannels the number of channels to initialize the UpSampler
    * with
    */
-  TIirUpsampler(IirOversamplingDesigner const& designer, int numChannels, int orderToPreallocateFor)
+  TIirUpSampler(IirOversamplingDesigner const& designer, int numChannels, int orderToPreallocateFor)
     : IirOversamplingChain<Scalar,
                            numCoefsStage0,
                            numCoefsStage1,
