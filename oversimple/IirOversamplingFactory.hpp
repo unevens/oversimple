@@ -134,9 +134,9 @@ inline IirOversamplingDesigner getIirOversamplingPreset(int presetIndex = 0)
   switch (presetIndex) {
     case 0:
     default:
-      return IirOversamplingDesigner(140.0, 0.0443);
+      return {140.0, 0.0443};
     case 1:
-      return IirOversamplingDesigner(142.0, 0.0464);
+      return {142.0, 0.0464};
   }
 }
 

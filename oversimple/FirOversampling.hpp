@@ -166,9 +166,9 @@ public:
    * @param oversamplingRate the oversampling factor
    */
   explicit FirUnbufferedResampler(int numChannels,
-                         double transitionBand = 2.0,
-                         int maxSamplesPerBlock = 1024,
-                         double oversamplingRate = 1.0);
+                                  double transitionBand = 2.0,
+                                  int maxSamplesPerBlock = 1024,
+                                  double oversamplingRate = 1.0);
 
   /**
    * Resamples a multi channel input buffer.
@@ -176,7 +176,7 @@ public:
    * @param numChannels number of channels of the input buffer
    * @param numSamples the number of samples of each channel of the input
    * buffer.
-   * @param output ScalarBufffer to hold the upsampled data.
+   * @param output ScalarBuffer to hold the upsampled data.
    * @return number of upsampled samples
    */
   int processBlock(double* const* input, int numChannels, int numSamples, ScalarBuffer<double>& output);
@@ -184,7 +184,7 @@ public:
   /**
    * Resamples a multi channel input buffer.
    * @param input ScalarBuffer that holds the input buffer.
-   * @param output ScalarBufffer to hold the upsampled data.
+   * @param output ScalarBuffer to hold the upsampled data.
    * @return number of upsampled samples
    */
   int processBlock(ScalarBuffer<double> const& input, ScalarBuffer<double>& output);
@@ -227,9 +227,9 @@ public:
    * @param oversamplingRate the oversampling factor
    */
   explicit FirBufferedResampler(int numChannels,
-                       double transitionBand = 2.0,
-                       int maxSamplesPerBlock = 1024,
-                       double oversamplingRate = 1.0);
+                                double transitionBand = 2.0,
+                                int maxSamplesPerBlock = 1024,
+                                double oversamplingRate = 1.0);
 
   /**
    * Resamples a multi channel input buffer.
@@ -252,7 +252,7 @@ public:
   /**
    * Resamples a multi channel input buffer.
    * @param input a ScalarBuffer that holds the input buffer.
-   * @param output a ScalarBufffer to hold the downsampled data.
+   * @param output a ScalarBuffer to hold the downsampled data.
    * @param requiredSamples the number of samples needed as output
    */
   void processBlock(ScalarBuffer<double> const& input, ScalarBuffer<double>& output, int requiredSamples);
@@ -291,9 +291,9 @@ public:
    * @param oversamplingRate the oversampling factor
    */
   explicit FirDownsampler(int numChannels,
-                 double transitionBand = 2.0,
-                 int maxSamplesPerBlock = 1024,
-                 double oversamplingRate = 1.0)
+                          double transitionBand = 2.0,
+                          int maxSamplesPerBlock = 1024,
+                          double oversamplingRate = 1.0)
     : FirBufferedResampler(numChannels, transitionBand, maxSamplesPerBlock, 1.0 / oversamplingRate)
   {}
 
@@ -335,9 +335,9 @@ public:
    * @param oversamplingRate the oversampling factor
    */
   explicit TFirUnbufferedReampler(int numChannels,
-                         double transitionBand = 2.0,
-                         int maxSamplesPerBlock = 1024,
-                         double oversamplingRate = 1.0)
+                                  double transitionBand = 2.0,
+                                  int maxSamplesPerBlock = 1024,
+                                  double oversamplingRate = 1.0)
     : FirUnbufferedResampler(numChannels, transitionBand, maxSamplesPerBlock, oversamplingRate)
   {}
 };
@@ -360,9 +360,9 @@ public:
    * @param oversamplingRate the oversampling factor
    */
   explicit TFirUnbufferedReampler(int numChannels,
-                         double transitionBand = 2.0,
-                         int maxSamplesPerBlock = 1024,
-                         double oversamplingRate = 1.0)
+                                  double transitionBand = 2.0,
+                                  int maxSamplesPerBlock = 1024,
+                                  double oversamplingRate = 1.0)
     : FirUnbufferedResampler(numChannels, transitionBand, maxSamplesPerBlock, oversamplingRate)
     , floatToDoubleBuffer(numChannels, maxSamplesPerBlock)
     , doubleToFloatBuffer(numChannels, (int)std::ceil(maxSamplesPerBlock * oversamplingRate))
@@ -374,7 +374,7 @@ public:
    * @param numChannelsToProcess number of channels to process
    * @param numSamples the number of samples of each channel of the input
    * buffer.
-   * @param output ScalarBufffer to hold the upsampled data.
+   * @param output ScalarBuffer to hold the upsampled data.
    * @return number of upsampled samples
    */
   int processBlock(float* const* input, int numChannelsToProcess, int numSamples, ScalarBuffer<float>& output)
@@ -396,7 +396,7 @@ public:
   /**
    * Resamples a multi channel input buffer.
    * @param input ScalarBuffer that holds the input buffer.
-   * @param output ScalarBufffer to hold the upsampled data.
+   * @param output ScalarBuffer to hold the upsampled data.
    * @return number of upsampled samples
    */
   int processBlock(ScalarBuffer<float> const& input, ScalarBuffer<float>& output)
@@ -438,9 +438,9 @@ public:
    * @param oversamplingRate the oversampling factor
    */
   explicit TFirBufferedResampler(int numChannels,
-                        double transitionBand = 2.0,
-                        int maxSamplesPerBlock = 1024,
-                        double oversamplingRate = 1.0)
+                                 double transitionBand = 2.0,
+                                 int maxSamplesPerBlock = 1024,
+                                 double oversamplingRate = 1.0)
     : FirBufferedResampler(numChannels, transitionBand, maxSamplesPerBlock, oversamplingRate)
   {}
 };
@@ -463,9 +463,9 @@ public:
    * @param oversamplingRate the oversampling factor
    */
   explicit TFirBufferedResampler(int numChannels,
-                        double transitionBand = 2.0,
-                        int maxSamplesPerBlock = 1024,
-                        double oversamplingRate = 1.0)
+                                 double transitionBand = 2.0,
+                                 int maxSamplesPerBlock = 1024,
+                                 double oversamplingRate = 1.0)
     : FirBufferedResampler(numChannels, transitionBand, maxSamplesPerBlock, oversamplingRate)
     , floatToDoubleBuffer(numChannels, maxSamplesPerBlock)
     , doubleToFloatBuffer(numChannels, (int)std::ceil(maxSamplesPerBlock * oversamplingRate))
@@ -522,7 +522,7 @@ public:
   /**
    * Resamples a multi channel input buffer.
    * @param ScalarBuffer that holds the input buffer.
-   * @param output ScalarBufffer to hold the downsampled data.
+   * @param output ScalarBuffer to hold the downsampled data.
    * @param requiredSamples the number of samples needed as output
    */
   void processBlock(ScalarBuffer<float> const& input, ScalarBuffer<float>& output, int requiredSamples)
@@ -557,9 +557,9 @@ public:
    * @param oversamplingRate the oversampling factor
    */
   explicit TFirDownsampler(int numChannels,
-                  double transitionBand = 2.0,
-                  int maxSamplesPerBlock = 1024,
-                  double oversamplingRate = 1.0)
+                           double transitionBand = 2.0,
+                           int maxSamplesPerBlock = 1024,
+                           double oversamplingRate = 1.0)
     : TFirBufferedResampler<Scalar>(numChannels, transitionBand, maxSamplesPerBlock, 1.0 / oversamplingRate)
   {}
 
@@ -580,6 +580,133 @@ public:
   {
     return 1.0 / this->oversamplingRate;
   }
+
+  void prepareBuffers(int numSamplesWithoutOersampling) override
+  {
+    auto const numOversampledSamples = numSamplesWithoutOersampling * this->oversamplingRate;
+    TFirBufferedResampler<Scalar>::prepareBuffers(numOversampledSamples, numSamplesWithoutOersampling);
+  }
+};
+
+template<class Resampler>
+class TFirPreallocatedResampler final
+{
+public:
+  Resampler& get(int order)
+  {
+    return *resamplers[order];
+  }
+
+  Resampler const& get(int order) const
+  {
+    return *resamplers[order];
+  }
+
+  explicit TFirPreallocatedResampler(int maxOrder = 5,
+                                     int numChannels = 2,
+                                     double transitionBand = 2.0,
+                                     int maxSamplesPerBlock = 1024)
+    : numChannels{ numChannels }
+    , transitionBand{ transitionBand }
+    , maxSamplesPerBlock{ maxSamplesPerBlock }
+  {
+    setMaxOrder(maxOrder);
+  }
+
+  void setMaxOrder(int value)
+  {
+    resamplers.resize(static_cast<std::size_t>(value));
+    int order = 0;
+    for (auto& resampler : resamplers) {
+      if (!resampler) {
+        auto const rate = static_cast<double>(1 << order);
+        resampler = std::make_unique<Resampler>(numChannels, transitionBand, maxSamplesPerBlock, rate);
+        resampler->prepareBuffers(maxInputSamples);
+      }
+      ++order;
+    }
+  }
+
+  /**
+   * Prepare the processor to work with the supplied number of channels.
+   * @param value the new number of channels.
+   */
+  void setNumChannels(int value)
+  {
+    numChannels = value;
+    for (auto& resampler : resamplers) {
+      resampler->setNumChannels(value);
+    }
+  }
+
+  /**
+   * @return the number of channels the processor is ready to work with.
+   */
+  int getNumChannels() const
+  {
+    return numChannels;
+  }
+
+  /**
+   * Prepare the processor to work with the supplied number of channels.
+   * @param value the new number of channels.
+   */
+  void prepareBuffers(int numInputSamples)
+  {
+    maxInputSamples = numInputSamples;
+    for (auto& resampler : resamplers) {
+      resampler->prepareBuffers(numInputSamples);
+    }
+  }
+
+  /**
+   * Sets the antialiasing filter transition band.
+   * @param value the new antialiasing filter transition band, in percentage of
+   * the sample rate.
+   */
+  void setTransitionBand(int value)
+  {
+    transitionBand = value;
+    for (auto& resampler : resamplers) {
+      resampler->setTransitionBand(value);
+    }
+  }
+
+  /**
+   * @return value the antialiasing filter transition band, in percentage of the
+   * sample rate.
+   */
+  double getTransitionBand() const
+  {
+    return transitionBand;
+  }
+
+  /**
+   * Sets the number of samples that will be processed together.
+   * @param value the new number of samples that will be processed together.
+   */
+  void setMaxSamplesPerBlock(int value)
+  {
+    maxSamplesPerBlock = value;
+    for (auto& resampler : resamplers) {
+      resampler->setMaxSamplesPerBlock(value);
+    }
+  }
+
+  /**
+   * @return the number of samples that will be processed together.
+   */
+  int getMaxSamplesPerBlock() const
+  {
+    return maxSamplesPerBlock;
+  }
+
+private:
+  std::vector<std::unique_ptr<Resampler>> resamplers;
+  int numChannels = 2;
+  int maxInputSamples = 256;
+  int maxSamplesPerBlock = 1024;
+  double transitionBand = 2.0;
 };
 
 } // namespace oversimple

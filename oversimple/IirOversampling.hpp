@@ -16,6 +16,8 @@ limitations under the License.
 
 #pragma once
 
+#include <utility>
+
 #include "avec/Avec.hpp"
 
 #include "oversimple/IirOversamplingDesigner.hpp"
@@ -46,9 +48,9 @@ public:
   virtual void setOrder(int value) = 0;
   /**
    * Preallocates data to process the supplied amount of samples.
-   * @param samplesPerBlock the number of samples to preallocate memory for
+   * @param maxInputSamples the number of samples to preallocate memory for
    */
-  virtual void prepareBuffer(int samplesPerBlock) = 0;
+  virtual void prepareBuffer(int maxInputSamples) = 0;
   /**
    * Sets the number of channels the processor is capable to work with.
    * @param value the new number of channels.
@@ -184,15 +186,17 @@ protected:
   IirOversamplingDesigner designer;
   int numChannels;
   int order;
+  int maxOrder;
   int factor;
-  int samplesPerBlock;
+  int maxInputSamples;
   InterleavedBuffer<Scalar> buffer[2];
 
-  IirOversamplingChain(IirOversamplingDesigner designer_, int numChannels_)
-    : designer(designer_)
+  IirOversamplingChain(IirOversamplingDesigner designer_, int numChannels_, int orderToPreallocateFor = 0)
+    : designer(std::move(designer_))
     , numChannels(numChannels_)
-    , samplesPerBlock(256)
+    , maxInputSamples(256)
     , order(0)
+    , maxOrder(orderToPreallocateFor)
     , factor(1)
   {
     assert(designer.getStages().size() == 5);
@@ -292,9 +296,11 @@ protected:
 
   void setupBuffer()
   {
-    for (int i = 0; i < 2; ++i) {
-      buffer[i].setNumChannels(numChannels);
-      buffer[i].setNumSamples(samplesPerBlock * factor);
+    auto const maxFactor = 1 << maxOrder;
+    for (auto& b : buffer) {
+      b.setNumChannels(numChannels);
+      b.reserve(maxInputSamples * maxFactor);
+      b.setNumSamples(maxInputSamples * factor);
     }
   }
 
@@ -308,14 +314,15 @@ protected:
   }
   void setOrder(int value) override
   {
-    assert(order >= 0 && order <= 5);
     order = value;
+    assert(order >= 0 && order <= 5);
+    maxOrder = std::max(order, maxOrder);
     factor = 1 << order;
     setupBuffer();
   }
-  void prepareBuffer(int samplesPerBlock_) override
+  void prepareBuffer(int maxInputSamples_) override
   {
-    samplesPerBlock = samplesPerBlock_;
+    maxInputSamples = maxInputSamples_;
     setupBuffer();
   }
   void setNumChannels(int value) override
@@ -644,7 +651,7 @@ public:
    * @param numChannels the number of channels to initialize the downsampler
    * with
    */
-  TIirDownsampler(IirOversamplingDesigner const& designer, int numChannels)
+  TIirDownsampler(IirOversamplingDesigner const& designer, int numChannels, int orderToPreallocateFor = 0)
     : IirOversamplingChain<Scalar,
                            numCoefsStage0,
                            numCoefsStage1,
@@ -653,7 +660,7 @@ public:
                            numCoefsStage4,
                            StageVec8,
                            StageVec4,
-                           StageVec2>(designer, numChannels)
+                           StageVec2>(designer, numChannels, orderToPreallocateFor)
   {}
 
   void processBlock(InterleavedBuffer<Scalar> const& input, int numSamples, int numChannelsToProcess) override
@@ -744,7 +751,7 @@ public:
    * @param numChannels the number of channels to initialize the upsampler
    * with
    */
-  TIirUpsampler(IirOversamplingDesigner const& designer, int numChannels)
+  TIirUpsampler(IirOversamplingDesigner const& designer, int numChannels, int orderToPreallocateFor)
     : IirOversamplingChain<Scalar,
                            numCoefsStage0,
                            numCoefsStage1,
@@ -753,7 +760,7 @@ public:
                            numCoefsStage4,
                            StageVec8,
                            StageVec4,
-                           StageVec2>(designer, numChannels)
+                           StageVec2>(designer, numChannels, orderToPreallocateFor)
   {}
 
   void processBlock(InterleavedBuffer<Scalar> const& input,

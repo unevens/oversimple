@@ -24,7 +24,7 @@ inline void DEBUG_MESSAGE(char const* message)
   OutputDebugStringA(message);
 }
 #else
-#define DEBUG_MESSAGE(x) /*nohing*/
+#define DEBUG_MESSAGE(x) /*nothing*/
 #endif
 
 namespace oversimple {
