@@ -21,6 +21,29 @@ limitations under the License.
 
 namespace oversimple {
 
+enum class SupportedScalarTypes
+{
+  floatAndDouble,
+  onlyFloat,
+  onlyDouble
+};
+
+enum class FilterType
+{
+  iir,
+  fir
+};
+
+struct BlockSize final
+{
+  int numChannels = 2;
+  int maxInoutSamples = 256;
+
+#if __cplusplus >= 202002L
+  bool operator==(BlockSize const& other) const = default;
+#endif
+};
+
 /**
  * A class to setup an Oversampling object. It contains simple fields to
  * setup how to oversample and if any upsampled audio buffer is needed.
@@ -31,14 +54,15 @@ struct OversamplingSettings
 {
   enum class SupportedScalarTypes
   {
+    floatAndDouble,
     onlyFloat,
     onlyDouble,
-    floatAndDouble
   };
 
   struct Requirements
   {
     int order = 0; // the number of stages: 0 for no oversampling, 1 for 2x oversampling, 2 for 4x oversampling...
+    int maxOrder = 0;
 
     int numScalarToVecUpsamplers = 0;
     int numVecToVecUpsamplers = 0;
@@ -62,7 +86,7 @@ struct OversamplingSettings
   {
     SupportedScalarTypes supportedScalarTypes = SupportedScalarTypes::floatAndDouble;
     int numChannels = 2;
-    int numSamplesPerBlock = 256;
+    int maxInputSamples = 256;
 
 #if __cplusplus >= 202002L
     bool operator==(Context const& other) const = default;
@@ -86,7 +110,7 @@ struct OversamplingSettings
 template<typename Scalar>
 class TOversampling
 {
-  int numSamplesPerBlock;
+  int maxInputSamples;
   int numChannels;
   int rate;
 
@@ -172,7 +196,7 @@ public:
         firInputBuffer.setNumChannels(0);
         firUpsampler = nullptr;
       }
-      prepareBuffers(settings.context.numSamplesPerBlock);
+      prepareBuffers(settings.context.maxInputSamples);
     }
 
     /**
@@ -298,7 +322,7 @@ public:
         firOutputBuffer.setNumChannels(0);
         firUpsampler = nullptr;
       }
-      prepareBuffers(settings.context.numSamplesPerBlock);
+      prepareBuffers(settings.context.maxInputSamples);
     }
 
     /**
@@ -429,7 +453,7 @@ public:
         iirOutputBuffer.setNumChannels(settings.context.numChannels);
         firUpsampler = nullptr;
       }
-      prepareBuffers(settings.context.numSamplesPerBlock);
+      prepareBuffers(settings.context.maxInputSamples);
     }
 
     /**
@@ -513,8 +537,8 @@ public:
         firInputBuffer.setNumChannels(0);
         firDownsampler = nullptr;
       }
-      prepareBuffers(settings.context.numSamplesPerBlock,
-                     settings.context.numSamplesPerBlock * (1 << settings.requirements.order));
+      prepareBuffers(settings.context.maxInputSamples,
+                     settings.context.maxInputSamples * (1 << settings.requirements.order));
     }
 
     /**
@@ -527,7 +551,7 @@ public:
     {
       int const oversamplingRate = firDownsampler ? (int)firDownsampler->getRate() : (1 << iirDownsampler->getOrder());
       if (firDownsampler) {
-        firDownsampler->prepareBuffers(maxNumUpsampledSamples, numSamples);
+        firDownsampler->prepareBuffers(numSamples);
         firInputBuffer.setNumSamples(maxNumUpsampledSamples);
       }
       if (iirDownsampler) {
@@ -633,8 +657,8 @@ public:
         outputBuffer.setNumChannels(0);
         firDownsampler = nullptr;
       }
-      prepareBuffers(settings.context.numSamplesPerBlock,
-                     settings.context.numSamplesPerBlock * (1 << settings.requirements.order));
+      prepareBuffers(settings.context.maxInputSamples,
+                     settings.context.maxInputSamples * (1 << settings.requirements.order));
     }
 
     /**
@@ -647,7 +671,7 @@ public:
     {
       int const oversamplingRate = firDownsampler ? (int)firDownsampler->getRate() : (1 << iirDownsampler->getOrder());
       if (firDownsampler) {
-        firDownsampler->prepareBuffers(maxNumUpsampledSamples, numSamples);
+        firDownsampler->prepareBuffers(numSamples);
         firInputBuffer.setNumSamples(maxNumUpsampledSamples);
         firOutputBuffer.setNumSamples(numSamples);
       }
@@ -751,8 +775,8 @@ public:
         iirInputBuffer.setNumChannels(2);
         firDownsampler = nullptr;
       }
-      prepareBuffers(settings.context.numSamplesPerBlock,
-                     settings.context.numSamplesPerBlock * (1 << settings.requirements.order));
+      prepareBuffers(settings.context.maxInputSamples,
+                     settings.context.maxInputSamples * (1 << settings.requirements.order));
     }
 
     /**
@@ -765,7 +789,7 @@ public:
     {
       int const oversamplingRate = firDownsampler ? (int)firDownsampler->getRate() : (1 << iirDownsampler->getOrder());
       if (firDownsampler) {
-        firDownsampler->prepareBuffers(maxNumUpsampledSamples, numSamples);
+        firDownsampler->prepareBuffers(numSamples);
       }
       if (iirDownsampler) {
         iirDownsampler->prepareBuffer(numSamples);
@@ -880,7 +904,7 @@ public:
    * @param settings the settings to initialize from
    */
   TOversampling(OversamplingSettings const& settings)
-    : numSamplesPerBlock(settings.context.numSamplesPerBlock)
+    : maxInputSamples(settings.context.maxInputSamples)
     , rate(1 << settings.requirements.order)
     , numChannels(settings.context.numChannels)
   {
@@ -902,7 +926,7 @@ public:
     for (int i = 0; i < settings.requirements.numScalarToScalarDownsamplers; ++i) {
       scalarToScalarDownsamplers.push_back(std::make_unique<ScalarToScalarDownsampler>(settings));
     }
-    int maxNumUpsampledSamples = rate * settings.context.numSamplesPerBlock;
+    int maxNumUpsampledSamples = rate * settings.context.maxInputSamples;
     interleavedBuffers.resize(settings.requirements.numInterleavedBuffers);
     for (auto& buffer : interleavedBuffers) {
       buffer.setNumSamples(maxNumUpsampledSamples);
@@ -923,9 +947,9 @@ public:
    */
   void prepareBuffers(int numSamples)
   {
-    if (numSamplesPerBlock < numSamples) {
+    if (maxInputSamples < numSamples) {
 
-      numSamplesPerBlock = numSamples;
+      maxInputSamples = numSamples;
 
       for (auto& upsampler : scalarToVecUpsamplers) {
         upsampler->prepareBuffers(numSamples);
@@ -1032,11 +1056,11 @@ public:
   /**
    * @return the maximum number of samples that can be processed by a single
    * process call. It is the same number passed to prepareBuffers or set in the
-   * OversamplingSettings (numSamplesPerBlock)
+   * OversamplingSettings (maxInputSamples)
    */
-  int getNumSamplesPerBlock() const
+  int getmaxInputSamples() const
   {
-    return numSamplesPerBlock;
+    return maxInputSamples;
   }
 
   /**
