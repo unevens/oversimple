@@ -35,7 +35,7 @@ template<typename Scalar>
 using UpSamplerVecToVec = UpSampler<Scalar>;
 
 template<typename Scalar>
-using DownSamplerVecToVec = DownSampler<Scalar>;
+using UpSamplerAnyToVec = UpSampler<Scalar>;
 } // namespace iir
 
 namespace detail {} // namespace detail
@@ -49,20 +49,20 @@ public:
                                           int numChannels = 2,
                                           double transitionBand = 2.0,
                                           int maxSamplesPerBlock = 1024)
-    : scalarToScalar(maxOrder, numChannels, transitionBand, maxSamplesPerBlock)
+    : resampler(maxOrder, numChannels, transitionBand, maxSamplesPerBlock)
   {}
 
   virtual ~TReSamplerWithConversionBuffer() = default;
 
   void setMaxOrder(int value)
   {
-    scalarToScalar.setMaxOrder(value);
+    resampler.setMaxOrder(value);
     updateBuffers();
   }
 
   void setOrder(int value)
   {
-    scalarToScalar.setOrder(value);
+    resampler.setOrder(value);
   }
 
   /**
@@ -71,7 +71,7 @@ public:
    */
   void setNumChannels(int value)
   {
-    scalarToScalar.setNumChannels(value);
+    resampler.setNumChannels(value);
     updateBuffers();
   }
 
@@ -80,7 +80,7 @@ public:
    */
   int getNumChannels() const
   {
-    return scalarToScalar.getNumChannels();
+    return resampler.getNumChannels();
   }
 
   /**
@@ -89,7 +89,7 @@ public:
    */
   void prepareBuffers(int numInputSamples)
   {
-    scalarToScalar.prepareBuffers(numInputSamples);
+    resampler.prepareBuffers(numInputSamples);
     updateBuffers();
   }
 
@@ -100,7 +100,7 @@ public:
    */
   void setTransitionBand(int value)
   {
-    scalarToScalar.setTransitionBand(value);
+    resampler.setTransitionBand(value);
     updateBuffers();
   }
 
@@ -110,7 +110,7 @@ public:
    */
   double getTransitionBand() const
   {
-    return scalarToScalar.getTransitionBand();
+    return resampler.getTransitionBand();
   }
 
   /**
@@ -119,7 +119,7 @@ public:
    */
   void setMaxSamplesPerBlock(int value)
   {
-    scalarToScalar.setMaxSamplesPerBlock(value);
+    resampler.setMaxSamplesPerBlock(value);
     updateBuffers();
   }
 
@@ -128,7 +128,7 @@ public:
    */
   int getMaxSamplesPerBlock() const
   {
-    return scalarToScalar.getMaxSamplesPerBlock();
+    return resampler.getMaxSamplesPerBlock();
   }
 
   /**
@@ -137,7 +137,7 @@ public:
    */
   int getNumSamplesBeforeOutputStarts()
   {
-    return scalarToScalar.getNumSamplesBeforeOutputStarts();
+    return resampler.getNumSamplesBeforeOutputStarts();
   }
 
   /**
@@ -148,7 +148,7 @@ public:
    */
   int getMaxNumOutputSamples() const
   {
-    return scalarToScalar.getMaxNumOutputSamples();
+    return resampler.getMaxNumOutputSamples();
   }
 
   /**
@@ -156,14 +156,14 @@ public:
    */
   void reset()
   {
-    scalarToScalar.reset();
+    resampler.reset();
   }
 
 protected:
   virtual void updateBuffers() = 0;
 
 private:
-  Resampler<Scalar> scalarToScalar;
+  Resampler<Scalar> resampler;
 };
 
 template<typename Scalar>
@@ -180,20 +180,20 @@ class TReSamplerWithConversionBuffer
 {
 public:
   explicit TReSamplerWithConversionBuffer(int maxOrder = 5, int numChannels = 2)
-    : scalarToScalar(maxOrder, numChannels)
+    : resampler(maxOrder, numChannels)
   {}
 
   virtual ~TReSamplerWithConversionBuffer() = default;
 
   void setMaxOrder(int value)
   {
-    scalarToScalar.setMaxOrder(value);
+    resampler.setMaxOrder(value);
     updateBuffers();
   }
 
   void setOrder(int value)
   {
-    scalarToScalar.setOrder(value);
+    resampler.setOrder(value);
   }
 
   /**
@@ -202,7 +202,7 @@ public:
    */
   void setNumChannels(int value)
   {
-    scalarToScalar.setNumChannels(value);
+    resampler.setNumChannels(value);
     updateBuffers();
   }
 
@@ -211,7 +211,7 @@ public:
    */
   int getNumChannels() const
   {
-    return scalarToScalar.getNumChannels();
+    return resampler.getNumChannels();
   }
 
   /**
@@ -221,7 +221,7 @@ public:
   void prepareBuffers(int numInputSamples)
   {
     maxNumInputSamples = numInputSamples;
-    scalarToScalar.prepareBuffers(numInputSamples);
+    resampler.prepareBuffers(numInputSamples);
     updateBuffers();
   }
 
@@ -230,13 +230,13 @@ public:
    */
   void reset()
   {
-    scalarToScalar.reset();
+    resampler.reset();
   }
 
 protected:
   virtual void updateBuffers() = 0;
   int maxNumInputSamples = 0;
-  Resampler<Scalar> scalarToScalar;
+  Resampler<Scalar> resampler;
 };
 
 template<typename Scalar>
@@ -295,8 +295,8 @@ public:
 private:
   void updateBuffers() override
   {
-    auto const numChannels = this->scalarToScalar.getNumChannels();
-    auto const maxNumOutputSamples = this->scalarToScalar.getMaxNumOutputSamples();
+    auto const numChannels = this->resampler.getNumChannels();
+    auto const maxNumOutputSamples = this->resampler.getMaxNumOutputSamples();
     outputBuffer.setNumChannels(numChannels);
     outputBuffer.reserve(maxNumOutputSamples);
   }
@@ -318,7 +318,7 @@ public:
   int processBlock(InterleavedBuffer<Scalar> const& input)
   {
     input.deinterleave(inputBuffer);
-    int const numOutputSamples = this->scalarToScalar.processBlock(inputBuffer);
+    int const numOutputSamples = this->resampler.processBlock(inputBuffer);
     auto const ok = outputBuffer.interleave(this->get().getOutput(), inputBuffer.getNumChannels());
     assert(ok);
     return numOutputSamples;
@@ -337,8 +337,8 @@ public:
 private:
   void updateBuffers() override
   {
-    auto const numChannels = this->scalarToScalar.getNumChannels();
-    auto const maxNumOutputSamples = this->scalarToScalar.getMaxNumOutputSamples();
+    auto const numChannels = this->resampler.getNumChannels();
+    auto const maxNumOutputSamples = this->resampler.getMaxNumOutputSamples();
     outputBuffer.setNumChannels(numChannels);
     outputBuffer.reserve(maxNumOutputSamples);
     inputBuffer.setNumChannels(numChannels);
@@ -363,25 +363,25 @@ public:
   int processBlock(InterleavedBuffer<Scalar> const& input)
   {
     input.deinterleave(inputBuffer);
-    int const numOutputSamples = this->scalarToScalar.processBlock(inputBuffer);
+    int const numOutputSamples = this->resampler.processBlock(inputBuffer);
     return numOutputSamples;
   }
 
   avec::ScalarBuffer<Scalar>& getOutput()
   {
-    return this->scalarToScalar.getOutput();
+    return this->resampler.getOutput();
   }
 
   avec::ScalarBuffer<Scalar> const& getOutput() const
   {
-    return this->scalarToScalar.getOutput();
+    return this->resampler.getOutput();
   }
 
 private:
   void updateBuffers() override
   {
-    auto const numChannels = this->scalarToScalar.getNumChannels();
-    auto const maxNumOutputSamples = this->scalarToScalar.getMaxNumOutputSamples();
+    auto const numChannels = this->resampler.getNumChannels();
+    auto const maxNumOutputSamples = this->resampler.getMaxNumOutputSamples();
     inputBuffer.setNumChannels(numChannels);
     inputBuffer.reserve(maxNumOutputSamples);
   }
@@ -408,7 +408,7 @@ public:
                     int numOutputChannels,
                     int requiredSamples)
   {
-    this->scalarToScalar.processBlock(input, numSamples, scalarOutputBuffer.get(), numOutputChannels, requiredSamples);
+    this->resampler.processBlock(input, numSamples, scalarOutputBuffer.get(), numOutputChannels, requiredSamples);
     auto const ok = outputBuffer.interleave(scalarOutputBuffer, numOutputChannels);
     assert(ok);
   }
@@ -425,7 +425,7 @@ public:
                     int numOutputChannels,
                     int requiredSamples)
   {
-    this->scalarToScalar.processBlock(input, scalarOutputBuffer.get(), numOutputChannels, requiredSamples);
+    this->resampler.processBlock(input, scalarOutputBuffer.get(), numOutputChannels, requiredSamples);
     auto const ok = outputBuffer.interleave(scalarOutputBuffer, numOutputChannels);
     assert(ok);
   }
@@ -433,8 +433,8 @@ public:
 private:
   void updateBuffers() override
   {
-    auto const numChannels = this->scalarToScalar.getNumChannels();
-    auto const maxNumOutputSamples = this->scalarToScalar.getMaxNumOutputSamples();
+    auto const numChannels = this->resampler.getNumChannels();
+    auto const maxNumOutputSamples = this->resampler.getMaxNumOutputSamples();
     outputBuffer.setNumChannels(numChannels);
     outputBuffer.reserve(maxNumOutputSamples);
     scalarOutputBuffer.setNumChannels(numChannels);
@@ -462,7 +462,7 @@ public:
                     int requiredSamples)
   {
     input.deinterleave(inputBuffer);
-    this->scalarToScalar.processBlock(inputBuffer, outputBuffer.get(), numOutputChannels, requiredSamples);
+    this->resampler.processBlock(inputBuffer, outputBuffer.get(), numOutputChannels, requiredSamples);
     auto const ok = output.interleave(outputBuffer, numOutputChannels);
     assert(ok);
   }
@@ -470,8 +470,8 @@ public:
 private:
   void updateBuffers() override
   {
-    auto const numChannels = this->scalarToScalar.getNumChannels();
-    auto const maxNumOutputSamples = this->scalarToScalar.getMaxNumOutputSamples();
+    auto const numChannels = this->resampler.getNumChannels();
+    auto const maxNumOutputSamples = this->resampler.getMaxNumOutputSamples();
     inputBuffer.setNumChannels(numChannels);
     inputBuffer.reserve(maxNumOutputSamples);
     outputBuffer.setNumChannels(numChannels);
@@ -499,7 +499,7 @@ public:
                     int requiredSamples)
   {
     input.deinterleave(inputBuffer);
-    this->scalarToScalar.processBlock(inputBuffer, output.get(), numOutputChannels, requiredSamples);
+    this->resampler.processBlock(inputBuffer, output.get(), numOutputChannels, requiredSamples);
   }
 
   /**
@@ -510,14 +510,14 @@ public:
   void processBlock(InterleavedBuffer<Scalar> const& input, Scalar** output, int numOutputChannels, int requiredSamples)
   {
     input.deinterleave(inputBuffer);
-    this->scalarToScalar.processBlock(inputBuffer, output, numOutputChannels, requiredSamples);
+    this->resampler.processBlock(inputBuffer, output, numOutputChannels, requiredSamples);
   }
 
 private:
   void updateBuffers() override
   {
-    auto const numChannels = this->scalarToScalar.getNumChannels();
-    auto const maxNumOutputSamples = this->scalarToScalar.getMaxNumOutputSamples();
+    auto const numChannels = this->resampler.getNumChannels();
+    auto const maxNumOutputSamples = this->resampler.getMaxNumOutputSamples();
     inputBuffer.setNumChannels(numChannels);
     inputBuffer.reserve(maxNumOutputSamples);
   }
@@ -529,119 +529,10 @@ private:
 namespace iir {
 
 template<typename Scalar>
-class UpSamplerScalarToScalar final : public ::oversimple::iir::detail::TUpSamplerWithConversion<Scalar>
+class UpSamplerAnyToScalar final : public detail::TUpSamplerWithConversion<Scalar>
 {
 public:
-  using ::oversimple::iir::detail::TUpSamplerWithConversion<Scalar>::TUpSamplerWithConversion;
-
-  /**
-   * Resamples a multi channel input buffer.
-   * @param input ScalarBuffer that holds the input buffer.
-   * @return number of upsampled samples
-   */
-  int processBlock(ScalarBuffer<Scalar> const& input, int numChannels)
-  {
-    inputBuffer.interleave(input, numChannels);
-    int const numOutputSamples = this->scalarToScalar.processBlock(inputBuffer);
-    auto const ok = this->get().getOutput().deinterleave(outputBuffer, numChannels);
-    assert(ok);
-    return numOutputSamples;
-  }
-
-  /**
-   * Resamples a multi channel input buffer.
-   * @param input ScalarBuffer that holds the input buffer.
-   * @return number of upsampled samples
-   */
-  int processBlock(Scalar* const* input, int numChannels, int numSamples)
-  {
-    inputBuffer.interleave(input, numChannels, numSamples);
-    int const numOutputSamples = this->scalarToScalar.processBlock(inputBuffer);
-    auto const ok = this->get().getOutput().deinterleave(outputBuffer, numChannels);
-    assert(ok);
-    return numOutputSamples;
-  }
-
-  avec::InterleavedBuffer<Scalar>& getOutput()
-  {
-    return outputBuffer;
-  }
-
-  avec::InterleavedBuffer<Scalar> const& getOutput() const
-  {
-    return outputBuffer;
-  }
-
-private:
-  void updateBuffers() override
-  {
-    auto const numChannels = this->scalarToScalar.getNumChannels();
-    outputBuffer.setNumChannels(numChannels);
-    outputBuffer.reserve(this->maxNumInputSamples);
-    inputBuffer.setNumChannels(numChannels);
-    inputBuffer.reserve(this->maxNumInputSamples);
-  }
-
-  avec::InterleavedBuffer<Scalar> inputBuffer;
-  avec::ScalarBuffer<Scalar> outputBuffer;
-};
-
-template<typename Scalar>
-class UpSamplerScalarToVec final : public ::oversimple::iir::detail::TUpSamplerWithConversion<Scalar>
-{
-public:
-  using ::oversimple::iir::detail::TUpSamplerWithConversion<Scalar>::TUpSamplerWithConversion;
-
-  /**
-   * Resamples a multi channel input buffer.
-   * @param input ScalarBuffer that holds the input buffer.
-   * @return number of upsampled samples
-   */
-  int processBlock(ScalarBuffer<Scalar> const& input, int numChannels)
-  {
-    inputBuffer.interleave(input, numChannels);
-    int const numOutputSamples = this->scalarToScalar.processBlock(inputBuffer);
-    return numOutputSamples;
-  }
-
-  /**
-   * Resamples a multi channel input buffer.
-   * @param input ScalarBuffer that holds the input buffer.
-   * @return number of upsampled samples
-   */
-  int processBlock(Scalar* const* input, int numChannels, int numSamples)
-  {
-    inputBuffer.interleave(input, numChannels, numSamples);
-    int const numOutputSamples = this->scalarToScalar.processBlock(inputBuffer);
-    return numOutputSamples;
-  }
-
-  avec::InterleavedBuffer<Scalar>& getOutput()
-  {
-    return this->get().getOutput();
-  }
-
-  avec::InterleavedBuffer<Scalar> const& getOutput() const
-  {
-    return this->get().getOutput();
-  }
-
-private:
-  void updateBuffers() override
-  {
-    auto const numChannels = this->scalarToScalar.getNumChannels();
-    inputBuffer.setNumChannels(numChannels);
-    inputBuffer.reserve(this->maxNumInputSamples);
-  }
-
-  avec::InterleavedBuffer<Scalar> inputBuffer;
-};
-
-template<typename Scalar>
-class UpSamplerVecToScalar final : public ::oversimple::iir::detail::TUpSamplerWithConversion<Scalar>
-{
-public:
-  using ::oversimple::iir::detail::TUpSamplerWithConversion<Scalar>::TUpSamplerWithConversion;
+  using detail::TUpSamplerWithConversion<Scalar>::TUpSamplerWithConversion;
 
   /**
    * Resamples a multi channel input buffer.
@@ -650,8 +541,29 @@ public:
    */
   int processBlock(InterleavedBuffer<Scalar> const& input)
   {
-    int const numOutputSamples = this->scalarToScalar.processBlock(input);
+    int const numOutputSamples = this->resampler.processBlock(input);
     auto const ok = this->get().getOutput().deinterleave(outputBuffer);
+    assert(ok);
+    return numOutputSamples;
+  }
+
+  int processBlock(ScalarBuffer<Scalar> const& input, int numChannels)
+  {
+    int const numOutputSamples = this->resampler.processBlock(input, numChannels);
+    auto const ok = this->get().getOutput().deinterleave(outputBuffer, numChannels);
+    assert(ok);
+    return numOutputSamples;
+  }
+
+  /**
+   * Resamples a multi channel input buffer.
+   * @param input ScalarBuffer that holds the input buffer.
+   * @return number of upsampled samples
+   */
+  int processBlock(Scalar* const* input, int numChannels, int numSamples)
+  {
+    int const numOutputSamples = this->resampler.processBlock(input, numChannels, numSamples);
+    auto const ok = this->get().getOutput().deinterleave(outputBuffer, numChannels);
     assert(ok);
     return numOutputSamples;
   }
@@ -669,7 +581,7 @@ public:
 private:
   void updateBuffers() override
   {
-    auto const numChannels = this->scalarToScalar.getNumChannels();
+    auto const numChannels = this->resampler.getNumChannels();
     outputBuffer.setNumChannels(numChannels);
     outputBuffer.reserve(this->maxNumInputSamples);
   }
@@ -678,10 +590,10 @@ private:
 };
 
 template<typename Scalar>
-class DownSamplerScalarToScalar final : public ::oversimple::iir::detail::TDownSamplerWithConversion<Scalar>
+class DownSamplerScalarToScalar final : public detail::TDownSamplerWithConversion<Scalar>
 {
 public:
-  using ::oversimple::iir::detail::TDownSamplerWithConversion<Scalar>::TUpSamplerWithConversion;
+  using detail::TDownSamplerWithConversion<Scalar>::TUpSamplerWithConversion;
 
   /**
    * Resamples a multi channel input buffer.
@@ -693,7 +605,7 @@ public:
   void processBlock(Scalar* const* input, int numSamples, Scalar** output, int numOutputChannels, int unused = 0)
   {
     inputBuffer.interleave(input, numOutputChannels);
-    this->scalarToScalar.processBlock(inputBuffer, numSamples, outputBuffer, numOutputChannels);
+    this->resampler.processBlock(inputBuffer, numSamples, outputBuffer, numOutputChannels);
     outputBuffer.deinterleave(output, numOutputChannels);
   }
 
@@ -710,7 +622,7 @@ public:
 private:
   void updateBuffers() override
   {
-    auto const numChannels = this->scalarToScalar.getNumChannels();
+    auto const numChannels = this->resampler.getNumChannels();
     outputBuffer.setNumChannels(numChannels);
     outputBuffer.reserve(this->maxNumInputSamples);
     inputBuffer.setNumChannels(numChannels);
@@ -722,10 +634,10 @@ private:
 };
 
 template<typename Scalar>
-class DownSamplerVecToScalar final : public ::oversimple::iir::detail::TDownSamplerWithConversion<Scalar>
+class DownSamplerVecToScalar final : public detail::TDownSamplerWithConversion<Scalar>
 {
 public:
-  using ::oversimple::iir::detail::TDownSamplerWithConversion<Scalar>::TDownSamplerWithConversion;
+  using detail::TDownSamplerWithConversion<Scalar>::TDownSamplerWithConversion;
 
   /**
    * Resamples a multi channel input buffer.
@@ -740,7 +652,7 @@ public:
                     int numOutputChannels,
                     int unused = 0)
   {
-    this->scalarToScalar.processBlock(input, numSamples, outputBuffer, numOutputChannels);
+    this->resampler.processBlock(input, numSamples, outputBuffer, numOutputChannels);
     outputBuffer.deinterleave(output, numOutputChannels);
   }
 
@@ -756,7 +668,7 @@ public:
 private:
   void updateBuffers() override
   {
-    auto const numChannels = this->scalarToScalar.getNumChannels();
+    auto const numChannels = this->resampler.getNumChannels();
     outputBuffer.setNumChannels(numChannels);
     outputBuffer.reserve(this->maxNumInputSamples);
   }
@@ -765,10 +677,10 @@ private:
 };
 
 template<typename Scalar>
-class DownSamplerScalarToVec final : public ::oversimple::iir::detail::TDownSamplerWithConversion<Scalar>
+class DownSamplerScalarToVec final : public detail::TDownSamplerWithConversion<Scalar>
 {
 public:
-  using ::oversimple::iir::detail::TDownSamplerWithConversion<Scalar>::TUpSamplerWithConversion;
+  using detail::TDownSamplerWithConversion<Scalar>::TUpSamplerWithConversion;
 
   /**
    * Resamples a multi channel input buffer.
@@ -784,7 +696,7 @@ public:
                     int unused = 0)
   {
     inputBuffer.interleave(input, numOutputChannels);
-    this->scalarToScalar.processBlock(inputBuffer, numSamples, output, numOutputChannels);
+    this->resampler.processBlock(inputBuffer, numSamples, output, numOutputChannels);
   }
 
   void processBlock(avec::ScalarBuffer<Scalar>& input,
@@ -800,7 +712,7 @@ public:
 private:
   void updateBuffers() override
   {
-    auto const numChannels = this->scalarToScalar.getNumChannels();
+    auto const numChannels = this->resampler.getNumChannels();
     inputBuffer.setNumChannels(numChannels);
     inputBuffer.reserve(this->maxNumInputSamples);
   }

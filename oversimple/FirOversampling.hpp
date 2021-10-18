@@ -822,6 +822,45 @@ public:
 };
 
 template<typename Scalar>
-using TDownSamplerPreAllocated = TReSamplerPreAllocatedBase<TDownSampler<Scalar>>;
+class TDownSamplerPreAllocated final : public TReSamplerPreAllocatedBase<TDownSampler<Scalar>>
+{
+public:
+  using TReSamplerPreAllocatedBase<TUpSampler<Scalar>>::TReSamplerPreAllocatedBase;
 
-} // namespace oversimple::fir
+  /**
+   * Resamples a multi channel input buffer.
+   * @param input pointer to the input buffers.
+   * @param output pointer to the memory in which to store the downsampled data.
+   * @param numOutputChannels number of channels of the output buffer
+   * @param requiredSamples the number of samples needed as output
+   */
+  void processBlock(double* const* input, int numSamples, double** output, int numOutputChannels, int requiredSamples)
+  {
+    return this->get().processBlock(input, numSamples, output, numOutputChannels, requiredSamples);
+  }
+
+  /**
+   * Resamples a multi channel input buffer.
+   * @param input a ScalarBuffer that holds the input buffer.
+   * @param output pointer to the memory in which to store the downsampled data.
+   * @param numOutputChannels number of channels of the output buffer
+   * @param requiredSamples the number of samples needed as output
+   */
+  void processBlock(ScalarBuffer<double> const& input, double** output, int numOutputChannels, int requiredSamples)
+  {
+    return this->get().processBlock(input, output, numOutputChannels, requiredSamples);
+  }
+
+  /**
+   * Resamples a multi channel input buffer.
+   * @param input a ScalarBuffer that holds the input buffer.
+   * @param output a ScalarBuffer to hold the downsampled data.
+   * @param requiredSamples the number of samples needed as output
+   */
+  void processBlock(ScalarBuffer<double> const& input, ScalarBuffer<double>& output, int requiredSamples)
+  {
+    return this->get().processBlock(input, output, requiredSamples);
+  }
+};
+
+} // namespace oversimple::fir::detail

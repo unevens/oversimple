@@ -294,7 +294,7 @@ protected:
     }
   }
 
-  void setupBuffer()
+  virtual void setupBuffer()
   {
     auto const maxFactor = 1 << maxOrder;
     for (auto& b : buffer) {
@@ -748,6 +748,15 @@ class TUpSampler
                              StageVec4,
                              StageVec2>
 {
+  using Chain = OversamplingChain<Scalar,
+                                  numCoefsStage0,
+                                  numCoefsStage1,
+                                  numCoefsStage2,
+                                  numCoefsStage3,
+                                  numCoefsStage4,
+                                  StageVec8,
+                                  StageVec4,
+                                  StageVec2>;
 
 public:
   /**
@@ -758,21 +767,10 @@ public:
    * with
    */
   TUpSampler(OversamplingDesigner const& designer, int numChannels, int orderToPreallocateFor)
-    : OversamplingChain<Scalar,
-                        numCoefsStage0,
-                        numCoefsStage1,
-                        numCoefsStage2,
-                        numCoefsStage3,
-                        numCoefsStage4,
-                        StageVec8,
-                        StageVec4,
-                        StageVec2>(designer, numChannels, orderToPreallocateFor)
+    : Chain(designer, numChannels, orderToPreallocateFor)
   {}
 
-  void processBlock(InterleavedBuffer<Scalar> const& input,
-                    int numInputSamples,
-                    InterleavedBuffer<Scalar>& output,
-                    int numChannelsToProcess) override
+  void processBlock(InterleavedBuffer<Scalar> const& input, int numInputSamples, int numChannelsToProcess) override
   {
     if (numChannelsToProcess < 0) {
       numChannelsToProcess = this->numChannels;
@@ -820,10 +818,7 @@ public:
     }
   }
 
-  void processBlock(Scalar* const* inputs,
-                    int numInputSamples,
-                    InterleavedBuffer<Scalar>& output,
-                    int numChannelsToProcess) override
+  void processBlock(Scalar* const* inputs, int numInputSamples, int numChannelsToProcess) override
   {
     if (numChannelsToProcess < 0) {
       numChannelsToProcess = this->numChannels;
@@ -875,12 +870,32 @@ public:
     }
   }
 
-  void processBlock(ScalarBuffer<Scalar> const& input,
-                    InterleavedBuffer<Scalar>& output,
-                    int numChannelsToProcess) override
+  void processBlock(ScalarBuffer<Scalar> const& input, int numChannelsToProcess) override
   {
     processBlock(input.get(), input.getNumSamples(), output, numChannelsToProcess);
   }
+
+  InterleavedBuffer<Scalar>& getOutput()
+  {
+    return output;
+  }
+
+  InterleavedBuffer<Scalar> const& getOutput() const
+  {
+    return output;
+  }
+
+private:
+  void setupBuffer() override
+  {
+    Chain::setupBuffer();
+    auto const maxFactor = 1 << this->maxOrder;
+    output.setNumChannels(this->numChannels);
+    output.reserve(this->maxInputSamples * maxFactor);
+    output.setNumSamples(this->maxInputSamples * this->factor);
+  }
+
+  InterleavedBuffer<Scalar> output;
 };
 
 } // namespace oversimple::iir::detail
