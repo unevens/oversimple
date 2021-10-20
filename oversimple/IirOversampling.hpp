@@ -22,7 +22,6 @@ limitations under the License.
 
 #include "oversimple/IirOversamplingDesigner.hpp"
 
-
 namespace oversimple::iir::detail {
 
 // implementations
@@ -76,12 +75,6 @@ protected:
   int factor;
   int maxInputSamples;
   InterleavedBuffer<Scalar> buffer[2];
-
-  std::vector<avec::ScalarBuffer<float>> userScalarBuffers32;
-  std::vector<avec::ScalarBuffer<double>> userScalarBuffers64;
-
-  std::vector<avec::InterleavedBuffer<float>> userVecBuffers32;
-  std::vector<avec::InterleavedBuffer<double>> userVecBuffers64;
 
   OversamplingChain(OversamplingDesigner designer_, int numChannels_, int orderToPreallocateFor = 0)
     : designer(std::move(designer_))
@@ -193,26 +186,7 @@ protected:
     for (auto& b : buffer) {
       b.setNumChannels(numChannels);
       b.reserve(maxNumOutSamples);
-      b.setNumSamples(numOutSamples);
-    }
-    for (auto& b : userScalarBuffers32) {
-      b.setNumChannels(numChannels);
-      b.reserve(maxNumOutSamples);
-      b.setNumSamples(numOutSamples);
-    }
-    for (auto& b : userScalarBuffers64) {
-      b.setNumChannels(numChannels);
-      b.reserve(maxNumOutSamples);
-      b.setNumSamples(numOutSamples);
-    }
-    for (auto& b : userVecBuffers32) {
-      b.setNumChannels(numChannels);
-      b.reserve(maxNumOutSamples);
-      b.setNumSamples(numOutSamples);
-    }
-    for (auto& b : userVecBuffers64) {
-      b.setNumChannels(numChannels);
-      b.reserve(maxNumOutSamples);
+      b.setNumSamples(maxNumOutSamples);
       b.setNumSamples(numOutSamples);
     }
   }
@@ -529,53 +503,9 @@ public:
       stage.clear_buffers();
     }
   }
-
-  void setNumUserScalarBuffers32(int num)
-  {
-    userScalarBuffers32.resize(num);
-    setupBuffer();
-  }
-
-  void setNumUserVecBuffers32(int num)
-  {
-    userVecBuffers32.resize(num);
-    setupBuffer();
-  }
-  void setNumUserScalarBuffers64(int num)
-  {
-    userScalarBuffers64.resize(num);
-    setupBuffer();
-  }
-
-  void setNumUserVecBuffers64(int num)
-  {
-    userVecBuffers64.resize(num);
-    setupBuffer();
-  }
-
-  avec::ScalarBuffer<float>& getUserScalarBuffer32(int i)
-  {
-    return userScalarBuffers32[i];
-  }
-
-  avec::InterleavedBuffer<float>& getUserVecBuffer32(int i)
-  {
-    return userVecBuffers32[i];
-  }
-
-  avec::ScalarBuffer<double>& getUserScalarBuffer64(int i)
-  {
-    return userScalarBuffers64[i];
-  }
-
-  avec::InterleavedBuffer<double>& getUserVecBuffer64(int i)
-  {
-    return userVecBuffers64[i];
-  }
 };
 
 } // namespace
-
 
 /**
  * Donwsampler with IIR antialiasing filters.

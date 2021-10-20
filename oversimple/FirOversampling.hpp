@@ -105,49 +105,6 @@ public:
 
   virtual ~ReSamplerBase() = default;
 
-  void setNumUserScalarBuffers32(int num)
-  {
-    userScalarBuffers32.resize(num);
-    setup();
-  }
-
-  void setNumUserVecBuffers32(int num)
-  {
-    userVecBuffers32.resize(num);
-    setup();
-  }
-  void setNumUserScalarBuffers64(int num)
-  {
-    userScalarBuffers64.resize(num);
-    setup();
-  }
-
-  void setNumUserVecBuffers64(int num)
-  {
-    userVecBuffers64.resize(num);
-    setup();
-  }
-
-  avec::ScalarBuffer<float>& getUserScalarBuffer32(int i)
-  {
-    return userScalarBuffers32[i];
-  }
-
-  avec::InterleavedBuffer<float>& getUserVecBuffer32(int i)
-  {
-    return userVecBuffers32[i];
-  }
-
-  avec::ScalarBuffer<double>& getUserScalarBuffer64(int i)
-  {
-    return userScalarBuffers64[i];
-  }
-
-  avec::InterleavedBuffer<double>& getUserVecBuffer64(int i)
-  {
-    return userVecBuffers64[i];
-  }
-
 protected:
   ReSamplerBase(int numChannels, double transitionBand, int maxSamplesPerBlock, double oversamplingRate);
 
@@ -164,12 +121,6 @@ protected:
   std::vector<std::unique_ptr<r8b::CDSPResampler24>> reSamplers;
   int maxOutputLength = 256;
   int maxInputLength = 256;
-
-  std::vector<avec::ScalarBuffer<float>> userScalarBuffers32;
-  std::vector<avec::ScalarBuffer<double>> userScalarBuffers64;
-
-  std::vector<avec::InterleavedBuffer<float>> userVecBuffers32;
-  std::vector<avec::InterleavedBuffer<double>> userVecBuffers64;
 };
 
 /**
@@ -397,10 +348,6 @@ public:
   {
     return output;
   }
-
-private:
-  std::vector<avec::ScalarBuffer<Scalar>> userScalarBuffers;
-  std::vector<avec::InterleavedBuffer<Scalar>> userVecBuffers;
 };
 
 template<>
@@ -707,52 +654,6 @@ public:
     get().reset();
   }
 
-  void setNumUserScalarBuffers32(int num)
-  {
-    for (auto& reSampler : reSamplers) {
-      reSampler->setNumUserScalarBuffers32(num);
-    }
-  }
-  void setNumUserVecBuffers32(int num)
-  {
-    for (auto& reSampler : reSamplers) {
-      reSampler->setNumUserVecBuffers32(num);
-    }
-  }
-  void setNumUserScalarBuffers64(int num)
-  {
-    for (auto& reSampler : reSamplers) {
-      reSampler->setNumUserScalarBuffers64(num);
-    }
-  }
-
-  void setNumUserVecBuffers64(int num)
-  {
-    for (auto& reSampler : reSamplers) {
-      reSampler->setNumUserVecBuffers64(num);
-    }
-  }
-
-  avec::ScalarBuffer<float>& getUserScalarBuffer32(int i)
-  {
-    return get().getUserScalarBuffer32(i);
-  }
-
-  avec::InterleavedBuffer<float>& getUserVecBuffer32(int i)
-  {
-    return get().getUserVecBuffer32(i);
-  }
-
-  avec::ScalarBuffer<double>& getUserScalarBuffer64(int i)
-  {
-    return get().getUserScalarBuffer64(i);
-  }
-
-  avec::InterleavedBuffer<double>& getUserVecBuffer64(int i)
-  {
-    return get().getUserVecBuffer64(i);
-  }
-
 protected:
   ReSampler& get()
   {
@@ -927,4 +828,4 @@ private:
   int maxRequiredOutputSamples = 256;
 };
 
-} // namespace oversimple::fir::detail
+} // namespace oversimple::fir
