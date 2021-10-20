@@ -14,16 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#include "oversimple/Oversampling.hpp"
+#include "oversimple/FirOversampling.hpp"
+#include "oversimple/IirOversamplingFactory.hpp"
 
-#include <cassert>
 #include <cmath>
 #include <iomanip>
 #include <iostream>
 #include <optional>
 #include <sstream>
-#include <string>
-#include <vector>
 
 // macro-paranoia macro
 #ifdef _MSC_VER
@@ -59,32 +57,29 @@ std::string i2s(int x)
 }
 
 template<typename Scalar>
-void testFirOversampler(int numChannels, int samplesPerBlock, int oversamplingOrder, double transitionBand)
+void testFirOversampler(int numChannels, int samplesPerBlock, float oversamplingRate, double transitionBand)
 {
-  cout << "testing FirOversampler with oversamplingOrder " << oversamplingOrder << " and " << numChannels
+  cout << "testing FirOversampler with oversampling rate " << oversamplingRate << " and " << numChannels
        << " channels and " << samplesPerBlock << " samples per block"
        << " and transitionBand = " << transitionBand << "%"
        << "\n";
-  auto firUpsampler = fir::UpSamplerScalarToScalar<Scalar>(numChannels, transitionBand);
-  auto firDownsampler = fir::DownSamplerScalarToScalar<Scalar>(numChannels, transitionBand);
-  firDownsampler.setOrder(oversamplingOrder);
-  firUpsampler.setOrder(oversamplingOrder);
+  auto firUpsampler = fir::TUpSampler<Scalar>(numChannels, transitionBand);
+  auto firDownsampler = fir::TDownSampler<Scalar>(numChannels, transitionBand);
+  firDownsampler.setRate(oversamplingRate);
+  firUpsampler.setRate(oversamplingRate);
   int upsamplePadding = firUpsampler.getNumSamplesBeforeOutputStarts();
   int downsamplePadding = firDownsampler.getNumSamplesBeforeOutputStarts();
   int padding = upsamplePadding + downsamplePadding;
   cout << "NumSamplesBeforeUpsamplingStarts = " << upsamplePadding << "\n";
   cout << "NumSamplesBeforeDownsamplingStarts  = " << downsamplePadding << "\n";
 
-  auto const rate = 1<<oversamplingOrder;
 
   ScalarBuffer<Scalar> input(numChannels, samplesPerBlock + padding);
   ScalarBuffer<Scalar> inputCopy(numChannels, samplesPerBlock + padding);
   ScalarBuffer<Scalar> output(numChannels, samplesPerBlock + padding);
-  ScalarBuffer<Scalar> upsampled(numChannels, samplesPerBlock * rate + padding);
   input.fill(0.0);
   inputCopy.fill(0.0);
   output.fill(0.0);
-  upsampled.fill(0.0);
 
   for (int c = 0; c < numChannels; ++c) {
     for (int i = 0; i < samplesPerBlock; ++i) {
@@ -92,7 +87,8 @@ void testFirOversampler(int numChannels, int samplesPerBlock, int oversamplingOr
     }
   }
 
-  int numUpsampledSamples = firUpsampler.processBlock(input, upsampled);
+  int numUpsampledSamples = firUpsampler.processBlock(input);
+  auto const& upsampled = firUpsampler.getOutput();
   CHECK_MEMORY;
   firDownsampler.processBlock(upsampled, output, samplesPerBlock);
   CHECK_MEMORY;
@@ -116,7 +112,7 @@ void testFirOversampler(int numChannels, int samplesPerBlock, int oversamplingOr
   }
   CHECK_MEMORY;
 
-  cout << "completed testing FirOversampler with oversamplingOrder " << oversamplingOrder << " and " << numChannels
+  cout << "completed testing FirOversampler with oversampling rate " << oversamplingRate << " and " << numChannels
        << " channels and " << samplesPerBlock << " samples per block"
        << " and transitionBand = " << transitionBand << "%"
        << "\n";
@@ -134,6 +130,7 @@ void inspectIirOversampling(int numChannels, int samplesPerBlock, int order, int
   Scalar normalizedFrequency = 0.125;
   Scalar frequency = 2.0 * 3.141592653589793238 * normalizedFrequency;
   Scalar** in = new Scalar*[numChannels];
+  auto upsampled = InterleavedBuffer<Scalar>(numChannels, factor * samplesPerBlock);
   for (int i = 0; i < numChannels; ++i) {
     in[i] = new Scalar[samplesPerBlock];
     for (int s = 0; s < offset; ++s) {
@@ -154,15 +151,14 @@ void inspectIirOversampling(int numChannels, int samplesPerBlock, int order, int
     }
   }
   // Oversampling test
-  auto upsampling = iir::UpSamplerScalarToVec<Scalar>(numChannels);
-  auto downsampling = iir::DownSamplerVecToScalar<Scalar>(numChannels);
+  auto upsampling = iir::UpSampler<Scalar>(numChannels);
+  auto downsampling = iir::DownSampler<Scalar>(numChannels);
   upsampling.setOrder(order);
   downsampling.setOrder(order);
-  auto buffer = InterleavedBuffer<Scalar>(numChannels, factor * samplesPerBlock);
   CHECK_MEMORY;
-  upsampling.processBlock(in, samplesPerBlock, buffer);
+  upsampling.processBlock(in, samplesPerBlock, upsampled, numChannels);
   CHECK_MEMORY;
-  downsampling.processBlock(buffer, factor * samplesPerBlock);
+  downsampling.processBlock(upsampled, factor * samplesPerBlock, numChannels);
   CHECK_MEMORY;
   auto& output = downsampling.getOutput();
   auto preset = iir::detail::getOversamplingPreset(order);

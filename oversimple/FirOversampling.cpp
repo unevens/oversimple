@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#include "oversimple/Oversampling.hpp"
+#include "oversimple/FirOversampling.hpp"
 #include <algorithm>
 
 // macro to send debug messages using Visual Studio
@@ -258,22 +258,6 @@ void DownSampler::prepareBuffers(int numInputSamples, int requiredOutputSamples)
   if (buffer.getNumSamples() < neededBufferSize) {
     buffer.setNumSamples(neededBufferSize);
   }
-  for(auto& b : userScalarBuffers32){
-    b.setNumChannels(getNumChannels());
-    b.setNumSamples(numInputSamples);
-  }
-  for(auto& b : userScalarBuffers64){
-    b.setNumChannels(getNumChannels());
-    b.setNumSamples(numInputSamples);
-  }
-  for(auto& b : userVecBuffers32){
-    b.setNumChannels(getNumChannels());
-    b.setNumSamples(numInputSamples);
-  }
-  for(auto& b : userVecBuffers64){
-    b.setNumChannels(getNumChannels());
-    b.setNumSamples(numInputSamples);
-  }
 }
 
 void UpSampler::setup()
@@ -307,22 +291,6 @@ int ReSamplerBase::getNumSamplesBeforeOutputStarts()
 void UpSampler::prepareBuffers(int numSamples)
 {
   prepareBuffersBase(numSamples);
-  for(auto& b : userScalarBuffers32){
-    b.setNumChannels(numChannels);
-    b.setNumSamples(maxOutputLength);
-  }
-  for(auto& b : userScalarBuffers64){
-    b.setNumChannels(numChannels);
-    b.setNumSamples(maxOutputLength);
-  }
-  for(auto& b : userVecBuffers32){
-    b.setNumChannels(numChannels);
-    b.setNumSamples(maxOutputLength);
-  }
-  for(auto& b : userVecBuffers64){
-    b.setNumChannels(numChannels);
-    b.setNumSamples(maxOutputLength);
-  }
 }
 
-} // namespace oversimple::fir::detail
+} // namespace oversimple::fir
