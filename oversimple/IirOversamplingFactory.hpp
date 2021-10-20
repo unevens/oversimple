@@ -202,25 +202,6 @@ public:
 #endif
 
 public:
-  /**
-   * @param numChannels the number of channels to initialize the UpSampler
-   * with
-   * @param presetIndex the quality preset index used to create the UpSampler
-   * antialiasing filters
-   */
-  static std::unique_ptr<UpSamplerBase<Scalar>> make(int numChannels, int presetIndex = 0)
-  {
-    auto preset = getOversamplingPreset(presetIndex);
-    switch (presetIndex) {
-      case 0:
-      default:
-        return std::unique_ptr<UpSamplerBase<Scalar>>(
-          new TUpSampler<Scalar, 11, 5, 3, 3, 2, Stage8, Stage4, Stage2>(preset, numChannels));
-      case 1:
-        return std::unique_ptr<UpSamplerBase<Scalar>>(
-          new TUpSampler<Scalar, 11, 5, 4, 3, 2, Stage8, Stage4, Stage2>(preset, numChannels));
-    }
-  }
 
   using UpSampler = TUpSampler<Scalar, 11, 5, 3, 3, 2, Stage8, Stage4, Stage2>;
 };
@@ -277,26 +258,6 @@ public:
 #endif
 
 public:
-  /**
-   * @param numChannels the number of channels to initialize the DownSampler
-   * with
-   * @param presetIndex the quality preset index used to create the
-   * DownSampler antialiasing filters
-   */
-  static std::unique_ptr<DownSamplerBase<Scalar>> make(int numChannels, int presetIndex = 0)
-  {
-    auto preset = getOversamplingPreset(presetIndex);
-    switch (presetIndex) {
-      case 0:
-      default:
-        return std::unique_ptr<DownSamplerBase<Scalar>>(
-          new TDownSampler<Scalar, 11, 5, 3, 3, 2, Stage8, Stage4, Stage2>(preset, numChannels));
-      case 1:
-        return std::unique_ptr<DownSamplerBase<Scalar>>(
-          new TDownSampler<Scalar, 11, 5, 4, 3, 2, Stage8, Stage4, Stage2>(preset, numChannels));
-    }
-  }
-
   using DownSampler = TDownSampler<Scalar, 11, 5, 3, 3, 2, Stage8, Stage4, Stage2>;
 };
 } // namespace detail

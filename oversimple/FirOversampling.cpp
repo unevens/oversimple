@@ -27,27 +27,25 @@ inline void DEBUG_MESSAGE(char const* message)
 #define DEBUG_MESSAGE(x) /*nothing*/
 #endif
 
-namespace oversimple::fir::detail {
+namespace oversimple::fir {
 
-int UnbufferedReSampler::processBlock(ScalarBuffer<double> const& input)
+int UpSampler::processBlock(ScalarBuffer<double> const& input)
 {
   return processBlock(input.get(), input.getNumChannels(), input.getNumSamples());
 }
 
-void BufferedReSampler::processBlock(ScalarBuffer<double> const& input,
-                                     ScalarBuffer<double>& output,
-                                     int requiredSamples)
+void DownSampler::processBlock(ScalarBuffer<double> const& input, ScalarBuffer<double>& output, int requiredSamples)
 {
   output.setNumChannelsAndSamples(input.getNumChannels(), input.getNumSamples());
   processBlock(input, output.get(), output.getNumChannels(), requiredSamples);
 }
 
-int UnbufferedReSampler::processBlock(double* const* input, int numInputChannels, int numSamples)
+int UpSampler::processBlock(double* const* input, int numInputChannels, int numSamples)
 {
   assert(numInputChannels <= numChannels);
   int numOutputSamples = (int)std::ceil(numSamples * oversamplingRate);
   if (output.getNumChannels() < numInputChannels || output.getCapacity() < numOutputSamples) {
-    DEBUG_MESSAGE("A UnbufferedReSampler object had to allocate memory! Has "
+    DEBUG_MESSAGE("A UpSampler object had to allocate memory! Has "
                   "prepareBuffers been called?\n");
   }
   output.setNumChannelsAndSamples(numInputChannels, numOutputSamples);
@@ -71,7 +69,7 @@ int UnbufferedReSampler::processBlock(double* const* input, int numInputChannels
       numInputSamples -= samplesToProcess;
       if (numUpsampledSamples > 0) {
         if (outputCounter + numUpsampledSamples > numOutputSamples) {
-          DEBUG_MESSAGE("A UnbufferedReSampler object had to allocate memory due to a "
+          DEBUG_MESSAGE("A UpSampler object had to allocate memory due to a "
                         "fluctuation, this shold not happen!\n");
           output.setNumSamples(outputCounter + numOutputSamples);
         }
@@ -83,11 +81,11 @@ int UnbufferedReSampler::processBlock(double* const* input, int numInputChannels
   }
   return totalUpsampledSamples;
 }
-void BufferedReSampler::processBlock(double* const* input,
-                                     int numSamples,
-                                     double** output,
-                                     int numOutputChannels,
-                                     int requiredSamples)
+void DownSampler::processBlock(double* const* input,
+                               int numSamples,
+                               double** output,
+                               int numOutputChannels,
+                               int requiredSamples)
 {
   assert(numOutputChannels <= numChannels);
 
@@ -122,7 +120,7 @@ void BufferedReSampler::processBlock(double* const* input,
         int neededBufferSize = newBufferCounter + numUpsampledSamples - samplesFromReSampler;
         if (buffer.getNumSamples() < neededBufferSize) {
           if (buffer.getCapacity() < neededBufferSize) {
-            DEBUG_MESSAGE("A BufferedReSampler object had to allocate "
+            DEBUG_MESSAGE("A DownSampler object had to allocate "
                           "memory! Has prepareBuffers been called?\n");
           }
           buffer.setNumSamples(neededBufferSize);
@@ -148,7 +146,7 @@ void BufferedReSampler::processBlock(double* const* input,
         int neededBufferSize = bufferCounter + outputCounter + numUpsampledSamples;
         if (buffer.getNumSamples() < neededBufferSize) {
           if (buffer.getCapacity() < neededBufferSize) {
-            DEBUG_MESSAGE("A BufferedReSampler object had to allocate "
+            DEBUG_MESSAGE("A DownSampler object had to allocate "
                           "memory! Has prepareBuffers been called?");
           }
           buffer.setNumSamples(bufferCounter + outputCounter + numUpsampledSamples);
@@ -179,10 +177,10 @@ void BufferedReSampler::processBlock(double* const* input,
   }
 }
 
-void BufferedReSampler::processBlock(ScalarBuffer<double> const& input,
-                                     double** output,
-                                     int numOutputChannels,
-                                     int requiredSamples)
+void DownSampler::processBlock(ScalarBuffer<double> const& input,
+                               double** output,
+                               int numOutputChannels,
+                               int requiredSamples)
 {
   processBlock(input.get(), input.getNumSamples(), output, numOutputChannels, requiredSamples);
 }
@@ -190,10 +188,6 @@ void BufferedReSampler::processBlock(ScalarBuffer<double> const& input,
 void ReSamplerBase::setup()
 {
   reSamplers.clear();
-
-  if (numChannels == 0) {
-    return;
-  }
 
   for (int c = 0; c < numChannels; ++c) {
     reSamplers.push_back(
@@ -209,34 +203,22 @@ ReSamplerBase::ReSamplerBase(int numChannels, double transitionBand, int maxSamp
   , oversamplingRate(oversamplingRate)
 {}
 
-BufferedReSampler::BufferedReSampler(int numChannels,
-                                     double transitionBand,
-                                     int maxSamplesPerBlock,
-                                     double oversamplingRate)
-  : ReSamplerBase(numChannels, transitionBand, maxSamplesPerBlock, oversamplingRate)
+DownSampler::DownSampler(int numChannels, double transitionBand, int maxSamplesPerBlock, double oversamplingRate)
+  : ReSamplerBase(numChannels, transitionBand, maxSamplesPerBlock, 1.f / oversamplingRate)
   , maxRequiredOutputLength(maxSamplesPerBlock)
 {
-  setup();
+  DownSampler::setup();
 }
 
-UnbufferedReSampler::UnbufferedReSampler(int numChannels,
-                                         double transitionBand,
-                                         int maxSamplesPerBlock,
-                                         double oversamplingRate)
+UpSampler::UpSampler(int numChannels, double transitionBand, int maxSamplesPerBlock, double oversamplingRate)
   : ReSamplerBase(numChannels, transitionBand, maxSamplesPerBlock, oversamplingRate)
 {
-  setup();
+  UpSampler::setup();
 }
 
 void ReSamplerBase::setNumChannels(int value)
 {
   numChannels = value;
-  setup();
-}
-
-void ReSamplerBase::setRate(double value)
-{
-  oversamplingRate = value;
   setup();
 }
 
@@ -252,14 +234,14 @@ void ReSamplerBase::setTransitionBand(int value)
   setup();
 }
 
-void ReSamplerBase::reset()
+void ReSamplerBase::resetBase()
 {
   for (auto& reSampler : reSamplers) {
     reSampler->clear();
   }
 }
 
-void ReSamplerBase::prepareBuffers(int numSamples)
+void ReSamplerBase::prepareBuffersBase(int numSamples)
 {
   maxInputLength = numSamples;
   auto d = std::div(maxInputLength, maxSamplesPerBlock);
@@ -267,24 +249,34 @@ void ReSamplerBase::prepareBuffers(int numSamples)
   maxOutputLength = (d.quot + (d.rem > 0 ? 1 : 0)) * maxReSamplerOutputLength;
 }
 
-void BufferedReSampler::prepareBuffers(int numInputSamples, int requiredOutputSamples)
+void DownSampler::prepareBuffers(int numInputSamples, int requiredOutputSamples)
 {
-  ReSamplerBase::prepareBuffers(numInputSamples);
+  prepareBuffersBase(numInputSamples);
   maxRequiredOutputLength = requiredOutputSamples;
   int neededBufferSize = maxOutputLength + std::max(maxOutputLength, requiredOutputSamples);
   // maybe buffer.setNumSamples(maxOutputLength); is enough?
   if (buffer.getNumSamples() < neededBufferSize) {
     buffer.setNumSamples(neededBufferSize);
   }
+  for(auto& b : userScalarBuffers32){
+    b.setNumChannels(getNumChannels());
+    b.setNumSamples(numInputSamples);
+  }
+  for(auto& b : userScalarBuffers64){
+    b.setNumChannels(getNumChannels());
+    b.setNumSamples(numInputSamples);
+  }
+  for(auto& b : userVecBuffers32){
+    b.setNumChannels(getNumChannels());
+    b.setNumSamples(numInputSamples);
+  }
+  for(auto& b : userVecBuffers64){
+    b.setNumChannels(getNumChannels());
+    b.setNumSamples(numInputSamples);
+  }
 }
 
-void BufferedReSampler::reset()
-{
-  ReSamplerBase::reset();
-  bufferCounter = 0;
-}
-
-void UnbufferedReSampler::setup()
+void UpSampler::setup()
 {
   ReSamplerBase::setup();
 
@@ -292,7 +284,7 @@ void UnbufferedReSampler::setup()
   reset();
 }
 
-void BufferedReSampler::setup()
+void DownSampler::setup()
 {
   ReSamplerBase::setup();
 
@@ -312,4 +304,25 @@ int ReSamplerBase::getNumSamplesBeforeOutputStarts()
   return reSamplers[0]->getInLenBeforeOutStart();
 }
 
-} // namespace oversimple::fir
+void UpSampler::prepareBuffers(int numSamples)
+{
+  prepareBuffersBase(numSamples);
+  for(auto& b : userScalarBuffers32){
+    b.setNumChannels(numChannels);
+    b.setNumSamples(maxOutputLength);
+  }
+  for(auto& b : userScalarBuffers64){
+    b.setNumChannels(numChannels);
+    b.setNumSamples(maxOutputLength);
+  }
+  for(auto& b : userVecBuffers32){
+    b.setNumChannels(numChannels);
+    b.setNumSamples(maxOutputLength);
+  }
+  for(auto& b : userVecBuffers64){
+    b.setNumChannels(numChannels);
+    b.setNumSamples(maxOutputLength);
+  }
+}
+
+} // namespace oversimple::fir::detail

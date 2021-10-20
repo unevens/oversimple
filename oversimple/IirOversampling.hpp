@@ -22,122 +22,8 @@ limitations under the License.
 
 #include "oversimple/IirOversamplingDesigner.hpp"
 
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable : 4250)
-#endif
 
 namespace oversimple::iir::detail {
-// interfaces
-
-/**
- * Abstract class for IIR resamplers.
- */
-class ReSampler
-{
-public:
-  /**
-   * @return the oversampling order
-   */
-  virtual int getOrder() const = 0;
-  /**
-   * Sets the oversampling order
-   * @param value the new oversampling order.
-   */
-  virtual void setOrder(int value) = 0;
-  /**
-   * Preallocates data to process the supplied amount of samples.
-   * @param maxInputSamples the number of samples to preallocate memory for
-   */
-  virtual void prepareBuffer(int maxInputSamples) = 0;
-  /**
-   * Sets the number of channels the processor is capable to work with.
-   * @param value the new number of channels.
-   */
-  virtual void setNumChannels(int value) = 0;
-  virtual int getNumChannels() const = 0;
-  /**
-   * Resets the state of the processor, clearing the state of the antialiasing
-   * filters.
-   */
-  virtual void reset() = 0;
-  /**
-   * @return the OversamplingDesigner used to create the processor.
-   */
-  virtual OversamplingDesigner const& getDesigner() const = 0;
-  virtual ~ReSampler() = default;
-};
-
-/**
- * Abstract class for IIR UpSamplers.
- */
-template<typename Scalar>
-class UpSamplerBase : public virtual ReSampler
-{
-public:
-  /**
-   * Up-samples the input.
-   * @param input a ScalarBuffer that holds the input samples
-   * @param output an InterleavedBuffer to hold the up-sampled samples
-   * @param numChannelsToProcess the number of channels to process. If negative,
-   * all channels will be processed.
-   */
-  virtual void processBlock(ScalarBuffer<Scalar> const& input,
-                            InterleavedBuffer<Scalar>& output,
-                            int numChannelsToProcess) = 0;
-
-  /**
-   * Up-samples the input.
-   * @param input a pointer to the memory holding the input samples
-   * @param numInputSamples the number of samples in each channel of the input
-   * buffer
-   * @param output an InterleavedBuffer to hold the up-sampled samples
-   * @param numChannelsToProcess the number of channels to process. If negative,
-   * all channels will be processed.
-   */
-  virtual void processBlock(Scalar* const* input,
-                            int numInputSamples,
-                            InterleavedBuffer<Scalar>& output,
-                            int numChannelsToProcess) = 0;
-
-  /**
-   * Up-samples an already interleaved input.
-   * @param input an InterleavedBuffer<Scalar> holding the input samples
-   * @param numInputSamples the number of samples in each channel of the input
-   * buffer
-   * @param output an InterleavedBuffer to hold the up-sampled samples
-   * @param numChannelsToProcess the number of channels to process. If negative,
-   * all channels will be processed.
-   */
-  virtual void processBlock(InterleavedBuffer<Scalar> const& input,
-                            int numInputSamples,
-                            InterleavedBuffer<Scalar>& output,
-                            int numChannelsToProcess) = 0;
-};
-
-/**
- * Abstract class for IIR DownSamplers.
- */
-template<typename Scalar>
-class DownSamplerBase : public virtual ReSampler
-{
-public:
-  /**
-   * Down-samples the input.
-   * @param input InterleavedBuffer holding the interleaved input samples.
-   * @param numSamples the number of samples to down-sample from each channel of
-   * the input
-   * @param numChannelsToProcess the number of channels to process. If negative,
-   * all channels will be processed.
-   */
-  virtual void processBlock(InterleavedBuffer<Scalar> const& input, int numSamples, int numChannelsToProcess) = 0;
-
-  /**
-   * @return a reference to the InterleavedBuffer holding the down-sampled
-   * samples.
-   */
-  virtual InterleavedBuffer<Scalar>& getOutput() = 0;
-};
 
 // implementations
 
@@ -155,7 +41,7 @@ template<typename Scalar,
          class StageVec4,
          template<int>
          class StageVec2>
-class OversamplingChain : public virtual ReSampler
+class OversamplingChain
 {
 protected:
   static constexpr bool VEC8_AVAILABLE = SimdTypes<Scalar>::VEC8_AVAILABLE;
@@ -191,6 +77,12 @@ protected:
   int maxInputSamples;
   InterleavedBuffer<Scalar> buffer[2];
 
+  std::vector<avec::ScalarBuffer<float>> userScalarBuffers32;
+  std::vector<avec::ScalarBuffer<double>> userScalarBuffers64;
+
+  std::vector<avec::InterleavedBuffer<float>> userVecBuffers32;
+  std::vector<avec::InterleavedBuffer<double>> userVecBuffers64;
+
   OversamplingChain(OversamplingDesigner designer_, int numChannels_, int orderToPreallocateFor = 0)
     : designer(std::move(designer_))
     , numChannels(numChannels_)
@@ -200,7 +92,6 @@ protected:
     , factor(1)
   {
     assert(designer.getStages().size() == 5);
-    setupBuffer();
     setupStages();
   }
 
@@ -294,17 +185,39 @@ protected:
     }
   }
 
-  virtual void setupBuffer()
+  void setupBuffer()
   {
     auto const maxFactor = 1 << maxOrder;
+    auto const maxNumOutSamples = maxInputSamples * maxFactor;
+    auto const numOutSamples = maxInputSamples * maxFactor;
     for (auto& b : buffer) {
       b.setNumChannels(numChannels);
-      b.reserve(maxInputSamples * maxFactor);
-      b.setNumSamples(maxInputSamples * factor);
+      b.reserve(maxNumOutSamples);
+      b.setNumSamples(numOutSamples);
+    }
+    for (auto& b : userScalarBuffers32) {
+      b.setNumChannels(numChannels);
+      b.reserve(maxNumOutSamples);
+      b.setNumSamples(numOutSamples);
+    }
+    for (auto& b : userScalarBuffers64) {
+      b.setNumChannels(numChannels);
+      b.reserve(maxNumOutSamples);
+      b.setNumSamples(numOutSamples);
+    }
+    for (auto& b : userVecBuffers32) {
+      b.setNumChannels(numChannels);
+      b.reserve(maxNumOutSamples);
+      b.setNumSamples(numOutSamples);
+    }
+    for (auto& b : userVecBuffers64) {
+      b.setNumChannels(numChannels);
+      b.reserve(maxNumOutSamples);
+      b.setNumSamples(numOutSamples);
     }
   }
 
-  OversamplingDesigner const& getDesigner() const override
+  OversamplingDesigner const& getDesigner() const
   {
     return designer;
   }
@@ -540,11 +453,11 @@ protected:
   }
 
 public:
-  int getOrder() const override
+  int getOrder() const
   {
     return order;
   }
-  void setOrder(int value) override
+  void setOrder(int value)
   {
     order = value;
     assert(order >= 0 && order <= 5);
@@ -552,23 +465,23 @@ public:
     factor = 1 << order;
     setupBuffer();
   }
-  void prepareBuffer(int maxInputSamples_) override
+  void prepareBuffer(int maxInputSamples_)
   {
     maxInputSamples = maxInputSamples_;
     setupBuffer();
   }
-  void setNumChannels(int value) override
+  void setNumChannels(int value)
   {
     numChannels = value;
     setupBuffer();
     setupStages();
   }
-  int getNumChannels() const override
+  int getNumChannels() const
   {
     return numChannels;
   }
 
-  void reset() override
+  void reset()
   {
     for (auto& stage : stage8_0) {
       stage.clear_buffers();
@@ -616,9 +529,53 @@ public:
       stage.clear_buffers();
     }
   }
+
+  void setNumUserScalarBuffers32(int num)
+  {
+    userScalarBuffers32.resize(num);
+    setupBuffer();
+  }
+
+  void setNumUserVecBuffers32(int num)
+  {
+    userVecBuffers32.resize(num);
+    setupBuffer();
+  }
+  void setNumUserScalarBuffers64(int num)
+  {
+    userScalarBuffers64.resize(num);
+    setupBuffer();
+  }
+
+  void setNumUserVecBuffers64(int num)
+  {
+    userVecBuffers64.resize(num);
+    setupBuffer();
+  }
+
+  avec::ScalarBuffer<float>& getUserScalarBuffer32(int i)
+  {
+    return userScalarBuffers32[i];
+  }
+
+  avec::InterleavedBuffer<float>& getUserVecBuffer32(int i)
+  {
+    return userVecBuffers32[i];
+  }
+
+  avec::ScalarBuffer<double>& getUserScalarBuffer64(int i)
+  {
+    return userScalarBuffers64[i];
+  }
+
+  avec::InterleavedBuffer<double>& getUserVecBuffer64(int i)
+  {
+    return userVecBuffers64[i];
+  }
 };
 
 } // namespace
+
 
 /**
  * Donwsampler with IIR antialiasing filters.
@@ -636,8 +593,7 @@ template<typename Scalar,
          template<int>
          class StageVec2>
 class TDownSampler
-  : public virtual DownSamplerBase<Scalar>
-  , public OversamplingChain<Scalar,
+  : public OversamplingChain<Scalar,
                              numCoefsStage0,
                              numCoefsStage1,
                              numCoefsStage2,
@@ -669,7 +625,7 @@ public:
                         StageVec2>(designer, numChannels, orderToPreallocateFor)
   {}
 
-  void processBlock(InterleavedBuffer<Scalar> const& input, int numSamples, int numChannelsToProcess) override
+  void processBlock(InterleavedBuffer<Scalar> const& input, int numSamples, int numChannelsToProcess)
   {
     if (numChannelsToProcess < 0) {
       numChannelsToProcess = this->numChannels;
@@ -714,7 +670,7 @@ public:
     }
   }
 
-  InterleavedBuffer<Scalar>& getOutput() override
+  InterleavedBuffer<Scalar>& getOutput()
   {
     assert(output);
     return *output;
@@ -737,8 +693,7 @@ template<typename Scalar,
          template<int>
          class StageVec2>
 class TUpSampler
-  : public virtual UpSamplerBase<Scalar>
-  , public OversamplingChain<Scalar,
+  : public OversamplingChain<Scalar,
                              numCoefsStage0,
                              numCoefsStage1,
                              numCoefsStage2,
@@ -769,8 +724,19 @@ public:
   TUpSampler(OversamplingDesigner const& designer, int numChannels, int orderToPreallocateFor)
     : Chain(designer, numChannels, orderToPreallocateFor)
   {}
-
-  void processBlock(InterleavedBuffer<Scalar> const& input, int numInputSamples, int numChannelsToProcess) override
+  /**
+   * Up-samples an already interleaved input.
+   * @param input an InterleavedBuffer<Scalar> holding the input samples
+   * @param numInputSamples the number of samples in each channel of the input
+   * buffer
+   * @param output an InterleavedBuffer to hold the up-sampled samples
+   * @param numChannelsToProcess the number of channels to process. If negative,
+   * all channels will be processed.
+   */
+  void processBlock(InterleavedBuffer<Scalar> const& input,
+                    int numInputSamples,
+                    InterleavedBuffer<Scalar>& output,
+                    int numChannelsToProcess)
   {
     if (numChannelsToProcess < 0) {
       numChannelsToProcess = this->numChannels;
@@ -817,8 +783,19 @@ public:
         assert(false);
     }
   }
-
-  void processBlock(Scalar* const* inputs, int numInputSamples, int numChannelsToProcess) override
+  /**
+   * Up-samples the input.
+   * @param input a pointer to the memory holding the input samples
+   * @param numInputSamples the number of samples in each channel of the input
+   * buffer
+   * @param output an InterleavedBuffer to hold the up-sampled samples
+   * @param numChannelsToProcess the number of channels to process. If negative,
+   * all channels will be processed.
+   */
+  void processBlock(Scalar* const* inputs,
+                    int numInputSamples,
+                    InterleavedBuffer<Scalar>& output,
+                    int numChannelsToProcess)
   {
     if (numChannelsToProcess < 0) {
       numChannelsToProcess = this->numChannels;
@@ -869,37 +846,17 @@ public:
         assert(false);
     }
   }
-
-  void processBlock(ScalarBuffer<Scalar> const& input, int numChannelsToProcess) override
+  /**
+   * Up-samples the input.
+   * @param input a ScalarBuffer that holds the input samples
+   * @param output an InterleavedBuffer to hold the up-sampled samples
+   * @param numChannelsToProcess the number of channels to process. If negative,
+   * all channels will be processed.
+   */
+  void processBlock(ScalarBuffer<Scalar> const& input, InterleavedBuffer<Scalar>& output, int numChannelsToProcess)
   {
     processBlock(input.get(), input.getNumSamples(), output, numChannelsToProcess);
   }
-
-  InterleavedBuffer<Scalar>& getOutput()
-  {
-    return output;
-  }
-
-  InterleavedBuffer<Scalar> const& getOutput() const
-  {
-    return output;
-  }
-
-private:
-  void setupBuffer() override
-  {
-    Chain::setupBuffer();
-    auto const maxFactor = 1 << this->maxOrder;
-    output.setNumChannels(this->numChannels);
-    output.reserve(this->maxInputSamples * maxFactor);
-    output.setNumSamples(this->maxInputSamples * this->factor);
-  }
-
-  InterleavedBuffer<Scalar> output;
 };
 
 } // namespace oversimple::iir::detail
-
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif

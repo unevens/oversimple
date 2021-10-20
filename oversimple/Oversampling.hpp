@@ -22,25 +22,18 @@ limitations under the License.
 namespace oversimple {
 
 namespace fir {
+
 template<typename Scalar>
 using UpSamplerScalarToScalar = detail::TUpSamplerPreAllocated<Scalar>;
 
 template<typename Scalar>
 using DownSamplerScalarToScalar = detail::TDownSamplerPreAllocated<Scalar>;
-} // namespace fir
 
-namespace iir {
+}
 
-template<typename Scalar>
-using UpSamplerVecToVec = UpSampler<Scalar>;
 
-template<typename Scalar>
-using UpSamplerAnyToVec = UpSampler<Scalar>;
-} // namespace iir
 
-namespace detail {} // namespace detail
-
-namespace fir::detail {
+namespace detail {
 template<typename Scalar, template<class> class Resampler>
 class TReSamplerWithConversionBuffer
 {
@@ -87,9 +80,10 @@ public:
    * Prepare the processor to work with the supplied number of channels.
    * @param value the new number of channels.
    */
-  void prepareBuffers(int numInputSamples)
+  void prepareBuffers(int numInputSamples_)
   {
-    resampler.prepareBuffers(numInputSamples);
+    numInputSamples = numInputSamples_;
+    resampler.prepareBuffers(numInputSamples_);
     updateBuffers();
   }
 
@@ -160,19 +154,44 @@ public:
   }
 
 protected:
+private:
   virtual void updateBuffers() = 0;
 
-private:
   Resampler<Scalar> resampler;
+  avec::InterleavedBuffer<Scalar> inputbuffer;
+  avec::InterleavedBuffer<Scalar> outputBuffer;
+  int numInputSamples = 256;
+};
+} // namespace detail
+
+template<typename Scalar>
+class UpSampler : public detail::TReSamplerWithConversionBuffer<Scalar, fir::detail::TUpSamplerPreAllocated>
+{
+public:
+  using detail::TReSamplerWithConversionBuffer<Scalar, fir::detail::TUpSamplerPreAllocated>::detail::
+    TReSamplerWithConversionBuffer;
+
+private:
+  void updateBuffers() override {
+    this->inputBuffer.setNumChannels(this->resampler.getNumChannels());
+    this->inputBuffer.setNumSamples(this->numSamples);
+    this->outputBuffer.setNumChannels(this->resampler.getNumChannels());
+    this->outputBuffer.setNumSamples(this->getMaxNumOutputSamples());
+  }
 };
 
 template<typename Scalar>
-using TUpSamplerWithConversion = TReSamplerWithConversionBuffer<Scalar, fir::detail::TUpSamplerPreAllocated>;
+class DownSampler : public detail::TReSamplerWithConversionBuffer<Scalar, fir::detail::TDownSamplerPreAllocated>
+{
+public:
+  using detail::TReSamplerWithConversionBuffer<Scalar, fir::detail::TUpSamplerPreAllocated>::detail::
+    TReSamplerWithConversionBuffer;
 
-template<typename Scalar>
-using TDownSamplerWithConversion = TReSamplerWithConversionBuffer<Scalar, fir::detail::TDownSamplerPreAllocated>;
+private:
+  void updateBuffers() override {}
+};
 
-} // namespace fir::detail
+} // namespace fir
 
 namespace iir::detail {
 template<typename Scalar, template<class> class Resampler>
