@@ -35,8 +35,7 @@ limitations under the License.
 namespace oversimple::fir {
 
 /**
- * Abstract class for FIR reSamplers, implementing getters, setters, filters,
- * and buffer management.
+ * Abstract class for FIR reSamplers, implementing getters, setters, filters and buffers management.
  */
 
 class ReSamplerBase
@@ -124,9 +123,8 @@ protected:
 };
 
 /**
- * ReSampler using a FIR antialiasing filter. It will output every sample
- * produced, without buffering. As such, is better used for up-sampling. Only
- * works with double precision input/output.
+ * UpSampler using a FIR antialiasing filter. It will output every sample
+ * produced, without buffering.
  * @see TUnbufferedReSampler for a template that can work with single
  * precision.
  */
@@ -219,10 +217,9 @@ private:
 };
 
 /**
- * ReSampler using a FIR antialiasing filter. Its processing method takes a
+ * DownSampler using a FIR antialiasing filter. Its processing method takes a
  * number of requested samples, and will output either output that much samples,
- * or no samples at all. It uses a buffer to store the samples produced but not
- * works with double precision input/output.
+ * or no samples at all. It uses a buffer to store the samples produced.
  * @see TUnbufferedReSampler for a template that can work with single
  * precision.
  */

@@ -15,7 +15,7 @@ limitations under the License.
 */
 
 #include "oversimple/FirOversampling.hpp"
-#include "oversimple/IirOversamplingFactory.hpp"
+#include "oversimple/IirOversampling.hpp"
 
 #include <cmath>
 #include <iomanip>
@@ -72,7 +72,6 @@ void testFirOversampler(int numChannels, int samplesPerBlock, float oversampling
   int padding = upsamplePadding + downsamplePadding;
   cout << "NumSamplesBeforeUpsamplingStarts = " << upsamplePadding << "\n";
   cout << "NumSamplesBeforeDownsamplingStarts  = " << downsamplePadding << "\n";
-
 
   ScalarBuffer<Scalar> input(numChannels, samplesPerBlock + padding);
   ScalarBuffer<Scalar> inputCopy(numChannels, samplesPerBlock + padding);

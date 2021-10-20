@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#include "oversimple/IirOversamplingFactory.hpp"
+#include "oversimple/Hiir.hpp"
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -25,7 +25,7 @@ using namespace oversimple;
 int main()
 {
   for (int i = 0; i < 2; ++i) {
-    auto preset = getIirOversamplingPreset(i);
+    auto preset = oversimple::iir::detail::getOversamplingPreset(i);
     cout << "preset " << i << ":\n";
     cout << preset.print();
     cout << "\n\n";

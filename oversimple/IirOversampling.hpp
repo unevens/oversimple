@@ -19,10 +19,11 @@ limitations under the License.
 #include <utility>
 
 #include "avec/Avec.hpp"
+#include "oversimple/Hiir.hpp"
 
-#include "oversimple/IirOversamplingDesigner.hpp"
+namespace oversimple::iir {
 
-namespace oversimple::iir::detail {
+namespace detail {
 
 // implementations
 
@@ -789,4 +790,131 @@ public:
   }
 };
 
-} // namespace oversimple::iir::detail
+/**
+ * Static class implementing a factory for UpSampler.
+ */
+template<typename Scalar>
+class UpSamplerFactory final
+{
+  template<int NC>
+  using FakeUpsamplerStage8Double = hiir::FakeInterface;
+  template<int NC>
+  using FakeUpsamplerStage2Float = hiir::FakeInterface;
+
+#if AVEC_X86
+
+public:
+  template<int NC>
+  using Stage8 = typename std::
+    conditional<std::is_same<Scalar, float>::value, hiir::Upsampler2x8Avx<NC>, FakeUpsamplerStage8Double<NC>>::type;
+  template<int NC>
+  using Stage4 = typename std::
+    conditional<std::is_same<Scalar, float>::value, hiir::Upsampler2x4Sse<NC>, hiir::Upsampler2x4F64Avx<NC>>::type;
+  template<int NC>
+  using Stage2 = typename std::
+    conditional<std::is_same<Scalar, float>::value, FakeUpsamplerStage2Float<NC>, hiir::Upsampler2x2F64Sse2<NC>>::type;
+
+#elif AVEC_ARM
+
+private:
+  template<int NC>
+  using FakeUpsamplerStage4Double = hiir::Upsampler2x4F64Avx<NC>;
+
+public:
+  template<int NC>
+  using Stage8 = FakeUpsamplerStage8Double<NC>;
+  template<int NC>
+  using Stage4 = typename std::
+    conditional<std::is_same<Scalar, float>::value, hiir::Upsampler2x4Neon<NC>, FakeUpsamplerStage4Double<NC>>::type;
+  template<int NC>
+  using Stage2 = typename std::
+    conditional<std::is_same<Scalar, float>::value, FakeUpsamplerStage2Float<NC>, hiir::Upsampler2x2F64Neon<NC>>::type;
+
+#else
+
+  static_assert(false, "Unknown platform");
+
+#endif
+
+public:
+  using UpSampler = TUpSampler<Scalar, 11, 5, 3, 3, 2, Stage8, Stage4, Stage2>;
+};
+
+/**
+ * Static class implementing a factory for DownSamplers.
+ */
+template<typename Scalar>
+class DownSamplerFactory final
+{
+  template<int NC>
+  using FakeDownsamplerStage8Double = hiir::Downsampler2x4F64Avx<NC>;
+  template<int NC>
+  using FakeDownsamplerStage2Float = hiir::Downsampler2x4Sse<NC>;
+
+#if AVEC_X86
+
+public:
+  template<int NC>
+  using Stage8 = typename std::
+    conditional<std::is_same<Scalar, float>::value, hiir::Downsampler2x8Avx<NC>, FakeDownsamplerStage8Double<NC>>::type;
+
+  template<int NC>
+  using Stage4 = typename std::
+    conditional<std::is_same<Scalar, float>::value, hiir::Downsampler2x4Sse<NC>, hiir::Downsampler2x4F64Avx<NC>>::type;
+
+  template<int NC>
+  using Stage2 = typename std::conditional<std::is_same<Scalar, float>::value,
+                                           FakeDownsamplerStage2Float<NC>,
+                                           hiir::Downsampler2x2F64Sse2<NC>>::type;
+
+#elif AVEC_ARM
+
+private:
+  template<int NC>
+  using FakeDownsamplerStage4Double = hiir::Downsampler2x4F64Avx<NC>;
+
+public:
+  template<int NC>
+  using Stage8 = FakeDownsamplerStage8Double<NC>;
+  template<int NC>
+  using Stage4 = typename std::conditional<std::is_same<Scalar, float>::value,
+                                           hiir::Downsampler2x4Neon<NC>,
+                                           FakeDownsamplerStage4Double<NC>>::type;
+  template<int NC>
+  using Stage2 = typename std::conditional<std::is_same<Scalar, float>::value,
+                                           FakeDownsamplerStage2Float<NC>,
+                                           hiir::Downsampler2x2F64Neon<NC>>::type;
+
+#else
+
+  static_assert(false, "Unknown platform");
+
+#endif
+
+public:
+  using DownSampler = TDownSampler<Scalar, 11, 5, 3, 3, 2, Stage8, Stage4, Stage2>;
+};
+
+} // namespace detail
+
+template<typename Scalar>
+class DownSampler final : public detail::DownSamplerFactory<Scalar>::DownSampler
+{
+public:
+  explicit DownSampler(int numChannels, int orderToPreallocateFor = 0)
+    : detail::DownSamplerFactory<Scalar>::DownSampler(detail::getOversamplingPreset(0),
+                                                      numChannels,
+                                                      orderToPreallocateFor)
+  {}
+};
+
+template<typename Scalar>
+class UpSampler final : public detail::UpSamplerFactory<Scalar>::UpSampler
+{
+public:
+  explicit UpSampler(int numChannels, int orderToPreallocateFor = 0)
+    : detail::UpSamplerFactory<Scalar>::UpSampler(detail::getOversamplingPreset(0), numChannels, orderToPreallocateFor)
+  {}
+};
+
+} // namespace oversimple::iir
