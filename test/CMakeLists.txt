@@ -15,11 +15,11 @@ if (WIN32)
 
     set(architecture "/arch:SSE2")
 #    set(architecture "/arch:AVX")
-    target_compile_options(oversimple PUBLIC architecture)
+    target_compile_options(oversimple PUBLIC ${architecture})
 
 elseif (NOT APPLE)
 
     set(architecture "-march=native")
-    target_compile_options(oversimple PUBLIC architecture)
+    target_compile_options(oversimple PUBLIC ${architecture})
 
 endif ()
