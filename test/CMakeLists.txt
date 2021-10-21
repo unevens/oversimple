@@ -13,13 +13,12 @@ target_link_libraries(ovr-test oversimple)
 
 if (WIN32)
 
-    set(architecture "/arch:SSE2")
-#    set(architecture "/arch:AVX")
+    set(architecture "/arch:AVX") # comment out this line to build for SSE2
     target_compile_options(oversimple PUBLIC ${architecture})
 
 elseif (NOT APPLE)
 
-    set(architecture "-march=native")
+    set(architecture "-march=native") # replace this line to build for a specific architecture
     target_compile_options(oversimple PUBLIC ${architecture})
 
 endif ()

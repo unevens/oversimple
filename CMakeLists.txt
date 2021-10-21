@@ -58,6 +58,7 @@ if (UNIX)
 endif (UNIX)
 
 if (WIN32)
-    #default to sse2 on windows, can be overridden after
-    target_compile_options(oversimple PUBLIC /arch:SSE2)
+    # default to sse2 on windows, can be overridden in your own cmake if you are including this with add_subdirectory
+    # otherwise set it by uncommenting the next line and eventually change it to the desired architecture to build for
+    # target_compile_options(oversimple PUBLIC /arch:AVX)
 endif (WIN32)
