@@ -713,25 +713,20 @@ public:
   /**
    * Up-samples an already interleaved input.
    * @param input an InterleavedBuffer<Scalar> holding the input samples
-   * @param numInputSamples the number of samples in each channel of the input
-   * buffer
    * @param output an InterleavedBuffer to hold the up-sampled samples
    * @param numChannelsToProcess the number of channels to process. If negative,
    * all channels will be processed.
    */
   void processBlock(InterleavedBuffer<Scalar> const& input,
-                    int numInputSamples,
                     InterleavedBuffer<Scalar>& output,
                     int numChannelsToProcess)
   {
-    if (numChannelsToProcess < 0) {
-      numChannelsToProcess = this->numChannels;
-    }
     assert(numChannelsToProcess <= this->numChannels);
     assert(numChannelsToProcess <= input.getNumChannels());
     assert(numChannelsToProcess <= output.getNumChannels());
-    output.setNumSamples(numInputSamples * this->factor);
-    this->prepareBuffer(numInputSamples);
+    auto const numInputSamples = input.getNumSamples();
+    assert(numInputSamples <= this->maxInputSamples);
+    assert(numInputSamples * this->factor <= output.getNumSamples());
 
     auto& temp2 = this->buffer[0];
     auto& temp = this->buffer[1];
@@ -783,13 +778,10 @@ public:
                     InterleavedBuffer<Scalar>& output,
                     int numChannelsToProcess)
   {
-    if (numChannelsToProcess < 0) {
-      numChannelsToProcess = this->numChannels;
-    }
     assert(numChannelsToProcess <= this->numChannels);
     assert(numChannelsToProcess <= output.getNumChannels());
-    output.setNumSamples(numInputSamples * this->factor);
-    this->prepareBuffer(numInputSamples);
+    assert(numInputSamples <= this->maxInputSamples);
+    assert(numInputSamples * this->factor <= output.getNumSamples());
 
     auto& input = this->buffer[0];
     auto& temp = this->buffer[1];
