@@ -63,8 +63,12 @@ void testFirOversampler(int numChannels, int samplesPerBlock, int oversamplingOr
        << " channels and " << samplesPerBlock << " samples per block"
        << " and transitionBand = " << transitionBand << "%"
        << "\n";
-  auto firUpSampler = fir::TUpSamplerPreAllocated<Scalar>(oversamplingOrder, numChannels, transitionBand,samplesPerBlock);
-  auto firDownSampler = fir::TDownSamplerPreAllocated<Scalar>(oversamplingOrder, numChannels, transitionBand,samplesPerBlock);
+  auto firUpSampler =
+    fir::TUpSamplerPreAllocated<Scalar>(oversamplingOrder, numChannels, transitionBand, samplesPerBlock);
+  auto firDownSampler =
+    fir::TDownSamplerPreAllocated<Scalar>(oversamplingOrder, numChannels, transitionBand, samplesPerBlock);
+  firUpSampler.setOrder(oversamplingOrder);
+  firDownSampler.setOrder(oversamplingOrder);
   int upSamplePadding = firUpSampler.getNumSamplesBeforeOutputStarts();
   int downSamplePadding = firDownSampler.getNumSamplesBeforeOutputStarts();
   int padding = upSamplePadding + downSamplePadding;
@@ -150,10 +154,12 @@ void inspectIirOversampling(int numChannels, int samplesPerBlock, int order, int
   // Oversampling test
   auto upSampling = iir::UpSampler<Scalar>(numChannels, order);
   auto downSampling = iir::DownSampler<Scalar>(numChannels, order);
-  bool const upSamplingOk= upSampling.setOrder(order);
+  bool const upSamplingOk = upSampling.setOrder(order);
   assert(upSamplingOk);
-  bool const downSamplingOk= downSampling.setOrder(order);
+  bool const downSamplingOk = downSampling.setOrder(order);
   assert(downSamplingOk);
+  upSampling.prepareBuffer(samplesPerBlock);
+  downSampling.prepareBuffer(samplesPerBlock * (1 << order));
   CHECK_MEMORY;
   upSampling.processBlock(in, samplesPerBlock, upSampled, numChannels);
   CHECK_MEMORY;
@@ -205,7 +211,7 @@ int main()
 
   inspectIirOversampling<double>(2, 1024, 4, 128);
   inspectIirOversampling<float>(2, 1024, 4, 128);
-  testFirOversampler<double>(2, 16384, 16, 4.0);
-  testFirOversampler<float>(2, 16384, 16, 4.0);
+  testFirOversampler<double>(2, 16384, 4, 4.0);
+  testFirOversampler<float>(2, 16384, 4, 4.0);
   return 0;
 }

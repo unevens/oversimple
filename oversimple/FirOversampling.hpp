@@ -663,12 +663,12 @@ protected:
 
   ReSampler& get()
   {
-    return *reSamplers[order];
+    return *reSamplers[order-1];
   }
 
   ReSampler const& get() const
   {
-    return *reSamplers[order];
+    return *reSamplers[order-1];
   }
 
   std::vector<std::unique_ptr<ReSampler>> reSamplers;
