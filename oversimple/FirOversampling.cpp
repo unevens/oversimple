@@ -56,7 +56,7 @@ int UpSampler::processBlock(double* const* input, int numInputChannels, int numS
     }
     return numSamples;
   }
-  int totalUpsampledSamples = 0;
+  int totalUpSampledSamples = 0;
   for (int c = 0; c < numInputChannels; ++c) {
     double* outPtr;
     int numInputSamples = numSamples;
@@ -64,22 +64,22 @@ int UpSampler::processBlock(double* const* input, int numInputChannels, int numS
     int outputCounter = 0;
     while (numInputSamples > 0) {
       int samplesToProcess = std::min(numInputSamples, maxSamplesPerBlock);
-      int numUpsampledSamples = reSamplers[c]->process(&input[c][inputCounter], samplesToProcess, outPtr);
+      int numUpSampledSamples = reSamplers[c]->process(&input[c][inputCounter], samplesToProcess, outPtr);
       inputCounter += samplesToProcess;
       numInputSamples -= samplesToProcess;
-      if (numUpsampledSamples > 0) {
-        if (outputCounter + numUpsampledSamples > numOutputSamples) {
+      if (numUpSampledSamples > 0) {
+        if (outputCounter + numUpSampledSamples > numOutputSamples) {
           DEBUG_MESSAGE("A UpSampler object had to allocate memory due to a "
                         "fluctuation, this shold not happen!\n");
           output.setNumSamples(outputCounter + numOutputSamples);
         }
-        std::copy(outPtr, outPtr + numUpsampledSamples, &output[c][outputCounter]);
-        outputCounter += numUpsampledSamples;
+        std::copy(outPtr, outPtr + numUpSampledSamples, &output[c][outputCounter]);
+        outputCounter += numUpSampledSamples;
       }
     }
-    totalUpsampledSamples = outputCounter;
+    totalUpSampledSamples = outputCounter;
   }
-  return totalUpsampledSamples;
+  return totalUpSampledSamples;
 }
 void DownSampler::processBlock(double* const* input,
                                int numSamples,
@@ -139,21 +139,21 @@ void DownSampler::processBlock(double* const* input,
       while (numInputSamples > 0) {
         int samplesToProcess = std::min(numInputSamples, maxSamplesPerBlock);
         double* outPtr;
-        int numUpsampledSamples =
+        int numUpSampledSamples =
           reSamplers[c]->process(const_cast<double*>(&input[c][inputCounter]), samplesToProcess, outPtr);
         inputCounter += samplesToProcess;
         numInputSamples -= samplesToProcess;
-        int neededBufferSize = bufferCounter + outputCounter + numUpsampledSamples;
+        int neededBufferSize = bufferCounter + outputCounter + numUpSampledSamples;
         if (buffer.getNumSamples() < neededBufferSize) {
           if (buffer.getCapacity() < neededBufferSize) {
             DEBUG_MESSAGE("A DownSampler object had to allocate "
                           "memory! Has prepareBuffers been called?");
           }
-          buffer.setNumSamples(bufferCounter + outputCounter + numUpsampledSamples);
+          buffer.setNumSamples(bufferCounter + outputCounter + numUpSampledSamples);
         }
-        if (numUpsampledSamples > 0) {
-          std::copy(outPtr, outPtr + numUpsampledSamples, &buffer[c][bufferCounter + outputCounter]);
-          outputCounter += numUpsampledSamples;
+        if (numUpSampledSamples > 0) {
+          std::copy(outPtr, outPtr + numUpSampledSamples, &buffer[c][bufferCounter + outputCounter]);
+          outputCounter += numUpSampledSamples;
         }
       }
       newBufferCounter = outputCounter + bufferCounter;
@@ -280,7 +280,7 @@ void DownSampler::setup()
 
 int ReSamplerBase::getNumSamplesBeforeOutputStarts()
 {
-  if (reSamplers.size() == 0) {
+  if (reSamplers.empty()) {
     DEBUG_MESSAGE("Asking the number of samples before the output of the "
                   "reSamplers starts when there are 0 allocated reSamplers.");
     return 0;

@@ -717,9 +717,7 @@ public:
    * @param numChannelsToProcess the number of channels to process. If negative,
    * all channels will be processed.
    */
-  void processBlock(InterleavedBuffer<Scalar> const& input,
-                    InterleavedBuffer<Scalar>& output,
-                    int numChannelsToProcess)
+  void processBlock(InterleavedBuffer<Scalar> const& input, InterleavedBuffer<Scalar>& output, int numChannelsToProcess)
   {
     assert(numChannelsToProcess <= this->numChannels);
     assert(numChannelsToProcess <= input.getNumChannels());
