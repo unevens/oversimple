@@ -53,7 +53,7 @@ if (UNIX)
             endif ()
         endif ()
     else ()
-        target_compile_options(ovr-test-native PUBLIC -march=native)
+        target_compile_options(oversimple PUBLIC -march=native)
     endif ()
 endif (UNIX)
 
