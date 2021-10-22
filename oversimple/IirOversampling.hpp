@@ -25,10 +25,10 @@ namespace oversimple::iir {
 
 namespace detail {
 
-// implementations
-
 namespace {
-
+/**
+ * A class implementing common functionality for the IIR resamplers.
+ */
 template<typename Scalar,
          int numCoefsStage0,
          int numCoefsStage1,
@@ -428,34 +428,76 @@ protected:
   }
 
 public:
+  /**
+   * @return the order of oversampling currently in use
+   */
   int getOrder() const
   {
     return order;
   }
-  void setOrder(int value)
+
+  /**
+   * Sets the order of oversampling to be used. It must be less or equal to the maximum order set
+   * @value the order to set
+   * @return true if the order was set correctly, false otherwise
+   */
+  bool setOrder(int value)
   {
+    if (value < 0 || value > 5) {
+      return false;
+    }
     order = value;
-    assert(order >= 0 && order <= 5);
-    maxOrder = std::max(order, maxOrder);
     factor = 1 << order;
-    setupBuffer();
+    return true;
   }
+
+  /**
+   * Sets the maximum order of oversampling that can be used. Allocates internal buffers accordingly.
+   * @value the maximum order to set
+   * @return true if the order was set correctly, false otherwise
+   */
+  bool setMaxOrder(int value)
+  {
+    if (value < 0 || value > 5) {
+      return false;
+    }
+    maxOrder = value;
+    setupBuffer();
+    return true;
+  }
+
+  /**
+   * Prepares the internal buffers to receive the specified amount of samples.
+   * @maxInputSamples_ the maximum amount of samples that can be processed by a single processing call
+   */
   void prepareBuffer(int maxInputSamples_)
   {
     maxInputSamples = maxInputSamples_;
     setupBuffer();
   }
+
+  /**
+   * Sets the number of channels that the resampler can work with
+   * @value the number of channels the resampler will be able to work with
+   */
   void setNumChannels(int value)
   {
     numChannels = value;
     setupBuffer();
     setupStages();
   }
+
+  /**
+   * @return the number of channels the resampler is able to work with
+   */
   int getNumChannels() const
   {
     return numChannels;
   }
 
+  /**
+   * Resets the state of the antialiasing filters
+   */
   void reset()
   {
     for (auto& stage : stage8_0) {
@@ -509,7 +551,7 @@ public:
 } // namespace
 
 /**
- * Donwsampler with IIR antialiasing filters.
+ * DownSampler with IIR antialiasing filters.
  */
 template<typename Scalar,
          int numCoefsStage0,
@@ -543,6 +585,7 @@ public:
    * antialiasing filters
    * @param numChannels the number of channels to initialize the DownSampler
    * with
+   * @param orderToPreallocateFor the maximum order of oversampling for which to allocate resources for
    */
   TDownSampler(OversamplingDesigner const& designer, int numChannels, int orderToPreallocateFor = 0)
     : OversamplingChain<Scalar,
@@ -556,6 +599,14 @@ public:
                         StageVec2>(designer, numChannels, orderToPreallocateFor)
   {}
 
+  /**
+   * Down-samples the input.
+   * @param input an InterleavedBuffer holding the input
+   * @param numSamples the number of samples in each channel of the input
+   * buffer
+   * @param numChannelsToProcess the number of channels to process. If negative,
+   * all channels will be processed.
+   */
   void processBlock(InterleavedBuffer<Scalar> const& input, int numSamples, int numChannelsToProcess)
   {
     if (numChannelsToProcess < 0) {
@@ -601,6 +652,9 @@ public:
     }
   }
 
+  /**
+   * @return an InterleavedBuffer holding the output
+   */
   InterleavedBuffer<Scalar>& getOutput()
   {
     assert(output);
@@ -651,6 +705,7 @@ public:
    * antialiasing filters
    * @param numChannels the number of channels to initialize the UpSampler
    * with
+   * @param orderToPreallocateFor the maximum order of oversampling for which to allocate resources for
    */
   TUpSampler(OversamplingDesigner const& designer, int numChannels, int orderToPreallocateFor)
     : Chain(designer, numChannels, orderToPreallocateFor)
@@ -791,44 +846,44 @@ public:
 };
 
 /**
- * Static class implementing a factory for UpSampler.
+ * Static class used to deduce the right SIMD implementation for the current architecture
  */
 template<typename Scalar>
 class UpSamplerFactory final
 {
   template<int NC>
-  using FakeUpsamplerStage8Double = hiir::FakeInterface;
+  using FakeUpSamplerStage8Double = hiir::FakeInterface;
   template<int NC>
-  using FakeUpsamplerStage2Float = hiir::FakeInterface;
+  using FakeUpSamplerStage2Float = hiir::FakeInterface;
 
 #if AVEC_X86
 
 public:
   template<int NC>
   using Stage8 = typename std::
-    conditional<std::is_same<Scalar, float>::value, hiir::Upsampler2x8Avx<NC>, FakeUpsamplerStage8Double<NC>>::type;
+    conditional<std::is_same<Scalar, float>::value, hiir::Upsampler2x8Avx<NC>, FakeUpSamplerStage8Double<NC>>::type;
   template<int NC>
   using Stage4 = typename std::
     conditional<std::is_same<Scalar, float>::value, hiir::Upsampler2x4Sse<NC>, hiir::Upsampler2x4F64Avx<NC>>::type;
   template<int NC>
   using Stage2 = typename std::
-    conditional<std::is_same<Scalar, float>::value, FakeUpsamplerStage2Float<NC>, hiir::Upsampler2x2F64Sse2<NC>>::type;
+    conditional<std::is_same<Scalar, float>::value, FakeUpSamplerStage2Float<NC>, hiir::Upsampler2x2F64Sse2<NC>>::type;
 
 #elif AVEC_ARM
 
 private:
   template<int NC>
-  using FakeUpsamplerStage4Double = hiir::Upsampler2x4F64Avx<NC>;
+  using FakeUpSamplerStage4Double = hiir::Upsampler2x4F64Avx<NC>;
 
 public:
   template<int NC>
-  using Stage8 = FakeUpsamplerStage8Double<NC>;
+  using Stage8 = FakeUpSamplerStage8Double<NC>;
   template<int NC>
   using Stage4 = typename std::
-    conditional<std::is_same<Scalar, float>::value, hiir::Upsampler2x4Neon<NC>, FakeUpsamplerStage4Double<NC>>::type;
+    conditional<std::is_same<Scalar, float>::value, hiir::Upsampler2x4Neon<NC>, FakeUpSamplerStage4Double<NC>>::type;
   template<int NC>
   using Stage2 = typename std::
-    conditional<std::is_same<Scalar, float>::value, FakeUpsamplerStage2Float<NC>, hiir::Upsampler2x2F64Neon<NC>>::type;
+    conditional<std::is_same<Scalar, float>::value, FakeUpSamplerStage2Float<NC>, hiir::Upsampler2x2F64Neon<NC>>::type;
 
 #else
 
@@ -841,7 +896,7 @@ public:
 };
 
 /**
- * Static class implementing a factory for DownSamplers.
+ * Static class used to deduce the right SIMD implementation for the current architecture
  */
 template<typename Scalar>
 class DownSamplerFactory final
@@ -897,6 +952,10 @@ public:
 
 } // namespace detail
 
+/**
+ * DownSampler with IIR antialiasing filters.
+ * The filters are setup to achieve 140dB of attenuation and a transition band of 0.0443
+ */
 template<typename Scalar>
 class DownSampler final : public detail::DownSamplerFactory<Scalar>::DownSampler
 {
@@ -908,6 +967,10 @@ public:
   {}
 };
 
+/**
+ * UpSampler with IIR antialiasing filters.
+ * The filters are setup to achieve 140dB of attenuation and a transition band of 0.0443
+ */
 template<typename Scalar>
 class UpSampler final : public detail::UpSamplerFactory<Scalar>::UpSampler
 {
