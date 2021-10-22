@@ -113,10 +113,10 @@ protected:
 
   void resetBase();
 
-  double oversamplingRate;
-  int numChannels;
-  int maxSamplesPerBlock;
-  double transitionBand;
+  double oversamplingRate = 1.0;
+  int numChannels = 2;
+  int maxSamplesPerBlock = 256;
+  double transitionBand = 2.0;
   std::vector<std::unique_ptr<r8b::CDSPResampler24>> reSamplers;
   int maxOutputLength = 256;
   int maxInputLength = 256;
@@ -653,9 +653,7 @@ public:
   }
 
 protected:
-  explicit TReSamplerPreAllocatedBase(int numChannels = 2,
-                                      double transitionBand = 2.0,
-                                      int maxSamplesPerBlock = 1024)
+  explicit TReSamplerPreAllocatedBase(int numChannels = 2, double transitionBand = 2.0, int maxSamplesPerBlock = 1024)
     : numChannels{ numChannels }
     , transitionBand{ transitionBand }
     , maxSamplesPerBlock{ maxSamplesPerBlock }
@@ -663,18 +661,18 @@ protected:
 
   ReSampler& get()
   {
-    return *reSamplers[order-1];
+    return *reSamplers[order - 1];
   }
 
   ReSampler const& get() const
   {
-    return *reSamplers[order-1];
+    return *reSamplers[order - 1];
   }
 
   std::vector<std::unique_ptr<ReSampler>> reSamplers;
   int numChannels = 2;
   int maxInputSamples = 256;
-  int maxSamplesPerBlock = 1024;
+  int maxSamplesPerBlock = 256;
   double transitionBand = 2.0;
   int order = 0;
 };
@@ -696,7 +694,7 @@ public:
   explicit TUpSamplerPreAllocated(int maxOrder = 5,
                                   int numChannels = 2,
                                   double transitionBand = 2.0,
-                                  int maxSamplesPerBlock = 1024)
+                                  int maxSamplesPerBlock = 256)
     : TReSamplerPreAllocatedBase<TUpSampler<Scalar>>(numChannels, transitionBand, maxSamplesPerBlock)
   {
     setMaxOrder(maxOrder);
@@ -790,7 +788,7 @@ public:
   explicit TDownSamplerPreAllocated(int maxOrder = 5,
                                     int numChannels = 2,
                                     double transitionBand = 2.0,
-                                    int maxSamplesPerBlock = 1024)
+                                    int maxSamplesPerBlock = 256)
     : TReSamplerPreAllocatedBase<TDownSampler<Scalar>>(numChannels, transitionBand, maxSamplesPerBlock)
   {
     setMaxOrder(maxOrder);

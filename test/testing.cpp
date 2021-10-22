@@ -209,8 +209,8 @@ int main()
     cout << "NO SIMD INSTRUCTIONS AVAILABLE\n";
   }
 
-  inspectIirOversampling<double>(2, 1024, 4, 128);
-  inspectIirOversampling<float>(2, 1024, 4, 128);
+  inspectIirOversampling<double>(2, 256, 4, 128);
+  inspectIirOversampling<float>(2, 256, 4, 128);
   testFirOversampler<double>(2, 16384, 4, 4.0);
   testFirOversampler<float>(2, 16384, 4, 4.0);
   return 0;
