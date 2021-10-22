@@ -35,7 +35,7 @@ limitations under the License.
 namespace oversimple::fir {
 
 /**
- * Abstract class for FIR reSamplers, implementing getters, setters, filters and buffers management.
+ * Base class for FIR ReSamplers, implementing getters, setters, filters and buffers management.
  */
 
 class ReSamplerBase
@@ -152,7 +152,6 @@ public:
    * @param numChannels number of channels of the input buffer
    * @param numSamples the number of samples of each channel of the input
    * buffer.
-   * @param output reference to a ScalarBuffer that holds the upsampled data.
    * @return number of upsampled samples
    */
   int processBlock(double* const* input, int numChannels, int numSamples);
@@ -160,7 +159,6 @@ public:
   /**
    * Resamples a multi channel input buffer.
    * @param input ScalarBuffer that holds the input buffer.
-   * @param output reference to a ScalarBuffer that holds the upsampled data.
    * @return number of upsampled samples
    */
   int processBlock(ScalarBuffer<double> const& input);
@@ -379,7 +377,6 @@ public:
    * @param numChannelsToProcess number of channels to process
    * @param numSamples the number of samples of each channel of the input
    * buffer.
-   * @param output ScalarBuffer to hold the upsampled data.
    * @return number of upsampled samples
    */
   int processBlock(float* const* input, int numChannelsToProcess, int numSamples)
@@ -400,7 +397,6 @@ public:
   /**
    * Resamples a multi channel input buffer.
    * @param input ScalarBuffer that holds the input buffer.
-   * @param output ScalarBuffer to hold the upsampled data.
    * @return number of upsampled samples
    */
   int processBlock(ScalarBuffer<float> const& input)
@@ -534,28 +530,33 @@ template<class ReSampler>
 class TReSamplerPreAllocatedBase
 {
 public:
-  explicit TReSamplerPreAllocatedBase(int maxOrder = 5,
-                                      int numChannels = 2,
-                                      double transitionBand = 2.0,
-                                      int maxSamplesPerBlock = 1024)
-    : numChannels{ numChannels }
-    , transitionBand{ transitionBand }
-    , maxSamplesPerBlock{ maxSamplesPerBlock }
-  {}
-
   virtual ~TReSamplerPreAllocatedBase() = default;
 
-  void setOrder(int value)
+  /**
+   * Sets the order of oversampling to be used. It must be less or equal to the maximum order set
+   * @value the order to set
+   * @return true if the order was set correctly, false otherwise
+   */
+  bool setOrder(int value)
   {
-    assert(value >= 0 && value <= static_cast<int>(reSamplers.size()));
-    order = value;
+    if (value >= 0 && value <= static_cast<int>(reSamplers.size())) {
+      order = value;
+      return true;
+    }
+    return false;
   }
 
+  /**
+   * @return the order of oversampling currently in use
+   */
   int getOrder() const
   {
     return order;
   }
 
+  /**
+   * @return the oversampling rate currently in use
+   */
   int getRate() const
   {
     return 1 << order;
@@ -652,6 +653,14 @@ public:
   }
 
 protected:
+  explicit TReSamplerPreAllocatedBase(int numChannels = 2,
+                                      double transitionBand = 2.0,
+                                      int maxSamplesPerBlock = 1024)
+    : numChannels{ numChannels }
+    , transitionBand{ transitionBand }
+    , maxSamplesPerBlock{ maxSamplesPerBlock }
+  {}
+
   ReSampler& get()
   {
     return *reSamplers[order];
@@ -662,7 +671,6 @@ protected:
     return *reSamplers[order];
   }
 
-private:
   std::vector<std::unique_ptr<ReSampler>> reSamplers;
   int numChannels = 2;
   int maxInputSamples = 256;
@@ -675,25 +683,45 @@ template<typename Scalar>
 class TUpSamplerPreAllocated final : public TReSamplerPreAllocatedBase<TUpSampler<Scalar>>
 {
 public:
+  /**
+   * Constructor.
+   * @param maxOrder the maximum order of oversampling to allocate resources for
+   * @param numChannels the number of channels the processor will be ready to
+   * work with.
+   * @param transitionBand value the antialiasing filter transition band, in
+   * percentage of the sample rate.
+   * @param maxSamplesPerBlock the number of samples that will be processed
+   * together.
+   */
   explicit TUpSamplerPreAllocated(int maxOrder = 5,
                                   int numChannels = 2,
                                   double transitionBand = 2.0,
                                   int maxSamplesPerBlock = 1024)
-    : TReSamplerPreAllocatedBase<TUpSampler<Scalar>>(maxOrder, numChannels, transitionBand, maxSamplesPerBlock)
+    : TReSamplerPreAllocatedBase<TUpSampler<Scalar>>(numChannels, transitionBand, maxSamplesPerBlock)
   {
     setMaxOrder(maxOrder);
   }
 
+  /**
+   * @return a ScalarBuffer holding the output of the processing
+   */
   ScalarBuffer<Scalar>& getOutput()
   {
-    return this->get().getOutput;
+    return this->get().getOutput();
   }
 
+  /**
+   * @return a const ScalarBuffer holding the output of the processing
+   */
   ScalarBuffer<Scalar> const& getOutput() const
   {
-    return this->get().getOutput;
+    return this->get().getOutput();
   }
 
+  /**
+   * Sets the maximum order of oversampling supported, and allocates the necessary resources
+   * @param value the maximum order of oversampling
+   */
   void setMaxOrder(int value)
   {
     this->reSamplers.resize(static_cast<std::size_t>(value));
@@ -749,11 +777,21 @@ template<typename Scalar>
 class TDownSamplerPreAllocated final : public TReSamplerPreAllocatedBase<TDownSampler<Scalar>>
 {
 public:
+  /**
+   * Constructor.
+   * @param maxOrder the maximum order of oversampling to allocate resources for
+   * @param numChannels the number of channels the processor will be ready to
+   * work with.
+   * @param transitionBand value the antialiasing filter transition band, in
+   * percentage of the sample rate.
+   * @param maxSamplesPerBlock the number of samples that will be processed
+   * together.
+   */
   explicit TDownSamplerPreAllocated(int maxOrder = 5,
                                     int numChannels = 2,
                                     double transitionBand = 2.0,
                                     int maxSamplesPerBlock = 1024)
-    : TReSamplerPreAllocatedBase<TDownSampler<Scalar>>(maxOrder, numChannels, transitionBand, maxSamplesPerBlock)
+    : TReSamplerPreAllocatedBase<TDownSampler<Scalar>>(numChannels, transitionBand, maxSamplesPerBlock)
   {
     setMaxOrder(maxOrder);
   }
@@ -793,6 +831,10 @@ public:
     return this->get().processBlock(input, output, requiredSamples);
   }
 
+  /**
+   * Sets the maximum order of oversampling supported, and allocates the necessary resources
+   * @param value the maximum order of oversampling
+   */
   void setMaxOrder(int value)
   {
     this->reSamplers.resize(static_cast<std::size_t>(value));
