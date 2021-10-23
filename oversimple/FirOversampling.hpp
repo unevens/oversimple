@@ -45,12 +45,12 @@ public:
    * Prepare the processor to work with the supplied number of channels.
    * @param value the new number of channels.
    */
-  void setNumChannels(int value);
+  void setNumChannels(uint32_t value);
 
   /**
    * @return the number of channels the processor is ready to work with.
    */
-  int getNumChannels() const
+  uint32_t getNumChannels() const
   {
     return numChannels;
   }
@@ -59,12 +59,12 @@ public:
    * Sets the number of samples that will be processed together.
    * @param value the new number of samples that will be processed together.
    */
-  void setMaxSamplesPerBlock(int value);
+  void setMaxSamplesPerBlock(uint32_t value);
 
   /**
    * @return the number of samples that will be processed together.
    */
-  int getMaxSamplesPerBlock() const
+  uint32_t getMaxSamplesPerBlock() const
   {
     return maxSamplesPerBlock;
   }
@@ -74,7 +74,7 @@ public:
    * @param value the new antialiasing filter transition band, in percentage of
    * the sample rate.
    */
-  void setTransitionBand(int value);
+  void setTransitionBand(uint32_t value);
 
   /**
    * @return value the antialiasing filter transition band, in percentage of the
@@ -89,7 +89,7 @@ public:
    * @return the number of input samples needed before a first output sample is
    * produced.
    */
-  int getNumSamplesBeforeOutputStarts();
+  uint32_t getNumSamplesBeforeOutputStarts();
 
   /**
    * @return the maximum number of samples that can be produced by a
@@ -97,7 +97,7 @@ public:
    * passed to prepareBuffers. If prepareBuffers has not been called, then no
    * more samples than maxSamplesPerBlock should be passed to processBlock.
    */
-  int getMaxNumOutputSamples() const
+  uint32_t getMaxNumOutputSamples() const
   {
     return maxOutputLength;
   }
@@ -105,21 +105,21 @@ public:
   virtual ~ReSamplerBase() = default;
 
 protected:
-  ReSamplerBase(int numChannels, double transitionBand, int maxSamplesPerBlock, double oversamplingRate);
+  ReSamplerBase(uint32_t numChannels, double transitionBand, uint32_t maxSamplesPerBlock, double oversamplingRate);
 
   virtual void setup();
 
-  void prepareBuffersBase(int numSamples);
+  void prepareBuffersBase(uint32_t numSamples);
 
   void resetBase();
 
   double oversamplingRate = 1.0;
-  int numChannels = 2;
-  int maxSamplesPerBlock = 256;
+  uint32_t numChannels = 2;
+  uint32_t maxSamplesPerBlock = 256;
   double transitionBand = 2.0;
   std::vector<std::unique_ptr<r8b::CDSPResampler24>> reSamplers;
-  int maxOutputLength = 256;
-  int maxInputLength = 256;
+  uint32_t maxOutputLength = 256;
+  uint32_t maxInputLength = 256;
 };
 
 /**
@@ -141,9 +141,9 @@ public:
    * together.
    * @param oversamplingRate the oversampling factor
    */
-  explicit UpSampler(int numChannels,
+  explicit UpSampler(uint32_t numChannels,
                      double transitionBand = 2.0,
-                     int maxSamplesPerBlock = 1024,
+                     uint32_t maxSamplesPerBlock = 1024,
                      double oversamplingRate = 1.0);
 
   /**
@@ -154,14 +154,14 @@ public:
    * buffer.
    * @return number of upsampled samples
    */
-  int processBlock(double* const* input, int numChannels, int numSamples);
+  uint32_t processBlock(double* const* input, uint32_t numChannels, uint32_t numSamples);
 
   /**
    * Resamples a multi channel input buffer.
    * @param input ScalarBuffer that holds the input buffer.
    * @return number of upsampled samples
    */
-  int processBlock(ScalarBuffer<double> const& input);
+  uint32_t processBlock(ScalarBuffer<double> const& input);
 
   ScalarBuffer<double>& getOutputBuffer()
   {
@@ -179,7 +179,7 @@ public:
    * @param numSamples expected number of samples to be processed on each call
    * to processBlock.
    */
-  virtual void prepareBuffers(int numSamples);
+  virtual void prepareBuffers(uint32_t numSamples);
 
   /**
    * Sets the overampling rate.
@@ -234,9 +234,9 @@ public:
    * together.
    * @param oversamplingRate the oversampling factor
    */
-  explicit DownSampler(int numChannels,
+  explicit DownSampler(uint32_t numChannels,
                        double transitionBand = 2.0,
-                       int maxSamplesPerBlock = 1024,
+                       uint32_t maxSamplesPerBlock = 1024,
                        double oversamplingRate = 1.0);
 
   /**
@@ -246,7 +246,7 @@ public:
    * @param numOutputChannels number of channels of the output buffer
    * @param requiredSamples the number of samples needed as output
    */
-  void processBlock(double* const* input, int numSamples, double** output, int numOutputChannels, int requiredSamples);
+  void processBlock(double* const* input, uint32_t numSamples, double** output, uint32_t numOutputChannels, uint32_t requiredSamples);
 
   /**
    * Resamples a multi channel input buffer.
@@ -255,7 +255,7 @@ public:
    * @param numOutputChannels number of channels of the output buffer
    * @param requiredSamples the number of samples needed as output
    */
-  void processBlock(ScalarBuffer<double> const& input, double** output, int numOutputChannels, int requiredSamples);
+  void processBlock(ScalarBuffer<double> const& input, double** output, uint32_t numOutputChannels, uint32_t requiredSamples);
 
   /**
    * Resamples a multi channel input buffer.
@@ -263,7 +263,7 @@ public:
    * @param output a ScalarBuffer to hold the downsampled data.
    * @param requiredSamples the number of samples needed as output
    */
-  void processBlock(ScalarBuffer<double> const& input, ScalarBuffer<double>& output, int requiredSamples);
+  void processBlock(ScalarBuffer<double> const& input, ScalarBuffer<double>& output, uint32_t requiredSamples);
 
   /**
    * Allocates resources to process up to numInputSamples input samples and
@@ -271,7 +271,7 @@ public:
    * @param numInputSamples the expected maximum number input samples
    * @param requiredOutputSamples the required number of output samples
    */
-  virtual void prepareBuffers(int numInputSamples, int requiredOutputSamples);
+  virtual void prepareBuffers(uint32_t numInputSamples, uint32_t requiredOutputSamples);
 
   /**
    * Resets the state of the processor, clearing the buffers.
@@ -303,7 +303,7 @@ public:
 private:
   ScalarBuffer<double> buffer;
   int bufferCounter = 0;
-  int maxRequiredOutputLength;
+  uint32_t maxRequiredOutputLength;
 
 protected:
   void setup() override;
@@ -327,9 +327,9 @@ public:
    * together.
    * @param oversamplingRate the oversampling factor
    */
-  explicit TUpSampler(int numChannels,
+  explicit TUpSampler(uint32_t numChannels,
                       double transitionBand = 2.0,
-                      int maxSamplesPerBlock = 1024,
+                      uint32_t maxSamplesPerBlock = 1024,
                       double oversamplingRate = 1.0)
     : UpSampler(numChannels, transitionBand, maxSamplesPerBlock, oversamplingRate)
   {}
@@ -362,13 +362,13 @@ public:
    * together.
    * @param oversamplingRate the oversampling factor
    */
-  explicit TUpSampler(int numChannels,
+  explicit TUpSampler(uint32_t numChannels,
                       double transitionBand = 2.0,
-                      int maxSamplesPerBlock = 1024,
+                      uint32_t maxSamplesPerBlock = 1024,
                       double oversamplingRate = 1.0)
     : UpSampler(numChannels, transitionBand, maxSamplesPerBlock, oversamplingRate)
     , floatToDoubleBuffer(numChannels, maxSamplesPerBlock)
-    , doubleToFloatBuffer(numChannels, (int)std::ceil(maxSamplesPerBlock * oversamplingRate))
+    , doubleToFloatBuffer(numChannels, (uint32_t)std::ceil(maxSamplesPerBlock * oversamplingRate))
   {}
 
   /**
@@ -379,17 +379,17 @@ public:
    * buffer.
    * @return number of upsampled samples
    */
-  int processBlock(float* const* input, int numChannelsToProcess, int numSamples)
+  uint32_t processBlock(float* const* input, uint32_t numChannelsToProcess, uint32_t numSamples)
   {
     assert(numChannelsToProcess <= numChannels);
     floatToDoubleBuffer.setNumSamples(numSamples);
-    doubleToFloatBuffer.setNumSamples((int)std::ceil(numSamples * oversamplingRate));
-    for (int c = 0; c < numChannelsToProcess; ++c) {
-      for (int i = 0; i < numSamples; ++i) {
+    doubleToFloatBuffer.setNumSamples((uint32_t)std::ceil(numSamples * oversamplingRate));
+    for (uint32_t c = 0; c < numChannelsToProcess; ++c) {
+      for (uint32_t i = 0; i < numSamples; ++i) {
         floatToDoubleBuffer[c][i] = (double)input[c][i];
       }
     }
-    int samples = UpSampler::processBlock(floatToDoubleBuffer.get(), numChannelsToProcess, numSamples);
+    uint32_t samples = UpSampler::processBlock(floatToDoubleBuffer.get(), numChannelsToProcess, numSamples);
     copyScalarBuffer(output, doubleToFloatBuffer);
     return samples;
   }
@@ -399,16 +399,16 @@ public:
    * @param input ScalarBuffer that holds the input buffer.
    * @return number of upsampled samples
    */
-  int processBlock(ScalarBuffer<float> const& input)
+  uint32_t processBlock(ScalarBuffer<float> const& input)
   {
     return processBlock(input.get(), input.getNumChannels(), input.getNumSamples());
   }
 
-  void prepareBuffers(int numSamples) override
+  void prepareBuffers(uint32_t numSamples) override
   {
     prepareBuffersBase(numSamples);
     floatToDoubleBuffer.setNumSamples(numSamples);
-    doubleToFloatBuffer.setNumSamples((int)std::ceil(numSamples * oversamplingRate));
+    doubleToFloatBuffer.setNumSamples((uint32_t)std::ceil(numSamples * oversamplingRate));
   }
 
   ScalarBuffer<float>& getOutput()
@@ -450,13 +450,13 @@ public:
    * together.
    * @param oversamplingRate the oversampling factor
    */
-  explicit TDownSampler(int numChannels,
+  explicit TDownSampler(uint32_t numChannels,
                         double transitionBand = 2.0,
-                        int maxSamplesPerBlock = 1024,
+                        uint32_t maxSamplesPerBlock = 1024,
                         double oversamplingRate_ = 1.0)
     : DownSampler(numChannels, transitionBand, maxSamplesPerBlock, oversamplingRate_)
     , floatToDoubleBuffer(numChannels, maxSamplesPerBlock)
-    , doubleToFloatBuffer(numChannels, (int)std::ceil(maxSamplesPerBlock * oversamplingRate))
+    , doubleToFloatBuffer(numChannels, (uint32_t)std::ceil(maxSamplesPerBlock * oversamplingRate))
   {}
 
   /**
@@ -466,19 +466,19 @@ public:
    * @param numChannelsToProcess number of channels to process
    * @param requiredSamples the number of samples needed as output
    */
-  void processBlock(float* const* input, int numSamples, float** output, int numChannelsToProcess, int requiredSamples)
+  void processBlock(float* const* input, uint32_t numSamples, float** output, uint32_t numChannelsToProcess, uint32_t requiredSamples)
   {
     assert(numChannelsToProcess <= numChannels);
 
     floatToDoubleBuffer.setNumSamples(numSamples);
     doubleToFloatBuffer.setNumSamples(requiredSamples);
-    for (int c = 0; c < numChannelsToProcess; ++c) {
+    for (uint32_t c = 0; c < numChannelsToProcess; ++c) {
       std::copy(&input[c][0], &input[c][0] + numSamples, &floatToDoubleBuffer[c][0]);
     }
     DownSampler::processBlock(
       floatToDoubleBuffer.get(), numSamples, doubleToFloatBuffer.get(), numChannelsToProcess, requiredSamples);
-    for (int c = 0; c < numChannels; ++c) {
-      for (int i = 0; i < requiredSamples; ++i) {
+    for (uint32_t c = 0; c < numChannels; ++c) {
+      for (uint32_t i = 0; i < requiredSamples; ++i) {
         output[c][i] = (float)doubleToFloatBuffer[c][i];
       }
     }
@@ -491,7 +491,7 @@ public:
    * @param numChannels number of channels of the output buffer
    * @param requiredSamples the number of samples needed as output
    */
-  void processBlock(ScalarBuffer<float> const& input, float** output, int numChannelsToProcess, int requiredSamples)
+  void processBlock(ScalarBuffer<float> const& input, float** output, uint32_t numChannelsToProcess, uint32_t requiredSamples)
   {
     copyScalarBuffer(input, floatToDoubleBuffer);
     doubleToFloatBuffer.setNumSamples(requiredSamples);
@@ -500,8 +500,8 @@ public:
                               doubleToFloatBuffer.get(),
                               numChannelsToProcess,
                               requiredSamples);
-    for (int c = 0; c < numChannelsToProcess; ++c) {
-      for (int i = 0; i < requiredSamples; ++i) {
+    for (uint32_t c = 0; c < numChannelsToProcess; ++c) {
+      for (uint32_t i = 0; i < requiredSamples; ++i) {
         output[c][i] = (float)doubleToFloatBuffer[c][i];
       }
     }
@@ -513,12 +513,12 @@ public:
    * @param output ScalarBuffer to hold the downsampled data.
    * @param requiredSamples the number of samples needed as output
    */
-  void processBlock(ScalarBuffer<float> const& input, ScalarBuffer<float>& output, int requiredSamples)
+  void processBlock(ScalarBuffer<float> const& input, ScalarBuffer<float>& output, uint32_t requiredSamples)
   {
     processBlock(input, output.get(), output.getNumChannels(), requiredSamples);
   }
 
-  void prepareBuffers(int numInputSamples, int requiredOutputSamples) override
+  void prepareBuffers(uint32_t numInputSamples, uint32_t requiredOutputSamples) override
   {
     DownSampler::prepareBuffers(numInputSamples, requiredOutputSamples);
     floatToDoubleBuffer.setNumSamples(numInputSamples);
@@ -537,9 +537,9 @@ public:
    * @value the order to set
    * @return true if the order was set correctly, false otherwise
    */
-  bool setOrder(int value)
+  bool setOrder(uint32_t value)
   {
-    if (value >= 0 && value <= static_cast<int>(reSamplers.size())) {
+    if (value <= static_cast<uint32_t>(reSamplers.size())) {
       order = value;
       return true;
     }
@@ -549,7 +549,7 @@ public:
   /**
    * @return the order of oversampling currently in use
    */
-  int getOrder() const
+  uint32_t getOrder() const
   {
     return order;
   }
@@ -557,7 +557,7 @@ public:
   /**
    * @return the oversampling rate currently in use
    */
-  int getRate() const
+  uint32_t getRate() const
   {
     return 1 << order;
   }
@@ -566,7 +566,7 @@ public:
    * Prepare the processor to work with the supplied number of channels.
    * @param value the new number of channels.
    */
-  void setNumChannels(int value)
+  void setNumChannels(uint32_t value)
   {
     numChannels = value;
     for (auto& reSampler : reSamplers) {
@@ -577,7 +577,7 @@ public:
   /**
    * @return the number of channels the processor is ready to work with.
    */
-  int getNumChannels() const
+  uint32_t getNumChannels() const
   {
     return numChannels;
   }
@@ -587,7 +587,7 @@ public:
    * @param value the new antialiasing filter transition band, in percentage of
    * the sample rate.
    */
-  void setTransitionBand(int value)
+  void setTransitionBand(uint32_t value)
   {
     transitionBand = value;
     for (auto& reSampler : reSamplers) {
@@ -608,7 +608,7 @@ public:
    * Sets the number of samples that will be processed together.
    * @param value the new number of samples that will be processed together.
    */
-  void setMaxSamplesPerBlock(int value)
+  void setMaxSamplesPerBlock(uint32_t value)
   {
     maxSamplesPerBlock = value;
     for (auto& reSampler : reSamplers) {
@@ -619,7 +619,7 @@ public:
   /**
    * @return the number of samples that will be processed together.
    */
-  int getMaxSamplesPerBlock() const
+  uint32_t getMaxSamplesPerBlock() const
   {
     return maxSamplesPerBlock;
   }
@@ -628,7 +628,7 @@ public:
    * @return the number of input samples needed before a first output sample is
    * produced.
    */
-  int getNumSamplesBeforeOutputStarts()
+  uint32_t getNumSamplesBeforeOutputStarts()
   {
     return get().getNumSamplesBeforeOutputStarts();
   }
@@ -639,7 +639,7 @@ public:
    * passed to prepareBuffers. If prepareBuffers has not been called, then no
    * more samples than maxSamplesPerBlock should be passed to processBlock.
    */
-  int getMaxNumOutputSamples() const
+  uint32_t getMaxNumOutputSamples() const
   {
     return get().getMaxNumOutputSamples();
   }
@@ -653,7 +653,7 @@ public:
   }
 
 protected:
-  explicit TReSamplerPreAllocatedBase(int numChannels = 2, double transitionBand = 2.0, int maxSamplesPerBlock = 1024)
+  explicit TReSamplerPreAllocatedBase(uint32_t numChannels = 2, double transitionBand = 2.0, uint32_t maxSamplesPerBlock = 1024)
     : numChannels{ numChannels }
     , transitionBand{ transitionBand }
     , maxSamplesPerBlock{ maxSamplesPerBlock }
@@ -670,11 +670,11 @@ protected:
   }
 
   std::vector<std::unique_ptr<ReSampler>> reSamplers;
-  int numChannels = 2;
-  int maxInputSamples = 256;
-  int maxSamplesPerBlock = 256;
+  uint32_t numChannels = 2;
+  uint32_t maxInputSamples = 256;
+  uint32_t maxSamplesPerBlock = 256;
   double transitionBand = 2.0;
-  int order = 0;
+  uint32_t order = 1;
 };
 
 template<typename Scalar>
@@ -691,10 +691,10 @@ public:
    * @param maxSamplesPerBlock the number of samples that will be processed
    * together.
    */
-  explicit TUpSamplerPreAllocated(int maxOrder = 5,
-                                  int numChannels = 2,
+  explicit TUpSamplerPreAllocated(uint32_t maxOrder = 5,
+                                  uint32_t numChannels = 2,
                                   double transitionBand = 2.0,
-                                  int maxSamplesPerBlock = 256)
+                                  uint32_t maxSamplesPerBlock = 256)
     : TReSamplerPreAllocatedBase<TUpSampler<Scalar>>(numChannels, transitionBand, maxSamplesPerBlock)
   {
     setMaxOrder(maxOrder);
@@ -720,10 +720,10 @@ public:
    * Sets the maximum order of oversampling supported, and allocates the necessary resources
    * @param value the maximum order of oversampling
    */
-  void setMaxOrder(int value)
+  void setMaxOrder(uint32_t value)
   {
     this->reSamplers.resize(static_cast<std::size_t>(value));
-    int instanceOrder = 0;
+    uint32_t instanceOrder = 0;
     for (auto& reSampler : this->reSamplers) {
       if (!reSampler) {
         auto const rate = static_cast<double>(1 << instanceOrder);
@@ -739,7 +739,7 @@ public:
    * Prepare the processor to work with the supplied number of channels.
    * @param value the new number of channels.
    */
-  void prepareBuffers(int numInputSamples)
+  void prepareBuffers(uint32_t numInputSamples)
   {
     this->maxInputSamples = numInputSamples;
     for (auto& reSampler : this->reSamplers) {
@@ -755,7 +755,7 @@ public:
    * buffer.
    * @return number of upsampled samples
    */
-  int processBlock(Scalar* const* input, int numChannels, int numSamples)
+  uint32_t processBlock(Scalar* const* input, uint32_t numChannels, uint32_t numSamples)
   {
     return this->get().processBlock(input, numChannels, numSamples);
   }
@@ -765,7 +765,7 @@ public:
    * @param input ScalarBuffer that holds the input buffer.
    * @return number of upsampled samples
    */
-  int processBlock(ScalarBuffer<Scalar> const& input)
+  uint32_t processBlock(ScalarBuffer<Scalar> const& input)
   {
     return this->get().processBlock(input);
   }
@@ -785,10 +785,10 @@ public:
    * @param maxSamplesPerBlock the number of samples that will be processed
    * together.
    */
-  explicit TDownSamplerPreAllocated(int maxOrder = 5,
-                                    int numChannels = 2,
+  explicit TDownSamplerPreAllocated(uint32_t maxOrder = 5,
+                                    uint32_t numChannels = 2,
                                     double transitionBand = 2.0,
-                                    int maxSamplesPerBlock = 256)
+                                    uint32_t maxSamplesPerBlock = 256)
     : TReSamplerPreAllocatedBase<TDownSampler<Scalar>>(numChannels, transitionBand, maxSamplesPerBlock)
   {
     setMaxOrder(maxOrder);
@@ -801,7 +801,7 @@ public:
    * @param numOutputChannels number of channels of the output buffer
    * @param requiredSamples the number of samples needed as output
    */
-  void processBlock(Scalar* const* input, int numSamples, Scalar** output, int numOutputChannels, int requiredSamples)
+  void processBlock(Scalar* const* input, uint32_t numSamples, Scalar** output, uint32_t numOutputChannels, uint32_t requiredSamples)
   {
     return this->get().processBlock(input, numSamples, output, numOutputChannels, requiredSamples);
   }
@@ -813,7 +813,7 @@ public:
    * @param numOutputChannels number of channels of the output buffer
    * @param requiredSamples the number of samples needed as output
    */
-  void processBlock(ScalarBuffer<Scalar> const& input, Scalar** output, int numOutputChannels, int requiredSamples)
+  void processBlock(ScalarBuffer<Scalar> const& input, Scalar** output, uint32_t numOutputChannels, uint32_t requiredSamples)
   {
     return this->get().processBlock(input, output, numOutputChannels, requiredSamples);
   }
@@ -824,7 +824,7 @@ public:
    * @param output a ScalarBuffer to hold the downsampled data.
    * @param requiredSamples the number of samples needed as output
    */
-  void processBlock(ScalarBuffer<Scalar> const& input, ScalarBuffer<Scalar>& output, int requiredSamples)
+  void processBlock(ScalarBuffer<Scalar> const& input, ScalarBuffer<Scalar>& output, uint32_t requiredSamples)
   {
     return this->get().processBlock(input, output, requiredSamples);
   }
@@ -833,10 +833,10 @@ public:
    * Sets the maximum order of oversampling supported, and allocates the necessary resources
    * @param value the maximum order of oversampling
    */
-  void setMaxOrder(int value)
+  void setMaxOrder(uint32_t value)
   {
     this->reSamplers.resize(static_cast<std::size_t>(value));
-    int instanceOrder = 0;
+    uint32_t instanceOrder = 0;
     for (auto& reSampler : this->reSamplers) {
       if (!reSampler) {
         auto const rate = static_cast<double>(1 << instanceOrder);
@@ -852,7 +852,7 @@ public:
    * Prepare the processor to work with the supplied number of channels.
    * @param value the new number of channels.
    */
-  void prepareBuffers(int numInputSamples, int requiredOutputSamples_)
+  void prepareBuffers(uint32_t numInputSamples, uint32_t requiredOutputSamples_)
   {
     maxRequiredOutputSamples = requiredOutputSamples_;
     this->maxInputSamples = numInputSamples;
@@ -862,7 +862,7 @@ public:
   }
 
 private:
-  int maxRequiredOutputSamples = 256;
+  uint32_t maxRequiredOutputSamples = 256;
 };
 
 } // namespace oversimple::fir

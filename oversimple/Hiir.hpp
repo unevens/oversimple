@@ -146,7 +146,7 @@ inline OversamplingDesigner getOversamplingPreset(int presetIndex = 0)
  * @param presetIndex the oversampling quality preset
  * @return the minimum group delay
  */
-inline double getOversamplingMinGroupDelay(int order, int presetIndex = 0)
+inline double getOversamplingMinGroupDelay(uint32_t order, int presetIndex = 0)
 {
   if (order == 0) {
     return 0.0;

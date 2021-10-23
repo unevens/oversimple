@@ -34,7 +34,7 @@ class OversamplingDesigner final
   {
     double const attenuation;
     double const transition;
-    int const numCoefs;
+    uint32_t const numCoefs;
     double getGroupDelay(double normalizedFrequency) const;
     double getPhaseDelay(double normalizedFrequency) const;
     double getMaxGroupDelay() const;
@@ -52,10 +52,10 @@ class OversamplingDesigner final
   class GroupDelayGraph
   {
     std::vector<double> graph;
-    void fromStages(std::vector<Stage> const& stages, int resolution);
+    void fromStages(std::vector<Stage> const& stages, uint32_t resolution);
 
   public:
-    GroupDelayGraph(std::vector<Stage> const& stages, int resolution);
+    GroupDelayGraph(std::vector<Stage> const& stages, uint32_t resolution);
     double getMean() const;
     std::vector<double> getGraph() const
     {
@@ -72,7 +72,7 @@ public:
    * @param transition required normalized transition bandwidth
    * @param numStages number of oversampling stages
    */
-  OversamplingDesigner(double attenuation, double transition, int numStages = 5);
+  OversamplingDesigner(double attenuation, double transition, uint32_t numStages = 5);
 
   /**
    * @return a reference to the vector with the information specific to each
@@ -91,7 +91,7 @@ public:
   /**
    * @return data to graph the group delay.
    */
-  GroupDelayGraph getGroupDelayGraph(int resolution) const
+  GroupDelayGraph getGroupDelayGraph(uint32_t resolution) const
   {
     return GroupDelayGraph(stages, resolution);
   }
@@ -102,7 +102,7 @@ public:
    * @return the group delay at the specified normalized frequency and
    * oversampling order
    */
-  double getGroupDelay(double normalizedFrequency, int oversamplingOrder) const;
+  double getGroupDelay(double normalizedFrequency, uint32_t oversamplingOrder) const;
 
   /**
    * @param normalizedFrequency
@@ -110,22 +110,22 @@ public:
    * @return the phase delay at the specified normalized frequency and
    * oversampling order
    */
-  double getPhaseDelay(double normalizedFrequency, int oversamplingOrder) const;
+  double getPhaseDelay(double normalizedFrequency, uint32_t oversamplingOrder) const;
 
   /**
    * @param oversamplingOrder
    * @return the minimum group delay at the specified oversampling order
    */
-  double getMinGroupDelay(int oversamplingOrder) const;
+  double getMinGroupDelay(uint32_t oversamplingOrder) const;
 };
 
 // implementation
 
-inline OversamplingDesigner::OversamplingDesigner(double attenuation, double transition, int numStages)
+inline OversamplingDesigner::OversamplingDesigner(double attenuation, double transition, uint32_t numStages)
 {
   assert(numStages > 0);
   stages.push_back(Stage(attenuation, transition));
-  for (int i = 1; i < numStages; ++i) {
+  for (uint32_t i = 1; i < numStages; ++i) {
     stages.push_back(stages.back().Next());
   }
 }
@@ -133,7 +133,7 @@ inline OversamplingDesigner::OversamplingDesigner(double attenuation, double tra
 inline std::string OversamplingDesigner::print() const
 {
   std::string text;
-  int i = 0;
+  uint32_t i = 0;
   for (auto& stage : stages) {
     text += "stage " + std::to_string(i++) + ": " + stage.print() + "\n";
   }
@@ -163,36 +163,36 @@ inline std::string OversamplingDesigner::print() const
   return text;
 }
 
-inline double OversamplingDesigner::getMinGroupDelay(int order) const
+inline double OversamplingDesigner::getMinGroupDelay(uint32_t order) const
 {
   assert(order <= stages.size());
   double coef = 0.5;
   double latency = 0.0;
-  for (int i = 0; i < order; ++i) {
+  for (uint32_t i = 0; i < order; ++i) {
     latency += coef * stages[i].getMinGroupDelay();
     coef *= 0.5;
   }
   return latency;
 }
 
-inline double OversamplingDesigner::getGroupDelay(double normalizedFrequency, int order) const
+inline double OversamplingDesigner::getGroupDelay(double normalizedFrequency, uint32_t order) const
 {
   assert(order <= stages.size());
   double coef = 0.5;
   double groupDelay = 0.0;
-  for (int i = 0; i < order; ++i) {
+  for (uint32_t i = 0; i < order; ++i) {
     groupDelay += coef * stages[i].getGroupDelay(normalizedFrequency);
     coef *= 0.5;
   }
   return groupDelay;
 }
 
-inline double OversamplingDesigner::getPhaseDelay(double normalizedFrequency, int order) const
+inline double OversamplingDesigner::getPhaseDelay(double normalizedFrequency, uint32_t order) const
 {
   assert(order <= stages.size());
   double coef = 0.5;
   double phaseDelay = 0.0;
-  for (int i = 0; i < order; ++i) {
+  for (uint32_t i = 0; i < order; ++i) {
     phaseDelay += coef * stages[i].getPhaseDelay(normalizedFrequency);
     coef *= 0.5;
   }
@@ -211,7 +211,7 @@ inline double OversamplingDesigner::Stage::getPhaseDelay(double normalizedFreque
   std::vector<double> coefs;
   computeCoefs(coefs);
   double delay = 0.0;
-  for (int i = 0; i < coefs.size(); ++i) {
+  for (uint32_t i = 0; i < coefs.size(); ++i) {
     delay += hiir::PolyphaseIir2Designer::compute_phase_delay(coefs[i], normalizedFrequency);
   }
   return delay;
@@ -252,21 +252,21 @@ inline void OversamplingDesigner::Stage::computeCoefs(std::vector<double>& coefs
   hiir::PolyphaseIir2Designer::compute_coefs(&coefs[0], attenuation, transition);
 }
 
-inline void OversamplingDesigner::GroupDelayGraph::fromStages(std::vector<Stage> const& stages, int resolution)
+inline void OversamplingDesigner::GroupDelayGraph::fromStages(std::vector<Stage> const& stages, uint32_t resolution)
 {
   std::vector<double> coefs;
   graph.resize(resolution, 0.0);
   double f = 0.5 / resolution;
   double coef = 0.5;
   for (auto& stage : stages) {
-    for (int i = 0; i < resolution; ++i) {
+    for (uint32_t i = 0; i < resolution; ++i) {
       graph[i] += coef * stage.getGroupDelay(i * f);
     }
     coef *= 0.5;
   }
 }
 
-inline OversamplingDesigner::GroupDelayGraph::GroupDelayGraph(std::vector<Stage> const& stages, int resolution)
+inline OversamplingDesigner::GroupDelayGraph::GroupDelayGraph(std::vector<Stage> const& stages, uint32_t resolution)
 {
   fromStages(stages, resolution);
 }

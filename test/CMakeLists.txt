@@ -16,7 +16,12 @@ if (WIN32)
     set(architecture "/arch:AVX") # comment out this line to build for SSE2
     target_compile_options(oversimple PUBLIC ${architecture})
 
-elseif (NOT APPLE)
+elseif (APPLE)
+
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
+    set(CMAKE_LINKER_FLAGS_DEBUG "${CMAKE_LINKER_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
+
+else ()
 
     set(architecture "-march=native") # replace this line to build for a specific architecture
     target_compile_options(oversimple PUBLIC ${architecture})

@@ -70,14 +70,14 @@ protected:
   aligned_vector<StageVec2<numCoefsStage4>> stage2_4;
 
   OversamplingDesigner designer;
-  int numChannels;
-  int order;
-  int maxOrder;
-  int factor;
-  int maxInputSamples;
+  uint32_t numChannels;
+  uint32_t order;
+  uint32_t maxOrder;
+  uint32_t factor;
+  uint32_t maxInputSamples;
   InterleavedBuffer<Scalar> buffer[2];
 
-  OversamplingChain(OversamplingDesigner designer_, int numChannels_, int orderToPreallocateFor = 0)
+  OversamplingChain(OversamplingDesigner designer_, uint32_t numChannels_, uint32_t orderToPreallocateFor = 0)
     : designer(std::move(designer_))
     , numChannels(numChannels_)
     , maxInputSamples(256)
@@ -91,7 +91,7 @@ protected:
 
   void setupStages()
   {
-    int num2, num4, num8;
+    uint32_t num2, num4, num8;
     avec::getNumOfVecBuffersUsedByInterleavedBuffer<Scalar>(numChannels, num2, num4, num8);
     stage2_0.resize(num2);
     stage2_1.resize(num2);
@@ -199,11 +199,11 @@ protected:
 
   void applyStage0(InterleavedBuffer<Scalar>& output,
                    InterleavedBuffer<Scalar> const& input,
-                   int numSamples,
+                   uint32_t numSamples,
                    int numChannelsToProcess)
   {
     if constexpr (VEC2_AVAILABLE) {
-      int i = 0;
+      uint32_t i = 0;
       for (auto& stage : stage2_0) {
         auto& out = output.getBuffer2(i);
         auto& in = input.getBuffer2(i);
@@ -216,7 +216,7 @@ protected:
       }
     }
     if constexpr (VEC4_AVAILABLE) {
-      int i = 0;
+      uint32_t i = 0;
       for (auto& stage : stage4_0) {
         auto& out = output.getBuffer4(i);
         auto& in = input.getBuffer4(i);
@@ -229,7 +229,7 @@ protected:
       }
     }
     if constexpr (VEC8_AVAILABLE) {
-      int i = 0;
+      uint32_t i = 0;
       for (auto& stage : stage8_0) {
         auto& out = output.getBuffer8(i);
         auto& in = input.getBuffer8(i);
@@ -245,11 +245,11 @@ protected:
 
   void applyStage1(InterleavedBuffer<Scalar>& output,
                    InterleavedBuffer<Scalar> const& input,
-                   int numSamples,
+                   uint32_t numSamples,
                    int numChannelsToProcess)
   {
     if constexpr (VEC2_AVAILABLE) {
-      int i = 0;
+      uint32_t i = 0;
       for (auto& stage : stage2_1) {
         auto& out = output.getBuffer2(i);
         auto& in = input.getBuffer2(i);
@@ -262,7 +262,7 @@ protected:
       }
     }
     if constexpr (VEC4_AVAILABLE) {
-      int i = 0;
+      uint32_t i = 0;
       for (auto& stage : stage4_1) {
         auto& out = output.getBuffer4(i);
         auto& in = input.getBuffer4(i);
@@ -275,7 +275,7 @@ protected:
       }
     }
     if constexpr (VEC8_AVAILABLE) {
-      int i = 0;
+      uint32_t i = 0;
       for (auto& stage : stage8_1) {
         auto& out = output.getBuffer8(i);
         auto& in = input.getBuffer8(i);
@@ -291,11 +291,11 @@ protected:
 
   void applyStage2(InterleavedBuffer<Scalar>& output,
                    InterleavedBuffer<Scalar> const& input,
-                   int numSamples,
+                   uint32_t numSamples,
                    int numChannelsToProcess)
   {
     if constexpr (VEC2_AVAILABLE) {
-      int i = 0;
+      uint32_t i = 0;
       for (auto& stage : stage2_2) {
         auto& out = output.getBuffer2(i);
         auto& in = input.getBuffer2(i);
@@ -308,7 +308,7 @@ protected:
       }
     }
     if constexpr (VEC4_AVAILABLE) {
-      int i = 0;
+      uint32_t i = 0;
       for (auto& stage : stage4_2) {
         auto& out = output.getBuffer4(i);
         auto& in = input.getBuffer4(i);
@@ -321,7 +321,7 @@ protected:
       }
     }
     if constexpr (VEC8_AVAILABLE) {
-      int i = 0;
+      uint32_t i = 0;
       for (auto& stage : stage8_2) {
         auto& out = output.getBuffer8(i);
         auto& in = input.getBuffer8(i);
@@ -337,11 +337,11 @@ protected:
 
   void applyStage3(InterleavedBuffer<Scalar>& output,
                    InterleavedBuffer<Scalar> const& input,
-                   int numSamples,
+                   uint32_t numSamples,
                    int numChannelsToProcess)
   {
     if constexpr (VEC2_AVAILABLE) {
-      int i = 0;
+      uint32_t i = 0;
       for (auto& stage : stage2_3) {
         auto& out = output.getBuffer2(i);
         auto& in = input.getBuffer2(i);
@@ -354,7 +354,7 @@ protected:
       }
     }
     if constexpr (VEC4_AVAILABLE) {
-      int i = 0;
+      uint32_t i = 0;
       for (auto& stage : stage4_3) {
         auto& out = output.getBuffer4(i);
         auto& in = input.getBuffer4(i);
@@ -367,7 +367,7 @@ protected:
       }
     }
     if constexpr (VEC8_AVAILABLE) {
-      int i = 0;
+      uint32_t i = 0;
       for (auto& stage : stage8_3) {
         auto& out = output.getBuffer8(i);
         auto& in = input.getBuffer8(i);
@@ -383,11 +383,11 @@ protected:
 
   void applyStage4(InterleavedBuffer<Scalar>& output,
                    InterleavedBuffer<Scalar> const& input,
-                   int numSamples,
+                   uint32_t numSamples,
                    int numChannelsToProcess)
   {
     if constexpr (VEC2_AVAILABLE) {
-      int i = 0;
+      uint32_t i = 0;
       for (auto& stage : stage2_4) {
         auto& out = output.getBuffer2(i);
         auto& in = input.getBuffer2(i);
@@ -400,7 +400,7 @@ protected:
       }
     }
     if constexpr (VEC4_AVAILABLE) {
-      int i = 0;
+      uint32_t i = 0;
       for (auto& stage : stage4_4) {
         auto& out = output.getBuffer4(i);
         auto& in = input.getBuffer4(i);
@@ -413,7 +413,7 @@ protected:
       }
     }
     if constexpr (VEC8_AVAILABLE) {
-      int i = 0;
+      uint32_t i = 0;
       for (auto& stage : stage8_4) {
         auto& out = output.getBuffer8(i);
         auto& in = input.getBuffer8(i);
@@ -431,7 +431,7 @@ public:
   /**
    * @return the order of oversampling currently in use
    */
-  int getOrder() const
+  uint32_t getOrder() const
   {
     return order;
   }
@@ -441,7 +441,7 @@ public:
    * @value the order to set
    * @return true if the order was set correctly, false otherwise
    */
-  bool setOrder(int value)
+  bool setOrder(uint32_t value)
   {
     if (value < 0 || value > 5) {
       return false;
@@ -456,7 +456,7 @@ public:
    * @value the maximum order to set
    * @return true if the order was set correctly, false otherwise
    */
-  bool setMaxOrder(int value)
+  bool setMaxOrder(uint32_t value)
   {
     if (value < 0 || value > 5) {
       return false;
@@ -470,7 +470,7 @@ public:
    * Prepares the internal buffers to receive the specified amount of samples.
    * @maxInputSamples_ the maximum amount of samples that can be processed by a single processing call
    */
-  void prepareBuffer(int maxInputSamples_)
+  void prepareBuffer(uint32_t maxInputSamples_)
   {
     maxInputSamples = maxInputSamples_;
     setupBuffer();
@@ -480,7 +480,7 @@ public:
    * Sets the number of channels that the resampler can work with
    * @value the number of channels the resampler will be able to work with
    */
-  void setNumChannels(int value)
+  void setNumChannels(uint32_t value)
   {
     numChannels = value;
     setupBuffer();
@@ -490,7 +490,7 @@ public:
   /**
    * @return the number of channels the resampler is able to work with
    */
-  int getNumChannels() const
+  uint32_t getNumChannels() const
   {
     return numChannels;
   }
@@ -587,7 +587,7 @@ public:
    * with
    * @param orderToPreallocateFor the maximum order of oversampling for which to allocate resources for
    */
-  TDownSampler(OversamplingDesigner const& designer, int numChannels, int orderToPreallocateFor = 0)
+  TDownSampler(OversamplingDesigner const& designer, uint32_t numChannels, uint32_t orderToPreallocateFor = 0)
     : OversamplingChain<Scalar,
                         numCoefsStage0,
                         numCoefsStage1,
@@ -607,7 +607,7 @@ public:
    * @param numChannelsToProcess the number of channels to process. If negative,
    * all channels will be processed.
    */
-  void processBlock(InterleavedBuffer<Scalar> const& input, int numSamples, int numChannelsToProcess)
+  void processBlock(InterleavedBuffer<Scalar> const& input, uint32_t numSamples, int numChannelsToProcess)
   {
     if (numChannelsToProcess < 0) {
       numChannelsToProcess = this->numChannels;
@@ -707,7 +707,7 @@ public:
    * with
    * @param orderToPreallocateFor the maximum order of oversampling for which to allocate resources for
    */
-  TUpSampler(OversamplingDesigner const& designer, int numChannels, int orderToPreallocateFor)
+  TUpSampler(OversamplingDesigner const& designer, uint32_t numChannels, uint32_t orderToPreallocateFor)
     : Chain(designer, numChannels, orderToPreallocateFor)
   {}
   /**
@@ -772,7 +772,7 @@ public:
    * all channels will be processed.
    */
   void processBlock(Scalar* const* inputs,
-                    int numInputSamples,
+                    uint32_t numInputSamples,
                     InterleavedBuffer<Scalar>& output,
                     int numChannelsToProcess)
   {
@@ -950,7 +950,7 @@ template<typename Scalar>
 class DownSampler final : public detail::DownSamplerFactory<Scalar>::DownSampler
 {
 public:
-  explicit DownSampler(int numChannels, int orderToPreallocateFor = 0)
+  explicit DownSampler(uint32_t numChannels, uint32_t orderToPreallocateFor = 0)
     : detail::DownSamplerFactory<Scalar>::DownSampler(detail::getOversamplingPreset(0),
                                                       numChannels,
                                                       orderToPreallocateFor)
@@ -965,7 +965,7 @@ template<typename Scalar>
 class UpSampler final : public detail::UpSamplerFactory<Scalar>::UpSampler
 {
 public:
-  explicit UpSampler(int numChannels, int orderToPreallocateFor = 0)
+  explicit UpSampler(uint32_t numChannels, uint32_t orderToPreallocateFor = 0)
     : detail::UpSamplerFactory<Scalar>::UpSampler(detail::getOversamplingPreset(0), numChannels, orderToPreallocateFor)
   {}
 };
