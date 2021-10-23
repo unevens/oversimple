@@ -246,7 +246,11 @@ public:
    * @param numOutputChannels number of channels of the output buffer
    * @param requiredSamples the number of samples needed as output
    */
-  void processBlock(double* const* input, uint32_t numSamples, double** output, uint32_t numOutputChannels, uint32_t requiredSamples);
+  void processBlock(double* const* input,
+                    uint32_t numSamples,
+                    double** output,
+                    uint32_t numOutputChannels,
+                    uint32_t requiredSamples);
 
   /**
    * Resamples a multi channel input buffer.
@@ -255,7 +259,10 @@ public:
    * @param numOutputChannels number of channels of the output buffer
    * @param requiredSamples the number of samples needed as output
    */
-  void processBlock(ScalarBuffer<double> const& input, double** output, uint32_t numOutputChannels, uint32_t requiredSamples);
+  void processBlock(ScalarBuffer<double> const& input,
+                    double** output,
+                    uint32_t numOutputChannels,
+                    uint32_t requiredSamples);
 
   /**
    * Resamples a multi channel input buffer.
@@ -466,7 +473,11 @@ public:
    * @param numChannelsToProcess number of channels to process
    * @param requiredSamples the number of samples needed as output
    */
-  void processBlock(float* const* input, uint32_t numSamples, float** output, uint32_t numChannelsToProcess, uint32_t requiredSamples)
+  void processBlock(float* const* input,
+                    uint32_t numSamples,
+                    float** output,
+                    uint32_t numChannelsToProcess,
+                    uint32_t requiredSamples)
   {
     assert(numChannelsToProcess <= numChannels);
 
@@ -491,7 +502,10 @@ public:
    * @param numChannels number of channels of the output buffer
    * @param requiredSamples the number of samples needed as output
    */
-  void processBlock(ScalarBuffer<float> const& input, float** output, uint32_t numChannelsToProcess, uint32_t requiredSamples)
+  void processBlock(ScalarBuffer<float> const& input,
+                    float** output,
+                    uint32_t numChannelsToProcess,
+                    uint32_t requiredSamples)
   {
     copyScalarBuffer(input, floatToDoubleBuffer);
     doubleToFloatBuffer.setNumSamples(requiredSamples);
@@ -539,7 +553,7 @@ public:
    */
   bool setOrder(uint32_t value)
   {
-    if (value <= static_cast<uint32_t>(reSamplers.size())) {
+    if (value >= 1 && value <= static_cast<uint32_t>(reSamplers.size())) {
       order = value;
       return true;
     }
@@ -653,7 +667,9 @@ public:
   }
 
 protected:
-  explicit TReSamplerPreAllocatedBase(uint32_t numChannels = 2, double transitionBand = 2.0, uint32_t maxSamplesPerBlock = 1024)
+  explicit TReSamplerPreAllocatedBase(uint32_t numChannels = 2,
+                                      double transitionBand = 2.0,
+                                      uint32_t maxSamplesPerBlock = 1024)
     : numChannels{ numChannels }
     , transitionBand{ transitionBand }
     , maxSamplesPerBlock{ maxSamplesPerBlock }
@@ -723,7 +739,7 @@ public:
   void setMaxOrder(uint32_t value)
   {
     this->reSamplers.resize(static_cast<std::size_t>(value));
-    uint32_t instanceOrder = 0;
+    uint32_t instanceOrder = 1;
     for (auto& reSampler : this->reSamplers) {
       if (!reSampler) {
         auto const rate = static_cast<double>(1 << instanceOrder);
@@ -801,7 +817,11 @@ public:
    * @param numOutputChannels number of channels of the output buffer
    * @param requiredSamples the number of samples needed as output
    */
-  void processBlock(Scalar* const* input, uint32_t numSamples, Scalar** output, uint32_t numOutputChannels, uint32_t requiredSamples)
+  void processBlock(Scalar* const* input,
+                    uint32_t numSamples,
+                    Scalar** output,
+                    uint32_t numOutputChannels,
+                    uint32_t requiredSamples)
   {
     return this->get().processBlock(input, numSamples, output, numOutputChannels, requiredSamples);
   }
@@ -813,7 +833,10 @@ public:
    * @param numOutputChannels number of channels of the output buffer
    * @param requiredSamples the number of samples needed as output
    */
-  void processBlock(ScalarBuffer<Scalar> const& input, Scalar** output, uint32_t numOutputChannels, uint32_t requiredSamples)
+  void processBlock(ScalarBuffer<Scalar> const& input,
+                    Scalar** output,
+                    uint32_t numOutputChannels,
+                    uint32_t requiredSamples)
   {
     return this->get().processBlock(input, output, numOutputChannels, requiredSamples);
   }
@@ -836,7 +859,7 @@ public:
   void setMaxOrder(uint32_t value)
   {
     this->reSamplers.resize(static_cast<std::size_t>(value));
-    uint32_t instanceOrder = 0;
+    uint32_t instanceOrder = 1;
     for (auto& reSampler : this->reSamplers) {
       if (!reSampler) {
         auto const rate = static_cast<double>(1 << instanceOrder);

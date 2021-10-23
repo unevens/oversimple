@@ -52,12 +52,6 @@ uint32_t UpSampler::processBlock(double* const* input, uint32_t numInputChannels
   }
   output.setNumChannelsAndSamples(numInputChannels, numOutputSamples);
 
-  if (oversamplingRate == 1) {
-    for (uint32_t c = 0; c < numInputChannels; ++c) {
-      std::copy(&input[c][0], &input[c][0] + numSamples, &output[c][0]);
-    }
-    return numSamples;
-  }
   uint32_t totalUpSampledSamples = 0;
   for (uint32_t c = 0; c < numInputChannels; ++c) {
     double* outPtr;
@@ -90,13 +84,6 @@ void DownSampler::processBlock(double* const* input,
                                uint32_t requiredSamples)
 {
   assert(numOutputChannels <= numChannels);
-
-  if (oversamplingRate == 1.0) {
-    for (uint32_t c = 0; c < numOutputChannels; ++c) {
-      std::copy(&input[c][0], &input[c][0] + numSamples, &output[c][0]);
-    }
-    return;
-  }
 
   int newBufferCounter = bufferCounter;
   if (numSamples <= maxSamplesPerBlock) {

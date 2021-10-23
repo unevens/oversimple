@@ -77,13 +77,13 @@ protected:
   uint32_t maxInputSamples;
   InterleavedBuffer<Scalar> buffer[2];
 
-  OversamplingChain(OversamplingDesigner designer_, uint32_t numChannels_, uint32_t orderToPreallocateFor = 0)
+  OversamplingChain(OversamplingDesigner designer_, uint32_t numChannels_, uint32_t orderToPreallocateFor = 1)
     : designer(std::move(designer_))
     , numChannels(numChannels_)
     , maxInputSamples(256)
-    , order(0)
+    , order(1)
     , maxOrder(orderToPreallocateFor)
-    , factor(1)
+    , factor(2)
   {
     assert(designer.getStages().size() == 5);
     setupStages();
@@ -443,7 +443,7 @@ public:
    */
   bool setOrder(uint32_t value)
   {
-    if (value < 0 || value > 5) {
+    if (value < 1 || value > 5) {
       return false;
     }
     order = value;
@@ -458,7 +458,7 @@ public:
    */
   bool setMaxOrder(uint32_t value)
   {
-    if (value < 0 || value > 5) {
+    if (value < 1 || value > 5) {
       return false;
     }
     maxOrder = value;
@@ -587,7 +587,7 @@ public:
    * with
    * @param orderToPreallocateFor the maximum order of oversampling for which to allocate resources for
    */
-  TDownSampler(OversamplingDesigner const& designer, uint32_t numChannels, uint32_t orderToPreallocateFor = 0)
+  TDownSampler(OversamplingDesigner const& designer, uint32_t numChannels, uint32_t orderToPreallocateFor = 1)
     : OversamplingChain<Scalar,
                         numCoefsStage0,
                         numCoefsStage1,
@@ -619,9 +619,6 @@ public:
     auto& temp = this->buffer[1];
 
     switch (this->order) {
-      case 0: {
-        output = const_cast<InterleavedBuffer<Scalar>*>(&input);
-      } break;
       case 1: {
         this->applyStage0(*output, input, numSamples / 2, numChannelsToProcess);
       } break;
@@ -730,9 +727,6 @@ public:
     auto& temp = this->buffer[1];
 
     switch (this->order) {
-      case 0: {
-        output.copyFrom(input, numInputSamples, numChannelsToProcess);
-      } break;
       case 1: {
         this->applyStage0(output, input, numInputSamples, numChannelsToProcess);
       } break;
@@ -785,9 +779,6 @@ public:
     auto& temp = this->buffer[1];
 
     switch (this->order) {
-      case 0: {
-        output.interleave(inputs, output.getNumChannels(), numInputSamples);
-      } break;
       case 1: {
         input.interleave(inputs, output.getNumChannels(), numInputSamples);
         this->applyStage0(output, input, numInputSamples, numChannelsToProcess);
@@ -950,7 +941,7 @@ template<typename Scalar>
 class DownSampler final : public detail::DownSamplerFactory<Scalar>::DownSampler
 {
 public:
-  explicit DownSampler(uint32_t numChannels, uint32_t orderToPreallocateFor = 0)
+  explicit DownSampler(uint32_t numChannels, uint32_t orderToPreallocateFor = 1)
     : detail::DownSamplerFactory<Scalar>::DownSampler(detail::getOversamplingPreset(0),
                                                       numChannels,
                                                       orderToPreallocateFor)
@@ -965,7 +956,7 @@ template<typename Scalar>
 class UpSampler final : public detail::UpSamplerFactory<Scalar>::UpSampler
 {
 public:
-  explicit UpSampler(uint32_t numChannels, uint32_t orderToPreallocateFor = 0)
+  explicit UpSampler(uint32_t numChannels, uint32_t orderToPreallocateFor = 1)
     : detail::UpSamplerFactory<Scalar>::UpSampler(detail::getOversamplingPreset(0), numChannels, orderToPreallocateFor)
   {}
 };
