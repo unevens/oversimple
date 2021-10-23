@@ -57,14 +57,14 @@ public:
 
   /**
    * Sets the number of samples that are processed by each fft call.
-   * @param value the new number of samples that will be processed together.
+   * @param value the new number of samples that will be processed by each fft call.
    */
   void setFftSamplesPerBlock(uint32_t value);
 
   /**
    * @return the number of samples that are processed by each fft call.
    */
-  uint32_t getMaxSamplesPerBlock() const
+  uint32_t getFftSamplesPerBlock() const
   {
     return fftSamplesPerBlock;
   }
@@ -138,7 +138,7 @@ public:
    * @param transitionBand value the antialiasing filter transition band, in
    * percentage of the sample rate.
    * @param fftSamplesPerBlock the number of samples that will be processed
-   * together.
+   * by each fft call.
    * @param oversamplingRate the oversampling factor
    */
   explicit UpSampler(uint32_t numChannels,
@@ -243,7 +243,7 @@ public:
    * @param transitionBand value the antialiasing filter transition band, in
    * percentage of the sample rate.
    * @param fftSamplesPerBlock the number of samples that will be processed
-   * together.
+   * by each fft call.
    * @param oversamplingRate the oversampling factor
    */
   explicit DownSampler(uint32_t numChannels,
@@ -355,7 +355,7 @@ public:
    * @param transitionBand value the antialiasing filter transition band, in
    * percentage of the sample rate.
    * @param fftSamplesPerBlock the number of samples that will be processed
-   * together.
+   * by each fft call.
    * @param oversamplingRate the oversampling factor
    */
   explicit TUpSampler(uint32_t numChannels,
@@ -390,7 +390,7 @@ public:
    * @param transitionBand value the antialiasing filter transition band, in
    * percentage of the sample rate.
    * @param fftSamplesPerBlock the number of samples that will be processed
-   * together.
+   * by each fft call.
    * @param oversamplingRate the oversampling factor
    */
   explicit TUpSampler(uint32_t numChannels,
@@ -493,7 +493,7 @@ public:
    * @param transitionBand value the antialiasing filter transition band, in
    * percentage of the sample rate.
    * @param fftSamplesPerBlock the number of samples that will be processed
-   * together.
+   * by each fft call.
    * @param oversamplingRate the oversampling factor
    */
   explicit TDownSampler(uint32_t numChannels,
@@ -676,10 +676,10 @@ public:
   }
 
   /**
-   * Sets the number of samples that will be processed together.
-   * @param value the new number of samples that will be processed together.
+   * Sets the number of samples that are processed by each fft call.
+   * @param value the new number of samples that will be processed by each fft call.
    */
-  void setMaxSamplesPerBlock(uint32_t value)
+  void setFftSamplesPerBlock(uint32_t value)
   {
     fftSamplesPerBlock = value;
     for (auto& reSampler : reSamplers) {
@@ -690,7 +690,7 @@ public:
   /**
    * @return the number of samples that will be processed together.
    */
-  uint32_t getMaxSamplesPerBlock() const
+  uint32_t getFftSamplesPerBlock() const
   {
     return fftSamplesPerBlock;
   }
@@ -762,7 +762,7 @@ public:
    * @param transitionBand value the antialiasing filter transition band, in
    * percentage of the sample rate.
    * @param fftSamplesPerBlock the number of samples that will be processed
-   * together.
+   * by each fft call.
    */
   explicit TUpSamplerPreAllocated(uint32_t maxOrder = 5,
                                   uint32_t numChannels = 2,
@@ -857,7 +857,7 @@ public:
    * @param transitionBand value the antialiasing filter transition band, in
    * percentage of the sample rate.
    * @param fftSamplesPerBlock the number of samples that will be processed
-   * together.
+   * by each fft call.
    */
   explicit TDownSamplerPreAllocated(uint32_t maxOrder = 5,
                                     uint32_t numChannels = 2,
