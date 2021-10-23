@@ -56,17 +56,17 @@ public:
   }
 
   /**
-   * Sets the number of samples that will be processed together.
+   * Sets the number of samples that are processed by each fft call.
    * @param value the new number of samples that will be processed together.
    */
-  void setMaxSamplesPerBlock(uint32_t value);
+  void setFftSamplesPerBlock(uint32_t value);
 
   /**
-   * @return the number of samples that will be processed together.
+   * @return the number of samples that are processed by each fft call.
    */
   uint32_t getMaxSamplesPerBlock() const
   {
-    return maxSamplesPerBlock;
+    return fftSamplesPerBlock;
   }
 
   /**
@@ -95,7 +95,7 @@ public:
    * @return the maximum number of samples that can be produced by a
    * processBlock call, assuming it is never called with more samples than those
    * passed to prepareBuffers. If prepareBuffers has not been called, then no
-   * more samples than maxSamplesPerBlock should be passed to processBlock.
+   * more samples than fftSamplesPerBlock should be passed to processBlock.
    */
   uint32_t getMaxNumOutputSamples() const
   {
@@ -105,7 +105,7 @@ public:
   virtual ~ReSamplerBase() = default;
 
 protected:
-  ReSamplerBase(uint32_t numChannels, double transitionBand, uint32_t maxSamplesPerBlock, double oversamplingRate);
+  ReSamplerBase(uint32_t numChannels, double transitionBand, uint32_t fftSamplesPerBlock, double oversamplingRate);
 
   virtual void setup();
 
@@ -115,7 +115,7 @@ protected:
 
   double oversamplingRate = 1.0;
   uint32_t numChannels = 2;
-  uint32_t maxSamplesPerBlock = 256;
+  uint32_t fftSamplesPerBlock = 256;
   double transitionBand = 2.0;
   std::vector<std::unique_ptr<r8b::CDSPResampler24>> reSamplers;
   uint32_t maxOutputLength = 256;
@@ -137,13 +137,13 @@ public:
    * work with.
    * @param transitionBand value the antialiasing filter transition band, in
    * percentage of the sample rate.
-   * @param maxSamplesPerBlock the number of samples that will be processed
+   * @param fftSamplesPerBlock the number of samples that will be processed
    * together.
    * @param oversamplingRate the oversampling factor
    */
   explicit UpSampler(uint32_t numChannels,
                      double transitionBand = 2.0,
-                     uint32_t maxSamplesPerBlock = 1024,
+                     uint32_t fftSamplesPerBlock = 256,
                      double oversamplingRate = 1.0);
 
   /**
@@ -178,8 +178,20 @@ public:
    * each processBlock call.
    * @param numSamples expected number of samples to be processed on each call
    * to processBlock.
+   * @setAlsoFftBlockSize if true, sets also the samples per block of the fft to numSamples
    */
-  virtual void prepareBuffers(uint32_t numSamples);
+  virtual void prepareBuffers(uint32_t numSamples, bool setAlsoFftBlockSize);
+
+  /**
+   * Prepare the reSampler to be able to process up to numSamples samples with
+   * each processBlock call.
+   * @param numSamples expected number of samples to be processed on each call
+   * to processBlock.
+   */
+  virtual void prepareBuffers(uint32_t numSamples)
+  {
+    prepareBuffers(numSamples, false);
+  }
 
   /**
    * Sets the overampling rate.
@@ -230,13 +242,13 @@ public:
    * work with.
    * @param transitionBand value the antialiasing filter transition band, in
    * percentage of the sample rate.
-   * @param maxSamplesPerBlock the number of samples that will be processed
+   * @param fftSamplesPerBlock the number of samples that will be processed
    * together.
    * @param oversamplingRate the oversampling factor
    */
   explicit DownSampler(uint32_t numChannels,
                        double transitionBand = 2.0,
-                       uint32_t maxSamplesPerBlock = 1024,
+                       uint32_t fftSamplesPerBlock = 256,
                        double oversamplingRate = 1.0);
 
   /**
@@ -277,8 +289,20 @@ public:
    * produce requiredOutputSamples output samples.
    * @param numInputSamples the expected maximum number input samples
    * @param requiredOutputSamples the required number of output samples
+   * @setAlsoFftBlockSize if true, sets also the samples per block of the fft to numSamples
    */
-  virtual void prepareBuffers(uint32_t numInputSamples, uint32_t requiredOutputSamples);
+  virtual void prepareBuffers(uint32_t numInputSamples, uint32_t requiredOutputSamples, bool setAlsoFftBlockSize);
+
+  /**
+   * Allocates resources to process up to numInputSamples input samples and
+   * produce requiredOutputSamples output samples.
+   * @param numInputSamples the expected maximum number input samples
+   * @param requiredOutputSamples the required number of output samples
+   */
+  virtual void prepareBuffers(uint32_t numInputSamples, uint32_t requiredOutputSamples)
+  {
+    prepareBuffers(numInputSamples, requiredOutputSamples, false);
+  }
 
   /**
    * Resets the state of the processor, clearing the buffers.
@@ -330,15 +354,15 @@ public:
    * work with.
    * @param transitionBand value the antialiasing filter transition band, in
    * percentage of the sample rate.
-   * @param maxSamplesPerBlock the number of samples that will be processed
+   * @param fftSamplesPerBlock the number of samples that will be processed
    * together.
    * @param oversamplingRate the oversampling factor
    */
   explicit TUpSampler(uint32_t numChannels,
                       double transitionBand = 2.0,
-                      uint32_t maxSamplesPerBlock = 1024,
+                      uint32_t fftSamplesPerBlock = 256,
                       double oversamplingRate = 1.0)
-    : UpSampler(numChannels, transitionBand, maxSamplesPerBlock, oversamplingRate)
+    : UpSampler(numChannels, transitionBand, fftSamplesPerBlock, oversamplingRate)
   {}
 
   ScalarBuffer<Scalar>& getOutput()
@@ -365,17 +389,17 @@ public:
    * work with.
    * @param transitionBand value the antialiasing filter transition band, in
    * percentage of the sample rate.
-   * @param maxSamplesPerBlock the number of samples that will be processed
+   * @param fftSamplesPerBlock the number of samples that will be processed
    * together.
    * @param oversamplingRate the oversampling factor
    */
   explicit TUpSampler(uint32_t numChannels,
                       double transitionBand = 2.0,
-                      uint32_t maxSamplesPerBlock = 1024,
+                      uint32_t fftSamplesPerBlock = 256,
                       double oversamplingRate = 1.0)
-    : UpSampler(numChannels, transitionBand, maxSamplesPerBlock, oversamplingRate)
-    , floatToDoubleBuffer(numChannels, maxSamplesPerBlock)
-    , doubleToFloatBuffer(numChannels, (uint32_t)std::ceil(maxSamplesPerBlock * oversamplingRate))
+    : UpSampler(numChannels, transitionBand, fftSamplesPerBlock, oversamplingRate)
+    , floatToDoubleBuffer(numChannels, fftSamplesPerBlock)
+    , doubleToFloatBuffer(numChannels, (uint32_t)std::ceil(fftSamplesPerBlock * oversamplingRate))
   {}
 
   /**
@@ -411,11 +435,26 @@ public:
     return processBlock(input.get(), input.getNumChannels(), input.getNumSamples());
   }
 
-  void prepareBuffers(uint32_t numSamples) override
+  /**
+   * Allocates resources to process up to numInputSamples input samples.
+   * @param numInputSamples the expected maximum number input samples
+   * @setAlsoFftBlockSize if true, sets also the samples per block of the fft to numSamples
+   */
+  void prepareBuffers(uint32_t numSamples, bool setAlsoFftBlockSize) override
   {
-    prepareBuffersBase(numSamples);
+    UpSampler::prepareBuffers(numSamples, setAlsoFftBlockSize);
     floatToDoubleBuffer.setNumSamples(numSamples);
     doubleToFloatBuffer.setNumSamples((uint32_t)std::ceil(numSamples * oversamplingRate));
+  }
+
+  /**
+   * Allocates resources to process up to numInputSamples input samples.
+   * @param numInputSamples the expected maximum number input samples
+   * @setAlsoFftBlockSize if true, sets also the samples per block of the fft to numSamples
+   */
+  void prepareBuffers(uint32_t numSamples) override
+  {
+    prepareBuffers(numSamples, false);
   }
 
   ScalarBuffer<float>& getOutput()
@@ -453,17 +492,17 @@ public:
    * work with.
    * @param transitionBand value the antialiasing filter transition band, in
    * percentage of the sample rate.
-   * @param maxSamplesPerBlock the number of samples that will be processed
+   * @param fftSamplesPerBlock the number of samples that will be processed
    * together.
    * @param oversamplingRate the oversampling factor
    */
   explicit TDownSampler(uint32_t numChannels,
                         double transitionBand = 2.0,
-                        uint32_t maxSamplesPerBlock = 1024,
+                        uint32_t fftSamplesPerBlock = 256,
                         double oversamplingRate_ = 1.0)
-    : DownSampler(numChannels, transitionBand, maxSamplesPerBlock, oversamplingRate_)
-    , floatToDoubleBuffer(numChannels, maxSamplesPerBlock)
-    , doubleToFloatBuffer(numChannels, (uint32_t)std::ceil(maxSamplesPerBlock * oversamplingRate))
+    : DownSampler(numChannels, transitionBand, fftSamplesPerBlock, oversamplingRate_)
+    , floatToDoubleBuffer(numChannels, fftSamplesPerBlock)
+    , doubleToFloatBuffer(numChannels, (uint32_t)std::ceil(fftSamplesPerBlock * oversamplingRate))
   {}
 
   /**
@@ -532,11 +571,29 @@ public:
     processBlock(input, output.get(), output.getNumChannels(), requiredSamples);
   }
 
-  void prepareBuffers(uint32_t numInputSamples, uint32_t requiredOutputSamples) override
+  /**
+   * Allocates resources to process up to numInputSamples input samples and
+   * produce requiredOutputSamples output samples.
+   * @param numInputSamples the expected maximum number input samples
+   * @param requiredOutputSamples the required number of output samples
+   * @setAlsoFftBlockSize if true, sets also the samples per block of the fft to numSamples
+   */
+  void prepareBuffers(uint32_t numInputSamples, uint32_t requiredOutputSamples, bool setAlsoFftBlockSize) override
   {
-    DownSampler::prepareBuffers(numInputSamples, requiredOutputSamples);
+    DownSampler::prepareBuffers(numInputSamples, requiredOutputSamples, setAlsoFftBlockSize);
     floatToDoubleBuffer.setNumSamples(numInputSamples);
     doubleToFloatBuffer.setNumSamples(requiredOutputSamples);
+  }
+
+  /**
+   * Allocates resources to process up to numInputSamples input samples and
+   * produce requiredOutputSamples output samples.
+   * @param numInputSamples the expected maximum number input samples
+   * @param requiredOutputSamples the required number of output samples
+   */
+  void prepareBuffers(uint32_t numInputSamples, uint32_t requiredOutputSamples) override
+  {
+    prepareBuffers(numInputSamples, requiredOutputSamples, false);
   }
 };
 
@@ -624,9 +681,9 @@ public:
    */
   void setMaxSamplesPerBlock(uint32_t value)
   {
-    maxSamplesPerBlock = value;
+    fftSamplesPerBlock = value;
     for (auto& reSampler : reSamplers) {
-      reSampler->setMaxSamplesPerBlock(value);
+      reSampler->setFftSamplesPerBlock(value);
     }
   }
 
@@ -635,7 +692,7 @@ public:
    */
   uint32_t getMaxSamplesPerBlock() const
   {
-    return maxSamplesPerBlock;
+    return fftSamplesPerBlock;
   }
 
   /**
@@ -651,7 +708,7 @@ public:
    * @return the maximum number of samples that can be produced by a
    * processBlock call, assuming it is never called with more samples than those
    * passed to prepareBuffers. If prepareBuffers has not been called, then no
-   * more samples than maxSamplesPerBlock should be passed to processBlock.
+   * more samples than fftSamplesPerBlock should be passed to processBlock.
    */
   uint32_t getMaxNumOutputSamples() const
   {
@@ -669,10 +726,10 @@ public:
 protected:
   explicit TReSamplerPreAllocatedBase(uint32_t numChannels = 2,
                                       double transitionBand = 2.0,
-                                      uint32_t maxSamplesPerBlock = 1024)
+                                      uint32_t fftSamplesPerBlock = 256)
     : numChannels{ numChannels }
     , transitionBand{ transitionBand }
-    , maxSamplesPerBlock{ maxSamplesPerBlock }
+    , fftSamplesPerBlock{ fftSamplesPerBlock }
   {}
 
   ReSampler& get()
@@ -688,7 +745,7 @@ protected:
   std::vector<std::unique_ptr<ReSampler>> reSamplers;
   uint32_t numChannels = 2;
   uint32_t maxInputSamples = 256;
-  uint32_t maxSamplesPerBlock = 256;
+  uint32_t fftSamplesPerBlock = 256;
   double transitionBand = 2.0;
   uint32_t order = 1;
 };
@@ -704,14 +761,14 @@ public:
    * work with.
    * @param transitionBand value the antialiasing filter transition band, in
    * percentage of the sample rate.
-   * @param maxSamplesPerBlock the number of samples that will be processed
+   * @param fftSamplesPerBlock the number of samples that will be processed
    * together.
    */
   explicit TUpSamplerPreAllocated(uint32_t maxOrder = 5,
                                   uint32_t numChannels = 2,
                                   double transitionBand = 2.0,
-                                  uint32_t maxSamplesPerBlock = 256)
-    : TReSamplerPreAllocatedBase<TUpSampler<Scalar>>(numChannels, transitionBand, maxSamplesPerBlock)
+                                  uint32_t fftSamplesPerBlock = 256)
+    : TReSamplerPreAllocatedBase<TUpSampler<Scalar>>(numChannels, transitionBand, fftSamplesPerBlock)
   {
     setMaxOrder(maxOrder);
   }
@@ -744,7 +801,7 @@ public:
       if (!reSampler) {
         auto const rate = static_cast<double>(1 << instanceOrder);
         reSampler =
-          std::make_unique<TUpSampler<Scalar>>(this->numChannels, this->transitionBand, this->maxSamplesPerBlock, rate);
+          std::make_unique<TUpSampler<Scalar>>(this->numChannels, this->transitionBand, this->fftSamplesPerBlock, rate);
         reSampler->prepareBuffers(this->maxInputSamples);
       }
       ++instanceOrder;
@@ -752,14 +809,15 @@ public:
   }
 
   /**
-   * Prepare the processor to work with the supplied number of channels.
-   * @param value the new number of channels.
+   * Allocates resources to process up to numInputSamples input.
+   * @param numInputSamples the expected maximum number input samples
+   * @setAlsoFftBlockSize if true, sets also the samples per block of the fft to numSamples
    */
-  void prepareBuffers(uint32_t numInputSamples)
+  void prepareBuffers(uint32_t numInputSamples, bool setAlsoFftBlockSize = false)
   {
     this->maxInputSamples = numInputSamples;
     for (auto& reSampler : this->reSamplers) {
-      reSampler->prepareBuffers(numInputSamples);
+      reSampler->prepareBuffers(numInputSamples, setAlsoFftBlockSize);
     }
   }
 
@@ -798,14 +856,14 @@ public:
    * work with.
    * @param transitionBand value the antialiasing filter transition band, in
    * percentage of the sample rate.
-   * @param maxSamplesPerBlock the number of samples that will be processed
+   * @param fftSamplesPerBlock the number of samples that will be processed
    * together.
    */
   explicit TDownSamplerPreAllocated(uint32_t maxOrder = 5,
                                     uint32_t numChannels = 2,
                                     double transitionBand = 2.0,
-                                    uint32_t maxSamplesPerBlock = 256)
-    : TReSamplerPreAllocatedBase<TDownSampler<Scalar>>(numChannels, transitionBand, maxSamplesPerBlock)
+                                    uint32_t fftSamplesPerBlock = 256)
+    : TReSamplerPreAllocatedBase<TDownSampler<Scalar>>(numChannels, transitionBand, fftSamplesPerBlock)
   {
     setMaxOrder(maxOrder);
   }
@@ -864,7 +922,7 @@ public:
       if (!reSampler) {
         auto const rate = static_cast<double>(1 << instanceOrder);
         reSampler = std::make_unique<TDownSampler<Scalar>>(
-          this->numChannels, this->transitionBand, this->maxSamplesPerBlock, rate);
+          this->numChannels, this->transitionBand, this->fftSamplesPerBlock, rate);
         reSampler->prepareBuffers(this->maxInputSamples, maxRequiredOutputSamples);
       }
       ++instanceOrder;
@@ -872,15 +930,18 @@ public:
   }
 
   /**
-   * Prepare the processor to work with the supplied number of channels.
-   * @param value the new number of channels.
+   * Allocates resources to process up to numInputSamples input samples and
+   * produce requiredOutputSamples output samples.
+   * @param numInputSamples the expected maximum number input samples
+   * @param requiredOutputSamples the required number of output samples
+   * @setAlsoFftBlockSize if true, sets also the samples per block of the fft to numSamples
    */
-  void prepareBuffers(uint32_t numInputSamples, uint32_t requiredOutputSamples_)
+  void prepareBuffers(uint32_t numInputSamples, uint32_t requiredOutputSamples_, bool setAlsoFftBlockSize = false)
   {
     maxRequiredOutputSamples = requiredOutputSamples_;
     this->maxInputSamples = numInputSamples;
     for (auto& reSampler : this->reSamplers) {
-      reSampler->prepareBuffers(numInputSamples, maxRequiredOutputSamples);
+      reSampler->prepareBuffers(numInputSamples, maxRequiredOutputSamples, setAlsoFftBlockSize);
     }
   }
 

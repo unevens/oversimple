@@ -59,7 +59,7 @@ uint32_t UpSampler::processBlock(double* const* input, uint32_t numInputChannels
     int inputCounter = 0;
     int outputCounter = 0;
     while (numInputSamples > 0) {
-      int samplesToProcess = std::min(numInputSamples, (int)maxSamplesPerBlock);
+      int samplesToProcess = std::min(numInputSamples, (int)fftSamplesPerBlock);
       int numUpSampledSamples = reSamplers[c]->process(&input[c][inputCounter], (int)samplesToProcess, outPtr);
       inputCounter += samplesToProcess;
       numInputSamples -= (int)samplesToProcess;
@@ -86,7 +86,7 @@ void DownSampler::processBlock(double* const* input,
   assert(numOutputChannels <= numChannels);
 
   int newBufferCounter = bufferCounter;
-  if (numSamples <= maxSamplesPerBlock) {
+  if (numSamples <= fftSamplesPerBlock) {
     for (uint32_t c = 0; c < numOutputChannels; ++c) {
       double* outPtr;
       int const numUpsampledSamples = reSamplers[c]->process(const_cast<double*>(&input[c][0]), numSamples, outPtr);
@@ -120,13 +120,13 @@ void DownSampler::processBlock(double* const* input,
     }
     bufferCounter = newBufferCounter;
   }
-  else { // numSamples > maxSamplesPerBlock
+  else { // numSamples > fftSamplesPerBlock
     for (uint32_t c = 0; c < numOutputChannels; ++c) {
       int inputCounter = 0;
       int outputCounter = 0;
       int numInputSamples = (int)numSamples;
       while (numInputSamples > 0) {
-        int samplesToProcess = std::min(numInputSamples, (int)maxSamplesPerBlock);
+        int samplesToProcess = std::min(numInputSamples, (int)fftSamplesPerBlock);
         double* outPtr;
         int const numUpSampledSamples =
           reSamplers[c]->process(const_cast<double*>(&input[c][inputCounter]), samplesToProcess, outPtr);
@@ -180,33 +180,33 @@ void ReSamplerBase::setup()
 
   for (uint32_t c = 0; c < numChannels; ++c) {
     reSamplers.push_back(
-      std::make_unique<r8b::CDSPResampler24>(1.0, oversamplingRate, maxSamplesPerBlock, transitionBand));
+      std::make_unique<r8b::CDSPResampler24>(1.0, oversamplingRate, fftSamplesPerBlock, transitionBand));
   }
 }
 
 ReSamplerBase::ReSamplerBase(uint32_t numChannels,
                              double transitionBand,
-                             uint32_t maxSamplesPerBlock,
+                             uint32_t fftSamplesPerBlock,
                              double oversamplingRate)
   : numChannels(numChannels)
-  , maxSamplesPerBlock(maxSamplesPerBlock)
-  , maxInputLength(maxSamplesPerBlock)
+  , fftSamplesPerBlock(fftSamplesPerBlock)
+  , maxInputLength(fftSamplesPerBlock)
   , transitionBand(transitionBand)
   , oversamplingRate(oversamplingRate)
 {}
 
 DownSampler::DownSampler(uint32_t numChannels,
                          double transitionBand,
-                         uint32_t maxSamplesPerBlock,
+                         uint32_t fftSamplesPerBlock,
                          double oversamplingRate)
-  : ReSamplerBase(numChannels, transitionBand, maxSamplesPerBlock, 1.f / oversamplingRate)
-  , maxRequiredOutputLength(maxSamplesPerBlock)
+  : ReSamplerBase(numChannels, transitionBand, fftSamplesPerBlock, 1.f / oversamplingRate)
+  , maxRequiredOutputLength(fftSamplesPerBlock)
 {
   DownSampler::setup();
 }
 
-UpSampler::UpSampler(uint32_t numChannels, double transitionBand, uint32_t maxSamplesPerBlock, double oversamplingRate)
-  : ReSamplerBase(numChannels, transitionBand, maxSamplesPerBlock, oversamplingRate)
+UpSampler::UpSampler(uint32_t numChannels, double transitionBand, uint32_t fftSamplesPerBlock, double oversamplingRate)
+  : ReSamplerBase(numChannels, transitionBand, fftSamplesPerBlock, oversamplingRate)
 {
   UpSampler::setup();
 }
@@ -217,9 +217,9 @@ void ReSamplerBase::setNumChannels(uint32_t value)
   setup();
 }
 
-void ReSamplerBase::setMaxSamplesPerBlock(uint32_t value)
+void ReSamplerBase::setFftSamplesPerBlock(uint32_t value)
 {
-  maxSamplesPerBlock = value;
+  fftSamplesPerBlock = value;
   setup();
 }
 
@@ -239,18 +239,23 @@ void ReSamplerBase::resetBase()
 void ReSamplerBase::prepareBuffersBase(uint32_t numSamples)
 {
   maxInputLength = numSamples;
-  auto const quot = maxInputLength / maxSamplesPerBlock;
-  auto const rem = maxInputLength % maxSamplesPerBlock;
-  uint32_t maxReSamplerOutputLength = reSamplers[0]->getMaxOutLen(maxSamplesPerBlock);
+  auto const quot = maxInputLength / fftSamplesPerBlock;
+  auto const rem = maxInputLength % fftSamplesPerBlock;
+  uint32_t maxReSamplerOutputLength = reSamplers[0]->getMaxOutLen((int)fftSamplesPerBlock);
   maxOutputLength = (quot + (rem > 0 ? 1 : 0)) * maxReSamplerOutputLength;
 }
 
-void DownSampler::prepareBuffers(uint32_t numInputSamples, uint32_t requiredOutputSamples)
+void DownSampler::prepareBuffers(uint32_t numInputSamples, uint32_t requiredOutputSamples, bool setAlsoFftBlockSize)
 {
-  prepareBuffersBase(numInputSamples);
+  if (setAlsoFftBlockSize) {
+    maxInputLength = numInputSamples;
+    setFftSamplesPerBlock(numInputSamples);
+  }
+  else {
+    prepareBuffersBase(numInputSamples);
+  }
   maxRequiredOutputLength = requiredOutputSamples;
   uint32_t neededBufferSize = maxOutputLength + std::max(maxOutputLength, requiredOutputSamples);
-  // maybe buffer.setNumSamples(maxOutputLength); is enough?
   if (buffer.getNumSamples() < neededBufferSize) {
     buffer.setNumSamples(neededBufferSize);
   }
@@ -284,9 +289,15 @@ uint32_t ReSamplerBase::getNumSamplesBeforeOutputStarts()
   return reSamplers[0]->getInLenBeforeOutStart();
 }
 
-void UpSampler::prepareBuffers(uint32_t numSamples)
+void UpSampler::prepareBuffers(uint32_t numSamples, bool setAlsoFftBlockSize)
 {
-  prepareBuffersBase(numSamples);
+  if (setAlsoFftBlockSize) {
+    maxInputLength = numSamples;
+    setFftSamplesPerBlock(numSamples);
+  }
+  else {
+    prepareBuffersBase(numSamples);
+  }
 }
 
 } // namespace oversimple::fir
