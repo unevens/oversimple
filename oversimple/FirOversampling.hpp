@@ -822,7 +822,7 @@ public:
   }
 
   /**
-   * Resamples a multi channel input buffer.
+   * Up-samples a multi channel input buffer.
    * @param input pointer to the input buffer.
    * @param numChannels number of channels of the input buffer
    * @param numSamples the number of samples of each channel of the input
@@ -835,7 +835,7 @@ public:
   }
 
   /**
-   * Resamples a multi channel input buffer.
+   * Up-samples a multi channel input buffer.
    * @param input ScalarBuffer that holds the input buffer.
    * @return number of upsampled samples
    */
@@ -869,7 +869,7 @@ public:
   }
 
   /**
-   * Resamples a multi channel input buffer.
+   * Down-samples a multi channel input buffer.
    * @param input pointer to the input buffers.
    * @param output pointer to the memory in which to store the downsampled data.
    * @param numOutputChannels number of channels of the output buffer
@@ -885,7 +885,7 @@ public:
   }
 
   /**
-   * Resamples a multi channel input buffer.
+   * Down-samples a multi channel input buffer.
    * @param input a ScalarBuffer that holds the input buffer.
    * @param output pointer to the memory in which to store the downsampled data.
    * @param numOutputChannels number of channels of the output buffer
@@ -900,7 +900,7 @@ public:
   }
 
   /**
-   * Resamples a multi channel input buffer.
+   * Down-samples a multi channel input buffer.
    * @param input a ScalarBuffer that holds the input buffer.
    * @param output a ScalarBuffer to hold the downsampled data.
    * @param requiredSamples the number of samples needed as output
