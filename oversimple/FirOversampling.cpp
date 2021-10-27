@@ -45,7 +45,7 @@ void DownSampler::processBlock(ScalarBuffer<double> const& input,
 uint32_t UpSampler::processBlock(double* const* input, uint32_t numInputChannels, uint32_t numSamples)
 {
   assert(numInputChannels <= numChannels);
-  uint32_t numOutputSamples = (uint32_t)std::ceil(numSamples * oversamplingRate);
+  auto const numOutputSamples = (uint32_t)std::ceil(numSamples * oversamplingRate);
   if (output.getNumChannels() < numInputChannels || output.getCapacity() < numOutputSamples) {
     DEBUG_MESSAGE("A UpSampler object had to allocate memory! Has "
                   "prepareBuffers been called?\n");
@@ -106,7 +106,7 @@ void DownSampler::processBlock(double* const* input,
         int const samplesFromReSampler = std::min(wantedSamplesFromReSampler, numUpsampledSamples);
         std::copy(outPtr, outPtr + samplesFromReSampler, &output[c][samplesFromBuffer]);
         // check buffer size
-        uint32_t neededBufferSize = newBufferCounter + numUpsampledSamples - samplesFromReSampler;
+        auto const neededBufferSize = (uint32_t)(newBufferCounter + numUpsampledSamples - samplesFromReSampler);
         if (buffer.getNumSamples() < neededBufferSize) {
           if (buffer.getCapacity() < neededBufferSize) {
             DEBUG_MESSAGE("A DownSampler object had to allocate "
@@ -132,7 +132,7 @@ void DownSampler::processBlock(double* const* input,
           reSamplers[c]->process(const_cast<double*>(&input[c][inputCounter]), samplesToProcess, outPtr);
         inputCounter += samplesToProcess;
         numInputSamples -= samplesToProcess;
-        uint32_t neededBufferSize = bufferCounter + outputCounter + numUpSampledSamples;
+        auto const neededBufferSize = (uint32_t)(bufferCounter + outputCounter + numUpSampledSamples);
         if (buffer.getNumSamples() < neededBufferSize) {
           if (buffer.getCapacity() < neededBufferSize) {
             DEBUG_MESSAGE("A DownSampler object had to allocate "
@@ -241,7 +241,7 @@ void ReSamplerBase::prepareBuffersBase(uint32_t numSamples)
   maxInputLength = numSamples;
   auto const quot = maxInputLength / fftSamplesPerBlock;
   auto const rem = maxInputLength % fftSamplesPerBlock;
-  uint32_t maxReSamplerOutputLength = reSamplers[0]->getMaxOutLen((int)fftSamplesPerBlock);
+  auto const maxReSamplerOutputLength = (uint32_t)reSamplers[0]->getMaxOutLen((int)fftSamplesPerBlock);
   maxOutputLength = (quot + (rem > 0 ? 1 : 0)) * maxReSamplerOutputLength;
 }
 
@@ -255,7 +255,7 @@ void DownSampler::prepareBuffers(uint32_t numInputSamples, uint32_t requiredOutp
     prepareBuffersBase(numInputSamples);
   }
   maxRequiredOutputLength = requiredOutputSamples;
-  uint32_t neededBufferSize = maxOutputLength + std::max(maxOutputLength, requiredOutputSamples);
+  auto const neededBufferSize = maxOutputLength + std::max(maxOutputLength, requiredOutputSamples);
   if (buffer.getNumSamples() < neededBufferSize) {
     buffer.setNumSamples(neededBufferSize);
   }
