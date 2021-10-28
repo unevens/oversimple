@@ -615,34 +615,34 @@ public:
     assert(numChannelsToProcess <= this->numChannels);
     assert(numChannelsToProcess <= input.getNumChannels());
     this->prepareBuffer(numSamples);
-    output = &this->buffer[0];
+    auto& output = this->buffer[0];
     auto& temp = this->buffer[1];
 
     switch (this->order) {
       case 1: {
-        this->applyStage0(*output, input, numSamples / 2, numChannelsToProcess);
+        this->applyStage0(output, input, numSamples / 2, numChannelsToProcess);
       } break;
       case 2: {
         this->applyStage1(temp, input, numSamples / 2, numChannelsToProcess);
-        this->applyStage0(*output, temp, numSamples / 4, numChannelsToProcess);
+        this->applyStage0(output, temp, numSamples / 4, numChannelsToProcess);
       } break;
       case 3: {
-        this->applyStage2(*output, input, numSamples / 2, numChannelsToProcess);
-        this->applyStage1(temp, *output, numSamples / 4, numChannelsToProcess);
-        this->applyStage0(*output, temp, numSamples / 8, numChannelsToProcess);
+        this->applyStage2(output, input, numSamples / 2, numChannelsToProcess);
+        this->applyStage1(temp, output, numSamples / 4, numChannelsToProcess);
+        this->applyStage0(output, temp, numSamples / 8, numChannelsToProcess);
       } break;
       case 4: {
         this->applyStage3(temp, input, numSamples / 2, numChannelsToProcess);
-        this->applyStage2(*output, temp, numSamples / 4, numChannelsToProcess);
-        this->applyStage1(temp, *output, numSamples / 8, numChannelsToProcess);
-        this->applyStage0(*output, temp, numSamples / 16, numChannelsToProcess);
+        this->applyStage2(output, temp, numSamples / 4, numChannelsToProcess);
+        this->applyStage1(temp, output, numSamples / 8, numChannelsToProcess);
+        this->applyStage0(output, temp, numSamples / 16, numChannelsToProcess);
       } break;
       case 5: {
-        this->applyStage4(*output, input, numSamples / 2, numChannelsToProcess);
-        this->applyStage3(temp, *output, numSamples / 4, numChannelsToProcess);
-        this->applyStage2(*output, temp, numSamples / 8, numChannelsToProcess);
-        this->applyStage1(temp, *output, numSamples / 16, numChannelsToProcess);
-        this->applyStage0(*output, temp, numSamples / 32, numChannelsToProcess);
+        this->applyStage4(output, input, numSamples / 2, numChannelsToProcess);
+        this->applyStage3(temp, output, numSamples / 4, numChannelsToProcess);
+        this->applyStage2(output, temp, numSamples / 8, numChannelsToProcess);
+        this->applyStage1(temp, output, numSamples / 16, numChannelsToProcess);
+        this->applyStage0(output, temp, numSamples / 32, numChannelsToProcess);
       } break;
       default:
         assert(false);
@@ -654,8 +654,7 @@ public:
    */
   InterleavedBuffer<Scalar>& getOutput()
   {
-    assert(output);
-    return *output;
+    return this->buffer[0];
   }
 };
 
