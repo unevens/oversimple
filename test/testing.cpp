@@ -143,36 +143,23 @@ void testFirOversampling(int numChannels,
 }
 
 template<typename Scalar>
-void inspectIirOversampling(int numChannels, int samplesPerBlock, int order, int offset)
+void inspectIirOversampling(int numChannels, int order, int numSamples)
 {
-  int factor = (int)std::pow(2, order);
+  auto const preset = iir::detail::getOversamplingPreset(0);
+  double const groupDelay = 2 * preset.getGroupDelay(0, order);
+
+  int const factor = (int)std::pow(2, order);
   cout << "beginning to test " << factor << "x "
        << "IirOversampling with " << numChannels << "channels and "
        << (typeid(Scalar) == typeid(float) ? "single" : "double") << " precision\n";
-  // prepare data
-  Scalar normalizedFrequency = 0.125;
-  Scalar frequency = 2.0 * 3.141592653589793238 * normalizedFrequency;
-  auto** in = new Scalar*[numChannels];
+
+  cout << "group delay at DC is " << groupDelay << "\n";
+  auto const offset = 20 * groupDelay;
+  auto const samplesPerBlock = offset + numSamples;
+
+  auto in = ScalarBuffer<Scalar>(numChannels, samplesPerBlock);
   auto upSampled = InterleavedBuffer<Scalar>(numChannels, factor * samplesPerBlock);
-  for (int i = 0; i < numChannels; ++i) {
-    in[i] = new Scalar[samplesPerBlock];
-    for (int s = 0; s < offset; ++s) {
-      in[i][s] = 0.0;
-    }
-    if (i % 2 == 0) {
-      for (int s = offset; s < samplesPerBlock; ++s) {
-        in[i][s] = std::sin(frequency * (Scalar)(s - offset));
-      }
-    }
-    else {
-      for (int s = offset; s < 2 * offset; ++s) {
-        in[i][s] = 1.0;
-      }
-      for (int s = 2 * offset; s < samplesPerBlock; ++s) {
-        in[i][s] = 0.0;
-      }
-    }
-  }
+  in.fill(1.0);
   // Oversampling test
   auto upSampling = iir::UpSampler<Scalar>(numChannels, order);
   auto downSampling = iir::DownSampler<Scalar>(numChannels, order);
@@ -183,28 +170,32 @@ void inspectIirOversampling(int numChannels, int samplesPerBlock, int order, int
   upSampling.prepareBuffer(samplesPerBlock);
   downSampling.prepareBuffer(samplesPerBlock * (1 << order));
   CHECK_MEMORY;
-  upSampling.processBlock(in, samplesPerBlock, upSampled);
+  upSampling.processBlock(in, upSampled);
   CHECK_MEMORY;
   downSampling.processBlock(upSampled, factor * samplesPerBlock);
   CHECK_MEMORY;
   auto& output = downSampling.getOutput();
-  auto preset = iir::detail::getOversamplingPreset(order);
-  double groupDelay = 2.0 * preset.getGroupDelay(normalizedFrequency, order);
-  double phaseDelay = 2.0 * preset.getPhaseDelay(normalizedFrequency, order);
-  for (int i = 0; i < numChannels; ++i) {
-    cout << "channel " << i << "\n";
-    for (int s = 0; s < samplesPerBlock; ++s) {
-      cout << i2s(s) << ":   " << n2s(in[i][s]) << "  |  " << n2s(*output.at(i, s)) << "\n";
+
+  auto const measureSnr = [&](int offset, int from, int to, const char* text) {
+    for (int c = 0; c < numChannels; ++c) {
+      double noisePower = 0.0;
+      double signalPower = 0.0;
+      for (int s = from; s < to; ++s) {
+        double out = *output.at(c, s + offset);
+//        cout << s << " | " << in[c][s] << " | " << out << "\n";
+        double diff = in[c][s] - out;
+        signalPower += in[c][s] * in[c][s];
+        noisePower += diff * diff;
+      }
+      cout << text << ": channel " << c << " snr = " << 10.0 * log10(signalPower / noisePower) << " dB\n";
     }
-    cout << "\n";
-  }
+  };
+  measureSnr(groupDelay, 0, offset, "IIR snr up to 20x group delay");
+  measureSnr(offset, 0, numSamples - offset, "IIR snr after 20x group delay");
+
   cout << "IirOversampling test completed\n";
   CHECK_MEMORY;
-  // cleanup
-  for (int i = 0; i < numChannels; ++i) {
-    delete[] in[i];
-  }
-  delete[] in;
+
   cout << "completed testing " << factor << "x "
        << "IirOversampling with " << numChannels << "channels and "
        << (typeid(Scalar) == typeid(float) ? "single" : "double") << " precision\n";
@@ -231,8 +222,8 @@ int main()
     cout << "NO SIMD INSTRUCTIONS AVAILABLE\n";
   }
 
-  inspectIirOversampling<double>(2, 256, 4, 128);
-  inspectIirOversampling<float>(2, 256, 4, 128);
+  inspectIirOversampling<double>(2, 4, 1024);
+  inspectIirOversampling<float>(2, 4, 1024);
   testFirOversampling<float>(2, 128, 1024, 4, 4.0);
   testFirOversampling<float>(2, 1024, 512, 4, 4.0);
   testFirOversampling<double>(2, 128, 1024, 4, 4.0);
