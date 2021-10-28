@@ -194,8 +194,8 @@ public:
   }
 
   /**
-   * Sets the overampling rate.
-   * @param value the new overampling rate.
+   * Sets the oversampling rate.
+   * @param value the new oversampling rate.
    */
   void setRate(double value)
   {
@@ -307,8 +307,8 @@ public:
   }
 
   /**
-   * Sets the overampling rate.
-   * @param value the new overampling rate.
+   * Sets the oversampling rate.
+   * @param value the new oversampling rate.
    */
   void setRate(double value)
   {
