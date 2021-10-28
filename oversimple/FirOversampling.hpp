@@ -154,7 +154,7 @@ public:
    * buffer.
    * @return number of upsampled samples
    */
-  uint32_t processBlock(double* const* input, uint32_t numChannels, uint32_t numSamples);
+  uint32_t processBlock(double* const* input, uint32_t numSamples);
 
   /**
    * Up-samples a multi channel input buffer.
@@ -258,11 +258,7 @@ public:
    * @param numOutputChannels number of channels of the output buffer
    * @param requiredSamples the number of samples needed as output
    */
-  void processBlock(double* const* input,
-                    uint32_t numSamples,
-                    double** output,
-                    uint32_t numOutputChannels,
-                    uint32_t requiredSamples);
+  void processBlock(double* const* input, uint32_t numSamples, double** output, uint32_t requiredSamples);
 
   /**
    * Down-samples a multi channel input buffer.
@@ -271,10 +267,7 @@ public:
    * @param numOutputChannels number of channels of the output buffer
    * @param requiredSamples the number of samples needed as output
    */
-  void processBlock(ScalarBuffer<double> const& input,
-                    double** output,
-                    uint32_t numOutputChannels,
-                    uint32_t requiredSamples);
+  void processBlock(ScalarBuffer<double> const& input, double** output, uint32_t requiredSamples);
 
   /**
    * Down-samples a multi channel input buffer.
@@ -405,22 +398,23 @@ public:
   /**
    * Up-samples a multi channel input buffer.
    * @param input pointer to the input buffer.
-   * @param numChannelsToProcess number of channels to process
    * @param numSamples the number of samples of each channel of the input
    * buffer.
    * @return number of upsampled samples
    */
-  uint32_t processBlock(float* const* input, uint32_t numChannelsToProcess, uint32_t numSamples)
+  uint32_t processBlock(float* const* input, uint32_t numSamples)
   {
-    assert(numChannelsToProcess <= numChannels);
+    auto const numUpSampledSamples = (uint32_t)std::ceil(numSamples * oversamplingRate);
+    assert(floatToDoubleBuffer.getCapacity() >= numSamples);
+    assert(doubleToFloatBuffer.getCapacity() >= numUpSampledSamples);
     floatToDoubleBuffer.setNumSamples(numSamples);
-    doubleToFloatBuffer.setNumSamples((uint32_t)std::ceil(numSamples * oversamplingRate));
-    for (uint32_t c = 0; c < numChannelsToProcess; ++c) {
+    doubleToFloatBuffer.setNumSamples(numUpSampledSamples);
+    for (uint32_t c = 0; c < numChannels; ++c) {
       for (uint32_t i = 0; i < numSamples; ++i) {
         floatToDoubleBuffer[c][i] = (double)input[c][i];
       }
     }
-    auto const samples = UpSampler::processBlock(floatToDoubleBuffer.get(), numChannelsToProcess, numSamples);
+    auto const samples = UpSampler::processBlock(floatToDoubleBuffer.get(), numSamples);
     copyScalarBuffer(output, doubleToFloatBuffer);
     return samples;
   }
@@ -432,7 +426,7 @@ public:
    */
   uint32_t processBlock(ScalarBuffer<float> const& input)
   {
-    return processBlock(input.get(), input.getNumChannels(), input.getNumSamples());
+    return processBlock(input.get(), input.getNumSamples());
   }
 
   /**
@@ -509,24 +503,22 @@ public:
    * Down-samples a multi channel input buffer.
    * @param input pointer to the input buffers.
    * @param output pointer to the memory in which to store the downsampled data.
-   * @param numChannelsToProcess number of channels to process
    * @param requiredSamples the number of samples needed as output
    */
   void processBlock(float* const* input,
                     uint32_t numSamples,
                     float** output,
-                    uint32_t numChannelsToProcess,
                     uint32_t requiredSamples)
   {
-    assert(numChannelsToProcess <= numChannels);
-
+    assert(floatToDoubleBuffer.getCapacity() >= numSamples);
+    assert(doubleToFloatBuffer.getCapacity() >= requiredSamples);
     floatToDoubleBuffer.setNumSamples(numSamples);
     doubleToFloatBuffer.setNumSamples(requiredSamples);
-    for (uint32_t c = 0; c < numChannelsToProcess; ++c) {
+    for (uint32_t c = 0; c < numChannels; ++c) {
       std::copy(&input[c][0], &input[c][0] + numSamples, &floatToDoubleBuffer[c][0]);
     }
     DownSampler::processBlock(
-      floatToDoubleBuffer.get(), numSamples, doubleToFloatBuffer.get(), numChannelsToProcess, requiredSamples);
+      floatToDoubleBuffer.get(), numSamples, doubleToFloatBuffer.get(), requiredSamples);
     for (uint32_t c = 0; c < numChannels; ++c) {
       for (uint32_t i = 0; i < requiredSamples; ++i) {
         output[c][i] = (float)doubleToFloatBuffer[c][i];
@@ -538,22 +530,21 @@ public:
    * Down-samples a multi channel input buffer.
    * @param ScalarBuffer that holds the input buffer.
    * @param output pointer to the memory in which to store the downsampled data.
-   * @param numChannels number of channels of the output buffer
    * @param requiredSamples the number of samples needed as output
    */
   void processBlock(ScalarBuffer<float> const& input,
                     float** output,
-                    uint32_t numChannelsToProcess,
                     uint32_t requiredSamples)
   {
+    assert(floatToDoubleBuffer.getCapacity() >= input.getNumSamples());
+    assert(doubleToFloatBuffer.getCapacity() >= requiredSamples);
     copyScalarBuffer(input, floatToDoubleBuffer);
     doubleToFloatBuffer.setNumSamples(requiredSamples);
     DownSampler::processBlock(floatToDoubleBuffer.get(),
                               floatToDoubleBuffer.getNumSamples(),
                               doubleToFloatBuffer.get(),
-                              numChannelsToProcess,
                               requiredSamples);
-    for (uint32_t c = 0; c < numChannelsToProcess; ++c) {
+    for (uint32_t c = 0; c < numChannels; ++c) {
       for (uint32_t i = 0; i < requiredSamples; ++i) {
         output[c][i] = (float)doubleToFloatBuffer[c][i];
       }
@@ -568,7 +559,7 @@ public:
    */
   void processBlock(ScalarBuffer<float> const& input, ScalarBuffer<float>& output, uint32_t requiredSamples)
   {
-    processBlock(input, output.get(), output.getNumChannels(), requiredSamples);
+    processBlock(input, output.get(), requiredSamples);
   }
 
   /**
@@ -824,14 +815,13 @@ public:
   /**
    * Up-samples a multi channel input buffer.
    * @param input pointer to the input buffer.
-   * @param numChannels number of channels of the input buffer
    * @param numSamples the number of samples of each channel of the input
    * buffer.
    * @return number of upsampled samples
    */
-  uint32_t processBlock(Scalar* const* input, uint32_t numChannels, uint32_t numSamples)
+  uint32_t processBlock(Scalar* const* input, uint32_t numSamples)
   {
-    return this->get().processBlock(input, numChannels, numSamples);
+    return this->get().processBlock(input,  numSamples);
   }
 
   /**
@@ -872,31 +862,27 @@ public:
    * Down-samples a multi channel input buffer.
    * @param input pointer to the input buffers.
    * @param output pointer to the memory in which to store the downsampled data.
-   * @param numOutputChannels number of channels of the output buffer
    * @param requiredSamples the number of samples needed as output
    */
   void processBlock(Scalar* const* input,
                     uint32_t numSamples,
                     Scalar** output,
-                    uint32_t numOutputChannels,
                     uint32_t requiredSamples)
   {
-    return this->get().processBlock(input, numSamples, output, numOutputChannels, requiredSamples);
+    return this->get().processBlock(input, numSamples, output, requiredSamples);
   }
 
   /**
    * Down-samples a multi channel input buffer.
    * @param input a ScalarBuffer that holds the input buffer.
    * @param output pointer to the memory in which to store the downsampled data.
-   * @param numOutputChannels number of channels of the output buffer
    * @param requiredSamples the number of samples needed as output
    */
   void processBlock(ScalarBuffer<Scalar> const& input,
                     Scalar** output,
-                    uint32_t numOutputChannels,
                     uint32_t requiredSamples)
   {
-    return this->get().processBlock(input, output, numOutputChannels, requiredSamples);
+    return this->get().processBlock(input, output, requiredSamples);
   }
 
   /**

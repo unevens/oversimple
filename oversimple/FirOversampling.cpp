@@ -31,7 +31,8 @@ namespace oversimple::fir {
 
 uint32_t UpSampler::processBlock(ScalarBuffer<double> const& input)
 {
-  return processBlock(input.get(), input.getNumChannels(), input.getNumSamples());
+  assert(input.getNumChannels() == numChannels);
+  return processBlock(input.get(), input.getNumSamples());
 }
 
 void DownSampler::processBlock(ScalarBuffer<double> const& input,
@@ -41,18 +42,17 @@ void DownSampler::processBlock(ScalarBuffer<double> const& input,
   assert(output.getNumChannels() == input.getNumChannels());
   assert(output.getCapacity() >= requiredSamples);
   output.setNumSamples(requiredSamples);
-  processBlock(input, output.get(), output.getNumChannels(), requiredSamples);
+  processBlock(input, output.get(), requiredSamples);
 }
 
-uint32_t UpSampler::processBlock(double* const* input, uint32_t numInputChannels, uint32_t numSamples)
+uint32_t UpSampler::processBlock(double* const* input, uint32_t numSamples)
 {
-  assert(numInputChannels <= numChannels);
-  assert(output.getNumChannels() >= numInputChannels);
+  assert(output.getNumChannels() == numChannels);
   assert(output.getCapacity() >= maxOutputLength);
   output.setNumSamples(maxOutputLength);
 
   uint32_t totalUpSampledSamples = 0;
-  for (uint32_t c = 0; c < numInputChannels; ++c) {
+  for (uint32_t c = 0; c < numChannels; ++c) {
     double* outPtr;
     int numInputSamples = (int)numSamples;
     int inputCounter = 0;
@@ -74,17 +74,13 @@ uint32_t UpSampler::processBlock(double* const* input, uint32_t numInputChannels
   output.setNumSamples(totalUpSampledSamples);
   return totalUpSampledSamples;
 }
-void DownSampler::processBlock(double* const* input,
-                               uint32_t numSamples,
-                               double** output,
-                               uint32_t numOutputChannels,
-                               uint32_t requiredSamples)
+
+void DownSampler::processBlock(double* const* input, uint32_t numSamples, double** output, uint32_t requiredSamples)
 {
-  assert(numOutputChannels <= numChannels);
 
   int newBufferCounter = bufferCounter;
   if (numSamples <= fftSamplesPerBlock) {
-    for (uint32_t c = 0; c < numOutputChannels; ++c) {
+    for (uint32_t c = 0; c < numChannels; ++c) {
       double* outPtr;
       int const numUpSampledSamples = reSamplers[c]->process(const_cast<double*>(&input[c][0]), numSamples, outPtr);
       int diff = (int)requiredSamples - numUpSampledSamples - bufferCounter;
@@ -115,7 +111,7 @@ void DownSampler::processBlock(double* const* input,
     bufferCounter = newBufferCounter;
   }
   else { // numSamples > fftSamplesPerBlock
-    for (uint32_t c = 0; c < numOutputChannels; ++c) {
+    for (uint32_t c = 0; c < numChannels; ++c) {
       int inputCounter = 0;
       int outputCounter = 0;
       int numInputSamples = (int)numSamples;
@@ -142,14 +138,14 @@ void DownSampler::processBlock(double* const* input,
 
     int diff = (int)requiredSamples - bufferCounter;
     if (diff >= 0) {
-      for (uint32_t c = 0; c < numOutputChannels; ++c) {
+      for (uint32_t c = 0; c < numChannels; ++c) {
         std::fill_n(&output[c][0], diff, 0.0);
         std::copy(&buffer[c][0], &buffer[c][0] + bufferCounter, &output[c][diff]);
       }
       bufferCounter = 0;
     }
     else { // diff < 0
-      for (uint32_t c = 0; c < numOutputChannels; ++c) {
+      for (uint32_t c = 0; c < numChannels; ++c) {
         std::copy(&buffer[c][0], &buffer[c][0] + requiredSamples, &output[c][0]);
         std::copy(&buffer[c][0] + requiredSamples, &buffer[c][0] + bufferCounter, &buffer[c][0]);
       }
@@ -157,12 +153,9 @@ void DownSampler::processBlock(double* const* input,
   }
 }
 
-void DownSampler::processBlock(ScalarBuffer<double> const& input,
-                               double** output,
-                               uint32_t numOutputChannels,
-                               uint32_t requiredSamples)
+void DownSampler::processBlock(ScalarBuffer<double> const& input, double** output, uint32_t requiredSamples)
 {
-  processBlock(input.get(), input.getNumSamples(), output, numOutputChannels, requiredSamples);
+  processBlock(input.get(), input.getNumSamples(), output, requiredSamples);
 }
 
 void ReSamplerBase::setup()

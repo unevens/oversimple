@@ -102,12 +102,12 @@ void testFirOversampling(int numChannels,
   auto in = input.get();
   auto out = output.get();
   for (auto i = 0; i < numBuffers; ++i) {
-    int numUpSampledSamples = firUpSampler.processBlock(in, numChannels, numSamples);
+    int numUpSampledSamples = firUpSampler.processBlock(in, numSamples);
     auto const& upSampled = firUpSampler.getOutput().get();
     CHECK_MEMORY;
-    firDownSampler.processBlock(upSampled, numUpSampledSamples, out, numChannels, numSamples);
+    firDownSampler.processBlock(upSampled, numUpSampledSamples, out, numSamples);
     CHECK_MEMORY;
-//    cout << "numUpSampledSamples = " << numUpSampledSamples << "\n";
+    //    cout << "numUpSampledSamples = " << numUpSampledSamples << "\n";
     for (auto c = 0; c < numChannels; ++c) {
       in[c] += numSamples;
       out[c] += numSamples;
@@ -183,9 +183,9 @@ void inspectIirOversampling(int numChannels, int samplesPerBlock, int order, int
   upSampling.prepareBuffer(samplesPerBlock);
   downSampling.prepareBuffer(samplesPerBlock * (1 << order));
   CHECK_MEMORY;
-  upSampling.processBlock(in, samplesPerBlock, upSampled, numChannels);
+  upSampling.processBlock(in, samplesPerBlock, upSampled);
   CHECK_MEMORY;
-  downSampling.processBlock(upSampled, factor * samplesPerBlock, numChannels);
+  downSampling.processBlock(upSampled, factor * samplesPerBlock);
   CHECK_MEMORY;
   auto& output = downSampling.getOutput();
   auto preset = iir::detail::getOversamplingPreset(order);
