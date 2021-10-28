@@ -57,11 +57,11 @@ std::string i2s(int x)
 }
 
 template<typename Scalar>
-void testFirOversampler(int numChannels,
-                        int numSamples,
-                        int fftSamplesPerBlock,
-                        int oversamplingOrder,
-                        double transitionBand)
+void testFirOversampling(int numChannels,
+                         int numSamples,
+                         int fftSamplesPerBlock,
+                         int oversamplingOrder,
+                         double transitionBand)
 {
   cout << "testing Fir Oversampling with oversampling order " << oversamplingOrder << " and " << numChannels
        << " channels and " << numSamples << " samples per block"
@@ -80,14 +80,15 @@ void testFirOversampler(int numChannels,
   firDownSampler.prepareBuffers(maxUpSampledSamples, numSamples);
   int upSampleLatency = firUpSampler.getNumSamplesBeforeOutputStarts();
   int downSampleLatency = firDownSampler.getNumSamplesBeforeOutputStarts();
-  int latency = upSampleLatency + downSampleLatency;
+  int latency = upSampleLatency + downSampleLatency / (1 << oversamplingOrder);
   cout << "NumSamplesBeforeUpSamplingStarts = " << upSampleLatency << "\n";
   cout << "NumSamplesBeforeDownSamplingStarts  = " << downSampleLatency << "\n";
   cout << "latency  = " << latency << "\n";
-
-  ScalarBuffer<Scalar> input(numChannels, numSamples + latency);
-  ScalarBuffer<Scalar> inputCopy(numChannels, numSamples + latency);
-  ScalarBuffer<Scalar> output(numChannels, numSamples + latency);
+  auto const numBuffers = latency / numSamples + 2 * std::max(1, fftSamplesPerBlock / numSamples);
+  auto const totSamples = numSamples * numBuffers;
+  ScalarBuffer<Scalar> input(numChannels, totSamples);
+  ScalarBuffer<Scalar> inputCopy(numChannels, totSamples);
+  ScalarBuffer<Scalar> output(numChannels, totSamples);
   input.fill(0.0);
   inputCopy.fill(0.0);
   output.fill(0.0);
@@ -98,32 +99,40 @@ void testFirOversampler(int numChannels,
     }
   }
 
-  int numUpSampledSamples = firUpSampler.processBlock(input);
-  auto const& upSampled = firUpSampler.getOutput();
-  CHECK_MEMORY;
-  firDownSampler.processBlock(upSampled, output, numSamples);
-  CHECK_MEMORY;
-  cout << "numUpSampledSamples = " << numUpSampledSamples << "\n";
+  auto in = input.get();
+  auto out = output.get();
+  for (auto i = 0; i < numBuffers; ++i) {
+    int numUpSampledSamples = firUpSampler.processBlock(in, numChannels, numSamples);
+    auto const& upSampled = firUpSampler.getOutput().get();
+    CHECK_MEMORY;
+    firDownSampler.processBlock(upSampled, numUpSampledSamples, out, numChannels, numSamples);
+    CHECK_MEMORY;
+//    cout << "numUpSampledSamples = " << numUpSampledSamples << "\n";
+    for (auto c = 0; c < numChannels; ++c) {
+      in[c] += numSamples;
+      out[c] += numSamples;
+    }
+  }
 
-  auto const measureSnr=[&](int from, int to, const char* text){
+  auto const measureSnr = [&](int from, int to, const char* text) {
     for (int c = 0; c < numChannels; ++c) {
       double noisePower = 0.0;
       double signalPower = 0.0;
       for (int i = from; i < to; ++i) {
         double in = inputCopy[c][i];
-        double out = output[c][i];
-        //      cout << in << " | " << out << "\n";
+        double out = output[c][i + latency];
+        //        cout << in << " | " << out << "\n";
         double diff = in - out;
         signalPower += in * in;
         noisePower += diff * diff;
       }
 
-      cout << text <<": channel " << c << " snr = " << 10.0 * log10(signalPower / noisePower) << " dB\n";
+      cout << text << ": channel " << c << " snr = " << 10.0 * log10(signalPower / noisePower) << " dB\n";
     }
   };
 
   measureSnr(0, fftSamplesPerBlock, "snr first block");
-  measureSnr(fftSamplesPerBlock, numSamples, "snr after first block");
+  measureSnr(fftSamplesPerBlock, totSamples - latency, "snr after first block");
 
   cout << "completed testing Fir Oversampling with oversampling order " << oversamplingOrder << " and " << numChannels
        << " channels and " << numSamples << " samples per block"
@@ -224,7 +233,9 @@ int main()
 
   inspectIirOversampling<double>(2, 256, 4, 128);
   inspectIirOversampling<float>(2, 256, 4, 128);
-  testFirOversampler<double>(2, 16384, 512, 4, 4.0);
-  testFirOversampler<float>(2, 16384, 512, 4, 4.0);
+  testFirOversampling<float>(2, 128, 1024, 4, 4.0);
+  testFirOversampling<float>(2, 1024, 512, 4, 4.0);
+  testFirOversampling<double>(2, 128, 1024, 4, 4.0);
+  testFirOversampling<double>(2, 1024, 512, 4, 4.0);
   return 0;
 }

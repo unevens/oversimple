@@ -38,19 +38,18 @@ void DownSampler::processBlock(ScalarBuffer<double> const& input,
                                ScalarBuffer<double>& output,
                                uint32_t requiredSamples)
 {
-  output.setNumChannelsAndSamples(input.getNumChannels(), input.getNumSamples());
+  assert(output.getNumChannels() == input.getNumChannels());
+  assert(output.getCapacity() >= requiredSamples);
+  output.setNumSamples(requiredSamples);
   processBlock(input, output.get(), output.getNumChannels(), requiredSamples);
 }
 
 uint32_t UpSampler::processBlock(double* const* input, uint32_t numInputChannels, uint32_t numSamples)
 {
   assert(numInputChannels <= numChannels);
-  auto const numOutputSamples = (uint32_t)std::ceil(numSamples * oversamplingRate);
-  if (output.getNumChannels() < numInputChannels || output.getCapacity() < numOutputSamples) {
-    DEBUG_MESSAGE("A UpSampler object had to allocate memory! Has "
-                  "prepareBuffers been called?\n");
-  }
-  output.setNumChannelsAndSamples(numInputChannels, numOutputSamples);
+  assert(output.getNumChannels() >= numInputChannels);
+  assert(output.getCapacity() >= maxOutputLength);
+  output.setNumSamples(maxOutputLength);
 
   uint32_t totalUpSampledSamples = 0;
   for (uint32_t c = 0; c < numInputChannels; ++c) {
@@ -64,17 +63,15 @@ uint32_t UpSampler::processBlock(double* const* input, uint32_t numInputChannels
       inputCounter += samplesToProcess;
       numInputSamples -= (int)samplesToProcess;
       if (numUpSampledSamples > 0) {
-        if (outputCounter + numUpSampledSamples > numOutputSamples) {
-          DEBUG_MESSAGE("A UpSampler object had to allocate memory due to a "
-                        "fluctuation, this shold not happen!\n");
-          output.setNumSamples(outputCounter + numOutputSamples);
-        }
+        auto const totUpSampledSamples = outputCounter + numUpSampledSamples;
+        assert(output.getNumSamples() >= totUpSampledSamples);
         std::copy(outPtr, outPtr + numUpSampledSamples, &output[c][outputCounter]);
         outputCounter += numUpSampledSamples;
       }
     }
     totalUpSampledSamples = outputCounter;
   }
+  output.setNumSamples(totalUpSampledSamples);
   return totalUpSampledSamples;
 }
 void DownSampler::processBlock(double* const* input,
@@ -89,12 +86,12 @@ void DownSampler::processBlock(double* const* input,
   if (numSamples <= fftSamplesPerBlock) {
     for (uint32_t c = 0; c < numOutputChannels; ++c) {
       double* outPtr;
-      int const numUpsampledSamples = reSamplers[c]->process(const_cast<double*>(&input[c][0]), numSamples, outPtr);
-      int diff = (int)requiredSamples - numUpsampledSamples - bufferCounter;
+      int const numUpSampledSamples = reSamplers[c]->process(const_cast<double*>(&input[c][0]), numSamples, outPtr);
+      int diff = (int)requiredSamples - numUpSampledSamples - bufferCounter;
       if (diff >= 0) {
         std::fill_n(&output[c][0], diff, 0.0);
         std::copy(&buffer[c][0], &buffer[c][0] + bufferCounter, &output[c][diff]);
-        std::copy(outPtr, outPtr + numUpsampledSamples, &output[c][diff + bufferCounter]);
+        std::copy(outPtr, outPtr + numUpSampledSamples, &output[c][diff + bufferCounter]);
         newBufferCounter = 0;
       }
       else { // diff < 0
@@ -103,19 +100,16 @@ void DownSampler::processBlock(double* const* input,
         std::copy(&buffer[c][0] + samplesFromBuffer, &buffer[c][0] + bufferCounter, &buffer[c][0]);
         newBufferCounter = bufferCounter - samplesFromBuffer;
         int const wantedSamplesFromReSampler = (int)requiredSamples - samplesFromBuffer;
-        int const samplesFromReSampler = std::min(wantedSamplesFromReSampler, numUpsampledSamples);
+        int const samplesFromReSampler = std::min(wantedSamplesFromReSampler, numUpSampledSamples);
         std::copy(outPtr, outPtr + samplesFromReSampler, &output[c][samplesFromBuffer]);
         // check buffer size
-        auto const neededBufferSize = (uint32_t)(newBufferCounter + numUpsampledSamples - samplesFromReSampler);
+        auto const neededBufferSize = (uint32_t)(newBufferCounter + numUpSampledSamples - samplesFromReSampler);
+        assert(buffer.getCapacity() >= neededBufferSize);
         if (buffer.getNumSamples() < neededBufferSize) {
-          if (buffer.getCapacity() < neededBufferSize) {
-            DEBUG_MESSAGE("A DownSampler object had to allocate "
-                          "memory! Has prepareBuffers been called?\n");
-          }
           buffer.setNumSamples(neededBufferSize);
         }
         // copy tail to buffer
-        std::copy(outPtr + samplesFromReSampler, outPtr + numUpsampledSamples, &buffer[c][newBufferCounter]);
+        std::copy(outPtr + samplesFromReSampler, outPtr + numUpSampledSamples, &buffer[c][newBufferCounter]);
       }
     }
     bufferCounter = newBufferCounter;
@@ -133,12 +127,9 @@ void DownSampler::processBlock(double* const* input,
         inputCounter += samplesToProcess;
         numInputSamples -= samplesToProcess;
         auto const neededBufferSize = (uint32_t)(bufferCounter + outputCounter + numUpSampledSamples);
+        assert(buffer.getCapacity() >= neededBufferSize);
         if (buffer.getNumSamples() < neededBufferSize) {
-          if (buffer.getCapacity() < neededBufferSize) {
-            DEBUG_MESSAGE("A DownSampler object had to allocate "
-                          "memory! Has prepareBuffers been called?");
-          }
-          buffer.setNumSamples(bufferCounter + outputCounter + numUpSampledSamples);
+          buffer.setNumSamples(neededBufferSize);
         }
         if (numUpSampledSamples > 0) {
           std::copy(outPtr, outPtr + numUpSampledSamples, &buffer[c][bufferCounter + outputCounter]);
@@ -264,7 +255,7 @@ void DownSampler::prepareBuffers(uint32_t numInputSamples, uint32_t requiredOutp
 void UpSampler::setup()
 {
   ReSamplerBase::setup();
-
+  output.setNumChannels(numChannels);
   prepareBuffers(maxInputLength);
   reset();
 }
@@ -282,8 +273,7 @@ void DownSampler::setup()
 uint32_t ReSamplerBase::getNumSamplesBeforeOutputStarts()
 {
   if (reSamplers.empty()) {
-    DEBUG_MESSAGE("Asking the number of samples before the output of the "
-                  "reSamplers starts when there are 0 allocated reSamplers.");
+    assert(false);
     return 0;
   }
   return reSamplers[0]->getInLenBeforeOutStart();
@@ -297,6 +287,7 @@ void UpSampler::prepareBuffers(uint32_t numSamples, bool setAlsoFftBlockSize)
   }
   else {
     prepareBuffersBase(numSamples);
+    output.setNumSamples(maxOutputLength);
   }
 }
 

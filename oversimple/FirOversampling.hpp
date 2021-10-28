@@ -115,10 +115,10 @@ protected:
 
   double oversamplingRate = 1.0;
   uint32_t numChannels = 2;
-  uint32_t fftSamplesPerBlock = 256;
+  uint32_t fftSamplesPerBlock = 512;
   double transitionBand = 2.0;
   std::vector<std::unique_ptr<r8b::CDSPResampler24>> reSamplers;
-  uint32_t maxOutputLength = 256;
+  uint32_t maxOutputLength = 0;
   uint32_t maxInputLength = 256;
 };
 
@@ -726,7 +726,7 @@ public:
 protected:
   explicit TReSamplerPreAllocatedBase(uint32_t numChannels = 2,
                                       double transitionBand = 2.0,
-                                      uint32_t fftSamplesPerBlock = 256)
+                                      uint32_t fftSamplesPerBlock = 512)
     : numChannels{ numChannels }
     , transitionBand{ transitionBand }
     , fftSamplesPerBlock{ fftSamplesPerBlock }
@@ -745,7 +745,7 @@ protected:
   std::vector<std::unique_ptr<ReSampler>> reSamplers;
   uint32_t numChannels = 2;
   uint32_t maxInputSamples = 256;
-  uint32_t fftSamplesPerBlock = 256;
+  uint32_t fftSamplesPerBlock = 512;
   double transitionBand = 2.0;
   uint32_t order = 1;
 };
@@ -767,7 +767,7 @@ public:
   explicit TUpSamplerPreAllocated(uint32_t maxOrder = 5,
                                   uint32_t numChannels = 2,
                                   double transitionBand = 2.0,
-                                  uint32_t fftSamplesPerBlock = 256)
+                                  uint32_t fftSamplesPerBlock = 512)
     : TReSamplerPreAllocatedBase<TUpSampler<Scalar>>(numChannels, transitionBand, fftSamplesPerBlock)
   {
     setMaxOrder(maxOrder);
@@ -862,7 +862,7 @@ public:
   explicit TDownSamplerPreAllocated(uint32_t maxOrder = 5,
                                     uint32_t numChannels = 2,
                                     double transitionBand = 2.0,
-                                    uint32_t fftSamplesPerBlock = 256)
+                                    uint32_t fftSamplesPerBlock = 512)
     : TReSamplerPreAllocatedBase<TDownSampler<Scalar>>(numChannels, transitionBand, fftSamplesPerBlock)
   {
     setMaxOrder(maxOrder);
