@@ -160,7 +160,6 @@ void testIirOversampling(int numChannels, int order, int numSamples)
   auto const samplesPerBlock = offset + numSamples;
 
   auto in = ScalarBuffer<Scalar>(numChannels, samplesPerBlock);
-  auto upSampled = InterleavedBuffer<Scalar>(numChannels, factor * samplesPerBlock);
   in.fill(1.0);
   // Oversampling test
   auto upSampling = iir::UpSampler<Scalar>(1, order);
@@ -174,8 +173,9 @@ void testIirOversampling(int numChannels, int order, int numSamples)
   upSampling.prepareBuffer(samplesPerBlock);
   downSampling.prepareBuffer(samplesPerBlock * (1 << order));
   CHECK_MEMORY;
-  upSampling.processBlock(in, upSampled);
+  upSampling.processBlock(in);
   CHECK_MEMORY;
+  auto& upSampled = upSampling.getOutput();
   downSampling.processBlock(upSampled, factor * samplesPerBlock);
   CHECK_MEMORY;
   auto& output = downSampling.getOutput();

@@ -691,24 +691,18 @@ public:
   /**
    * Up-samples an already interleaved input.
    * @param input an InterleavedBuffer<Scalar> holding the input samples
-   * @param output an InterleavedBuffer to hold the up-sampled samples
    * @param numChannelsToProcess the number of channels to process. If negative,
    * all channels will be processed.
    */
-  void processBlock(InterleavedBuffer<Scalar> const& input, InterleavedBuffer<Scalar>& output)
+  void processBlock(InterleavedBuffer<Scalar> const& input)
   {
     auto const numInputSamples = input.getNumSamples();
-    auto const numOutputSamples = numInputSamples * this->factor;
 
     assert(input.getNumChannels() == this->numChannels);
-    assert(output.getNumChannels() == this->numChannels);
     assert(numInputSamples <= this->maxInputSamples);
-    assert(numOutputSamples <= output.getCapacity());
 
-    output.setNumSamples(numOutputSamples);
-
-    auto& temp2 = this->buffer[0];
-    auto& temp = this->buffer[1];
+    auto& output = this->buffer[1];
+    auto& temp = this->buffer[0];
 
     switch (this->order) {
       case 1: {
@@ -725,8 +719,8 @@ public:
       } break;
       case 4: {
         this->applyStage0(temp, input, numInputSamples);
-        this->applyStage1(temp2, temp, numInputSamples * 2);
-        this->applyStage2(temp, temp2, numInputSamples * 4);
+        this->applyStage1(output, temp, numInputSamples * 2);
+        this->applyStage2(temp, output, numInputSamples * 4);
         this->applyStage3(output, temp, numInputSamples * 8);
       } break;
       case 5: {
@@ -740,56 +734,47 @@ public:
         assert(false);
     }
   }
+
   /**
    * Up-samples the input.
    * @param input a pointer to the memory holding the input samples.
    * @param numInputSamples the number of samples in each channel of the input
    * buffer
-   * @param output an InterleavedBuffer to hold the up-sampled samples
    */
-  void processBlock(Scalar* const* inputs,
-                    uint32_t numInputSamples,
-                    InterleavedBuffer<Scalar>& output)
+  void processBlock(Scalar* const* inputs, uint32_t numInputSamples)
   {
-    auto const numOutputSamples = numInputSamples * this->factor;
-
-    assert(output.getNumChannels() == this->numChannels);
     assert(numInputSamples <= this->maxInputSamples);
-    assert(numOutputSamples <= output.getCapacity());
-
-    auto& input = this->buffer[0];
-    auto& temp = this->buffer[1];
 
     switch (this->order) {
       case 1: {
-        input.interleave(inputs, output.getNumChannels(), numInputSamples);
-        this->applyStage0(output, input, numInputSamples);
+        this->buffer[0].interleave(inputs, this->numChannels, numInputSamples);
+        this->applyStage0(this->buffer[1], this->buffer[0], numInputSamples);
       } break;
       case 2: {
-        input.interleave(inputs, output.getNumChannels(), numInputSamples);
-        this->applyStage0(temp, input, numInputSamples);
-        this->applyStage1(output, temp, numInputSamples * 2);
+        this->buffer[1].interleave(inputs, this->numChannels, numInputSamples);
+        this->applyStage0(this->buffer[0], this->buffer[1], numInputSamples);
+        this->applyStage1(this->buffer[1], this->buffer[0], numInputSamples * 2);
       } break;
       case 3: {
-        input.interleave(inputs, output.getNumChannels(), numInputSamples);
-        this->applyStage0(output, input, numInputSamples);
-        this->applyStage1(temp, output, numInputSamples * 2);
-        this->applyStage2(output, temp, numInputSamples * 4);
+        this->buffer[0].interleave(inputs, this->numChannels, numInputSamples);
+        this->applyStage0(this->buffer[1], this->buffer[0], numInputSamples);
+        this->applyStage1(this->buffer[0], this->buffer[1], numInputSamples * 2);
+        this->applyStage2(this->buffer[1], this->buffer[0], numInputSamples * 4);
       } break;
       case 4: {
-        input.interleave(inputs, output.getNumChannels(), numInputSamples);
-        this->applyStage0(temp, input, numInputSamples);
-        this->applyStage1(input, temp, numInputSamples * 2);
-        this->applyStage2(temp, input, numInputSamples * 4);
-        this->applyStage3(output, temp, numInputSamples * 8);
+        this->buffer[1].interleave(inputs, this->numChannels, numInputSamples);
+        this->applyStage0(this->buffer[0], this->buffer[1], numInputSamples);
+        this->applyStage1(this->buffer[1], this->buffer[0], numInputSamples * 2);
+        this->applyStage2(this->buffer[0], this->buffer[1], numInputSamples * 4);
+        this->applyStage3(this->buffer[1], this->buffer[0], numInputSamples * 8);
       } break;
       case 5: {
-        input.interleave(inputs, output.getNumChannels(), numInputSamples);
-        this->applyStage0(output, input, numInputSamples);
-        this->applyStage1(temp, output, numInputSamples * 2);
-        this->applyStage2(output, temp, numInputSamples * 4);
-        this->applyStage3(temp, output, numInputSamples * 8);
-        this->applyStage4(output, temp, numInputSamples * 16);
+        this->buffer[0].interleave(inputs, this->numChannels, numInputSamples);
+        this->applyStage0(this->buffer[1], this->buffer[0], numInputSamples);
+        this->applyStage1(this->buffer[0], this->buffer[1], numInputSamples * 2);
+        this->applyStage2(this->buffer[1], this->buffer[0], numInputSamples * 4);
+        this->applyStage3(this->buffer[0], this->buffer[1], numInputSamples * 8);
+        this->applyStage4(this->buffer[1], this->buffer[0], numInputSamples * 16);
       } break;
       default:
         assert(false);
@@ -802,10 +787,18 @@ public:
    * @param numChannelsToProcess the number of channels to process. If negative,
    * all channels will be processed.
    */
-  void processBlock(ScalarBuffer<Scalar> const& input, InterleavedBuffer<Scalar>& output)
+  void processBlock(ScalarBuffer<Scalar> const& input)
   {
     assert(input.getNumChannels() == this->numChannels);
-    processBlock(input.get(), input.getNumSamples(), output);
+    processBlock(input.get(), input.getNumSamples());
+  }
+
+  /**
+   * @return an InterleavedBuffer holding the output
+   */
+  InterleavedBuffer<Scalar>& getOutput()
+  {
+    return this->buffer[1];
   }
 };
 
