@@ -229,20 +229,27 @@ void ReSamplerBase::prepareBuffersBase(uint32_t numSamples)
   maxOutputLength = (quot + (rem > 0 ? 1 : 0)) * maxReSamplerOutputLength;
 }
 
-void DownSampler::prepareBuffers(uint32_t numInputSamples, uint32_t requiredOutputSamples, bool setAlsoFftBlockSize)
+void DownSampler::prepareBuffers(uint32_t numInputSamples, uint32_t requiredOutputSamples)
 {
-  if (setAlsoFftBlockSize) {
-    maxInputLength = numInputSamples;
-    setFftSamplesPerBlock(numInputSamples);
-  }
-  else {
-    prepareBuffersBase(numInputSamples);
-  }
+  prepareBuffersBase(numInputSamples);
+  updateBuffer(requiredOutputSamples);
+}
+
+void DownSampler::updateBuffer(uint32_t requiredOutputSamples)
+{
   maxRequiredOutputLength = requiredOutputSamples;
   auto const neededBufferSize = maxOutputLength + std::max(maxOutputLength, requiredOutputSamples);
   if (buffer.getNumSamples() < neededBufferSize) {
     buffer.setNumSamples(neededBufferSize);
   }
+}
+void DownSampler::prepareBuffersAndSetFftBlockSize(uint32_t numInputSamples,
+                                                   uint32_t requiredOutputSamples,
+                                                   uint32_t fftBlockSize)
+{
+  maxInputLength = numInputSamples;
+  setFftSamplesPerBlock(fftBlockSize);
+  updateBuffer(requiredOutputSamples);
 }
 
 void UpSampler::setup()
@@ -272,16 +279,16 @@ uint32_t ReSamplerBase::getNumSamplesBeforeOutputStarts()
   return reSamplers[0]->getInLenBeforeOutStart();
 }
 
-void UpSampler::prepareBuffers(uint32_t numSamples, bool setAlsoFftBlockSize)
+void UpSampler::prepareBuffers(uint32_t numSamples)
 {
-  if (setAlsoFftBlockSize) {
-    maxInputLength = numSamples;
-    setFftSamplesPerBlock(numSamples);
-  }
-  else {
-    prepareBuffersBase(numSamples);
-    output.setNumSamples(maxOutputLength);
-  }
+  prepareBuffersBase(numSamples);
+  output.setNumSamples(maxOutputLength);
+}
+
+void UpSampler::prepareBuffersAndSetFftBlockSize(uint32_t numSamples, uint32_t fftBlockSize)
+{
+  maxInputLength = numSamples;
+  setFftSamplesPerBlock(fftBlockSize);
 }
 
 } // namespace oversimple::fir

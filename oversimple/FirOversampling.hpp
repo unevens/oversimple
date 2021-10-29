@@ -152,7 +152,7 @@ public:
    * @param numChannels number of channels of the input buffer
    * @param numSamples the number of samples of each channel of the input
    * buffer.
-   * @return number of upsampled samples
+   * @return number of up-sampled samples
    */
   uint32_t processBlock(double* const* input, uint32_t numSamples);
 
@@ -178,9 +178,9 @@ public:
    * each processBlock call.
    * @param numSamples expected number of samples to be processed on each call
    * to processBlock.
-   * @setAlsoFftBlockSize if true, sets also the samples per block of the fft to numSamples
+   * @param fftBlockSize the new number of samples that will be processed by each fft call.
    */
-  virtual void prepareBuffers(uint32_t numSamples, bool setAlsoFftBlockSize);
+  virtual void prepareBuffersAndSetFftBlockSize(uint32_t numSamples, uint32_t fftBlockSize);
 
   /**
    * Prepare the reSampler to be able to process up to numSamples samples with
@@ -188,10 +188,7 @@ public:
    * @param numSamples expected number of samples to be processed on each call
    * to processBlock.
    */
-  virtual void prepareBuffers(uint32_t numSamples)
-  {
-    prepareBuffers(numSamples, false);
-  }
+  virtual void prepareBuffers(uint32_t numSamples);
 
   /**
    * Sets the oversampling rate.
@@ -220,10 +217,9 @@ public:
   }
 
 protected:
-  ScalarBuffer<double> output;
-
-private:
   void setup() override;
+
+  ScalarBuffer<double> output;
 };
 
 /**
@@ -282,20 +278,19 @@ public:
    * produce requiredOutputSamples output samples.
    * @param numInputSamples the expected maximum number input samples
    * @param requiredOutputSamples the required number of output samples
-   * @setAlsoFftBlockSize if true, sets also the samples per block of the fft to numSamples
    */
-  virtual void prepareBuffers(uint32_t numInputSamples, uint32_t requiredOutputSamples, bool setAlsoFftBlockSize);
+  virtual void prepareBuffers(uint32_t numInputSamples, uint32_t requiredOutputSamples);
 
   /**
    * Allocates resources to process up to numInputSamples input samples and
-   * produce requiredOutputSamples output samples.
+   * produce requiredOutputSamples output samples. Also sets the fft block size.
    * @param numInputSamples the expected maximum number input samples
    * @param requiredOutputSamples the required number of output samples
+   * @param fftBlockSize the new number of samples that will be processed by each fft call.
    */
-  virtual void prepareBuffers(uint32_t numInputSamples, uint32_t requiredOutputSamples)
-  {
-    prepareBuffers(numInputSamples, requiredOutputSamples, false);
-  }
+  virtual void prepareBuffersAndSetFftBlockSize(uint32_t numInputSamples,
+                                                uint32_t requiredOutputSamples,
+                                                uint32_t fftBlockSize);
 
   /**
    * Resets the state of the processor, clearing the buffers.
@@ -331,6 +326,7 @@ private:
 
 protected:
   void setup() override;
+  void updateBuffer(uint32_t requiredOutputSamples);
 };
 
 /**
@@ -432,23 +428,22 @@ public:
   /**
    * Allocates resources to process up to numInputSamples input samples.
    * @param numInputSamples the expected maximum number input samples
-   * @setAlsoFftBlockSize if true, sets also the samples per block of the fft to numSamples
+   * @param fftBlockSize the new number of samples that will be processed by each fft call.
    */
-  void prepareBuffers(uint32_t numSamples, bool setAlsoFftBlockSize) override
+  void prepareBuffersAndSetFftBlockSize(uint32_t numSamples, uint32_t fftBlockSize) override
   {
-    UpSampler::prepareBuffers(numSamples, setAlsoFftBlockSize);
-    floatToDoubleBuffer.setNumSamples(numSamples);
-    doubleToFloatBuffer.setNumSamples((uint32_t)std::ceil(numSamples * oversamplingRate));
+    UpSampler::prepareBuffersAndSetFftBlockSize(numSamples, fftBlockSize);
+    updateBuffers(numSamples);
   }
 
   /**
    * Allocates resources to process up to numInputSamples input samples.
    * @param numInputSamples the expected maximum number input samples
-   * @setAlsoFftBlockSize if true, sets also the samples per block of the fft to numSamples
    */
   void prepareBuffers(uint32_t numSamples) override
   {
-    prepareBuffers(numSamples, false);
+    UpSampler::prepareBuffers(numSamples);
+    updateBuffers(numSamples);
   }
 
   ScalarBuffer<float>& getOutput()
@@ -459,6 +454,20 @@ public:
   ScalarBuffer<float> const& getOutput() const
   {
     return doubleToFloatBuffer;
+  }
+
+private:
+  void setup() override
+  {
+    floatToDoubleBuffer.setNumChannels(this->numChannels);
+    doubleToFloatBuffer.setNumChannels(this->numChannels);
+    UpSampler::setup();
+  }
+
+  void updateBuffers(uint32_t numSamples)
+  {
+    floatToDoubleBuffer.setNumSamples(numSamples);
+    doubleToFloatBuffer.setNumSamples((uint32_t)std::ceil(numSamples * oversamplingRate));
   }
 };
 
@@ -505,10 +514,7 @@ public:
    * @param output pointer to the memory in which to store the downsampled data.
    * @param requiredSamples the number of samples needed as output
    */
-  void processBlock(float* const* input,
-                    uint32_t numSamples,
-                    float** output,
-                    uint32_t requiredSamples)
+  void processBlock(float* const* input, uint32_t numSamples, float** output, uint32_t requiredSamples)
   {
     assert(floatToDoubleBuffer.getCapacity() >= numSamples);
     assert(doubleToFloatBuffer.getCapacity() >= requiredSamples);
@@ -517,8 +523,7 @@ public:
     for (uint32_t c = 0; c < numChannels; ++c) {
       std::copy(&input[c][0], &input[c][0] + numSamples, &floatToDoubleBuffer[c][0]);
     }
-    DownSampler::processBlock(
-      floatToDoubleBuffer.get(), numSamples, doubleToFloatBuffer.get(), requiredSamples);
+    DownSampler::processBlock(floatToDoubleBuffer.get(), numSamples, doubleToFloatBuffer.get(), requiredSamples);
     for (uint32_t c = 0; c < numChannels; ++c) {
       for (uint32_t i = 0; i < requiredSamples; ++i) {
         output[c][i] = (float)doubleToFloatBuffer[c][i];
@@ -532,18 +537,14 @@ public:
    * @param output pointer to the memory in which to store the downsampled data.
    * @param requiredSamples the number of samples needed as output
    */
-  void processBlock(ScalarBuffer<float> const& input,
-                    float** output,
-                    uint32_t requiredSamples)
+  void processBlock(ScalarBuffer<float> const& input, float** output, uint32_t requiredSamples)
   {
     assert(floatToDoubleBuffer.getCapacity() >= input.getNumSamples());
     assert(doubleToFloatBuffer.getCapacity() >= requiredSamples);
     copyScalarBuffer(input, floatToDoubleBuffer);
     doubleToFloatBuffer.setNumSamples(requiredSamples);
-    DownSampler::processBlock(floatToDoubleBuffer.get(),
-                              floatToDoubleBuffer.getNumSamples(),
-                              doubleToFloatBuffer.get(),
-                              requiredSamples);
+    DownSampler::processBlock(
+      floatToDoubleBuffer.get(), floatToDoubleBuffer.getNumSamples(), doubleToFloatBuffer.get(), requiredSamples);
     for (uint32_t c = 0; c < numChannels; ++c) {
       for (uint32_t i = 0; i < requiredSamples; ++i) {
         output[c][i] = (float)doubleToFloatBuffer[c][i];
@@ -567,13 +568,14 @@ public:
    * produce requiredOutputSamples output samples.
    * @param numInputSamples the expected maximum number input samples
    * @param requiredOutputSamples the required number of output samples
-   * @setAlsoFftBlockSize if true, sets also the samples per block of the fft to numSamples
+   * @param fftBlockSize the new number of samples that will be processed by each fft call.
    */
-  void prepareBuffers(uint32_t numInputSamples, uint32_t requiredOutputSamples, bool setAlsoFftBlockSize) override
+  void prepareBuffersAndSetFftBlockSize(uint32_t numInputSamples,
+                                        uint32_t requiredOutputSamples,
+                                        uint32_t fftBlockSize) override
   {
-    DownSampler::prepareBuffers(numInputSamples, requiredOutputSamples, setAlsoFftBlockSize);
-    floatToDoubleBuffer.setNumSamples(numInputSamples);
-    doubleToFloatBuffer.setNumSamples(requiredOutputSamples);
+    DownSampler::prepareBuffersAndSetFftBlockSize(numInputSamples, requiredOutputSamples, fftBlockSize);
+    updateBuffers(numInputSamples, requiredOutputSamples);
   }
 
   /**
@@ -584,7 +586,23 @@ public:
    */
   void prepareBuffers(uint32_t numInputSamples, uint32_t requiredOutputSamples) override
   {
-    prepareBuffers(numInputSamples, requiredOutputSamples, false);
+    DownSampler::prepareBuffers(numInputSamples, requiredOutputSamples);
+    updateBuffers(numInputSamples, requiredOutputSamples);
+  }
+
+protected:
+  void setup() override
+  {
+    floatToDoubleBuffer.setNumChannels(this->numChannels);
+    doubleToFloatBuffer.setNumChannels(this->numChannels);
+    DownSampler::setup();
+  }
+
+private:
+  void updateBuffers(uint32_t numInputSamples, uint32_t requiredOutputSamples)
+  {
+    floatToDoubleBuffer.setNumSamples(numInputSamples);
+    doubleToFloatBuffer.setNumSamples(requiredOutputSamples);
   }
 };
 
@@ -802,13 +820,26 @@ public:
   /**
    * Allocates resources to process up to numInputSamples input.
    * @param numInputSamples the expected maximum number input samples
-   * @setAlsoFftBlockSize if true, sets also the samples per block of the fft to numSamples
+   * @param fftBlockSize the new number of samples that will be processed by each fft call.
    */
-  void prepareBuffers(uint32_t numInputSamples, bool setAlsoFftBlockSize = false)
+  void prepareBuffersAndSetFftBlockSize(uint32_t numInputSamples, uint32_t fftBlockSize)
+  {
+    this->maxInputSamples = numInputSamples;
+    this->fftSamplesPerBlock = fftBlockSize;
+    for (auto& reSampler : this->reSamplers) {
+      reSampler->prepareBuffersAndSetFftBlockSize(numInputSamples, fftBlockSize);
+    }
+  }
+
+  /**
+   * Allocates resources to process up to numInputSamples input.
+   * @param numInputSamples the expected maximum number input samples
+   */
+  void prepareBuffers(uint32_t numInputSamples)
   {
     this->maxInputSamples = numInputSamples;
     for (auto& reSampler : this->reSamplers) {
-      reSampler->prepareBuffers(numInputSamples, setAlsoFftBlockSize);
+      reSampler->prepareBuffers(numInputSamples);
     }
   }
 
@@ -821,7 +852,7 @@ public:
    */
   uint32_t processBlock(Scalar* const* input, uint32_t numSamples)
   {
-    return this->get().processBlock(input,  numSamples);
+    return this->get().processBlock(input, numSamples);
   }
 
   /**
@@ -864,10 +895,7 @@ public:
    * @param output pointer to the memory in which to store the downsampled data.
    * @param requiredSamples the number of samples needed as output
    */
-  void processBlock(Scalar* const* input,
-                    uint32_t numSamples,
-                    Scalar** output,
-                    uint32_t requiredSamples)
+  void processBlock(Scalar* const* input, uint32_t numSamples, Scalar** output, uint32_t requiredSamples)
   {
     return this->get().processBlock(input, numSamples, output, requiredSamples);
   }
@@ -878,9 +906,7 @@ public:
    * @param output pointer to the memory in which to store the downsampled data.
    * @param requiredSamples the number of samples needed as output
    */
-  void processBlock(ScalarBuffer<Scalar> const& input,
-                    Scalar** output,
-                    uint32_t requiredSamples)
+  void processBlock(ScalarBuffer<Scalar> const& input, Scalar** output, uint32_t requiredSamples)
   {
     return this->get().processBlock(input, output, requiredSamples);
   }
@@ -920,14 +946,32 @@ public:
    * produce requiredOutputSamples output samples.
    * @param numInputSamples the expected maximum number input samples
    * @param requiredOutputSamples the required number of output samples
-   * @setAlsoFftBlockSize if true, sets also the samples per block of the fft to numSamples
+   * @param fftBlockSize the new number of samples that will be processed by each fft call.
    */
-  void prepareBuffers(uint32_t numInputSamples, uint32_t requiredOutputSamples_, bool setAlsoFftBlockSize = false)
+  void prepareBuffersAndSetFftBlockSize(uint32_t numInputSamples,
+                                        uint32_t requiredOutputSamples_,
+                                        uint32_t fftBlockSize)
+  {
+    maxRequiredOutputSamples = requiredOutputSamples_;
+    this->maxInputSamples = numInputSamples;
+    this->fftSamplesPerBlock = fftBlockSize;
+    for (auto& reSampler : this->reSamplers) {
+      reSampler->prepareBuffersAndSetFftBlockSize(numInputSamples, maxRequiredOutputSamples, fftBlockSize);
+    }
+  }
+
+  /**
+   * Allocates resources to process up to numInputSamples input samples and
+   * produce requiredOutputSamples output samples.
+   * @param numInputSamples the expected maximum number input samples
+   * @param requiredOutputSamples the required number of output samples
+   */
+  void prepareBuffers(uint32_t numInputSamples, uint32_t requiredOutputSamples_)
   {
     maxRequiredOutputSamples = requiredOutputSamples_;
     this->maxInputSamples = numInputSamples;
     for (auto& reSampler : this->reSamplers) {
-      reSampler->prepareBuffers(numInputSamples, maxRequiredOutputSamples, setAlsoFftBlockSize);
+      reSampler->prepareBuffers(numInputSamples, maxRequiredOutputSamples);
     }
   }
 

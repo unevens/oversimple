@@ -70,13 +70,15 @@ void testFirOversampling(int numChannels,
        << (std::is_same_v<Scalar, float> ? "single" : "double") << " precision"
        << "\n";
   auto firUpSampler =
-    fir::TUpSamplerPreAllocated<Scalar>(oversamplingOrder, numChannels, transitionBand, fftSamplesPerBlock);
+    fir::TUpSamplerPreAllocated<Scalar>(oversamplingOrder, 1, transitionBand, fftSamplesPerBlock);
   auto firDownSampler =
-    fir::TDownSamplerPreAllocated<Scalar>(oversamplingOrder, numChannels, transitionBand, fftSamplesPerBlock);
+    fir::TDownSamplerPreAllocated<Scalar>(oversamplingOrder, 1, transitionBand, fftSamplesPerBlock);
+  firUpSampler.setNumChannels(numChannels);
   firUpSampler.setOrder(oversamplingOrder);
-  firDownSampler.setOrder(oversamplingOrder);
   firUpSampler.prepareBuffers(numSamples);
   auto const maxUpSampledSamples = firUpSampler.getMaxNumOutputSamples();
+  firDownSampler.setNumChannels(numChannels);
+  firDownSampler.setOrder(oversamplingOrder);
   firDownSampler.prepareBuffers(maxUpSampledSamples, numSamples);
   int upSampleLatency = firUpSampler.getNumSamplesBeforeOutputStarts();
   int downSampleLatency = firDownSampler.getNumSamplesBeforeOutputStarts();
@@ -143,7 +145,7 @@ void testFirOversampling(int numChannels,
 }
 
 template<typename Scalar>
-void inspectIirOversampling(int numChannels, int order, int numSamples)
+void testIirOversampling(int numChannels, int order, int numSamples)
 {
   auto const preset = iir::detail::getOversamplingPreset(0);
   double const groupDelay = 2 * preset.getGroupDelay(0, order);
@@ -161,8 +163,10 @@ void inspectIirOversampling(int numChannels, int order, int numSamples)
   auto upSampled = InterleavedBuffer<Scalar>(numChannels, factor * samplesPerBlock);
   in.fill(1.0);
   // Oversampling test
-  auto upSampling = iir::UpSampler<Scalar>(numChannels, order);
-  auto downSampling = iir::DownSampler<Scalar>(numChannels, order);
+  auto upSampling = iir::UpSampler<Scalar>(1, order);
+  upSampling.setNumChannels(numChannels);
+  auto downSampling = iir::DownSampler<Scalar>(1, order);
+  downSampling.setNumChannels(numChannels);
   bool const upSamplingOk = upSampling.setOrder(order);
   assert(upSamplingOk);
   bool const downSamplingOk = downSampling.setOrder(order);
@@ -222,8 +226,8 @@ int main()
     cout << "NO SIMD INSTRUCTIONS AVAILABLE\n";
   }
 
-  inspectIirOversampling<double>(2, 4, 1024);
-  inspectIirOversampling<float>(2, 4, 1024);
+  testIirOversampling<double>(2, 4, 1024);
+  testIirOversampling<float>(2, 4, 1024);
   testFirOversampling<float>(2, 128, 1024, 4, 4.0);
   testFirOversampling<float>(2, 1024, 512, 4, 4.0);
   testFirOversampling<double>(2, 128, 1024, 4, 4.0);
