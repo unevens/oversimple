@@ -116,7 +116,7 @@ protected:
   double oversamplingRate = 1.0;
   uint32_t numChannels = 2;
   uint32_t fftSamplesPerBlock = 512;
-  double transitionBand = 2.0;
+  double transitionBand = 4.0;
   std::vector<std::unique_ptr<r8b::CDSPResampler24>> reSamplers;
   uint32_t maxOutputLength = 0;
   uint32_t maxInputLength = 256;
@@ -142,7 +142,7 @@ public:
    * @param oversamplingRate the oversampling factor
    */
   explicit UpSampler(uint32_t numChannels,
-                     double transitionBand = 2.0,
+                     double transitionBand = 4.0,
                      uint32_t fftSamplesPerBlock = 256,
                      double oversamplingRate = 1.0);
 
@@ -159,7 +159,7 @@ public:
   /**
    * Up-samples a multi channel input buffer.
    * @param input Buffer that holds the input buffer.
-   * @return number of upsampled samples
+   * @return number of up-sampled samples
    */
   uint32_t processBlock(Buffer<double> const& input);
 
@@ -243,14 +243,14 @@ public:
    * @param oversamplingRate the oversampling factor
    */
   explicit DownSampler(uint32_t numChannels,
-                       double transitionBand = 2.0,
+                       double transitionBand = 4.0,
                        uint32_t fftSamplesPerBlock = 256,
                        double oversamplingRate = 1.0);
 
   /**
    * Down-samples a multi channel input buffer.
    * @param input pointer to the input buffers.
-   * @param output pointer to the memory in which to store the downsampled data.
+   * @param output pointer to the memory in which to store the down-sampled data.
    * @param numOutputChannels number of channels of the output buffer
    * @param requiredSamples the number of samples needed as output
    */
@@ -259,7 +259,7 @@ public:
   /**
    * Down-samples a multi channel input buffer.
    * @param input a Buffer that holds the input buffer.
-   * @param output pointer to the memory in which to store the downsampled data.
+   * @param output pointer to the memory in which to store the down-sampled data.
    * @param numOutputChannels number of channels of the output buffer
    * @param requiredSamples the number of samples needed as output
    */
@@ -268,7 +268,7 @@ public:
   /**
    * Down-samples a multi channel input buffer.
    * @param input a Buffer that holds the input buffer.
-   * @param output a Buffer to hold the downsampled data.
+   * @param output a Buffer to hold the down-sampled data.
    * @param requiredSamples the number of samples needed as output
    */
   void processBlock(Buffer<double> const& input, Buffer<double>& output, uint32_t requiredSamples);
@@ -348,7 +348,7 @@ public:
    * @param oversamplingRate the oversampling factor
    */
   explicit TUpSampler(uint32_t numChannels,
-                      double transitionBand = 2.0,
+                      double transitionBand = 4.0,
                       uint32_t fftSamplesPerBlock = 256,
                       double oversamplingRate = 1.0)
     : UpSampler(numChannels, transitionBand, fftSamplesPerBlock, oversamplingRate)
@@ -383,7 +383,7 @@ public:
    * @param oversamplingRate the oversampling factor
    */
   explicit TUpSampler(uint32_t numChannels,
-                      double transitionBand = 2.0,
+                      double transitionBand = 4.0,
                       uint32_t fftSamplesPerBlock = 256,
                       double oversamplingRate = 1.0)
     : UpSampler(numChannels, transitionBand, fftSamplesPerBlock, oversamplingRate)
@@ -396,7 +396,7 @@ public:
    * @param input pointer to the input buffer.
    * @param numSamples the number of samples of each channel of the input
    * buffer.
-   * @return number of upsampled samples
+   * @return number of up-sampled samples
    */
   uint32_t processBlock(float* const* input, uint32_t numSamples)
   {
@@ -418,7 +418,7 @@ public:
   /**
    * Up-samples a multi channel input buffer.
    * @param input Buffer that holds the input buffer.
-   * @return number of upsampled samples
+   * @return number of up-sampled samples
    */
   uint32_t processBlock(Buffer<float> const& input)
   {
@@ -500,7 +500,7 @@ public:
    * @param oversamplingRate the oversampling factor
    */
   explicit TDownSampler(uint32_t numChannels,
-                        double transitionBand = 2.0,
+                        double transitionBand = 4.0,
                         uint32_t fftSamplesPerBlock = 256,
                         double oversamplingRate_ = 1.0)
     : DownSampler(numChannels, transitionBand, fftSamplesPerBlock, oversamplingRate_)
@@ -511,7 +511,7 @@ public:
   /**
    * Down-samples a multi channel input buffer.
    * @param input pointer to the input buffers.
-   * @param output pointer to the memory in which to store the downsampled data.
+   * @param output pointer to the memory in which to store the down-sampled data.
    * @param requiredSamples the number of samples needed as output
    */
   void processBlock(float* const* input, uint32_t numSamples, float** output, uint32_t requiredSamples)
@@ -536,7 +536,7 @@ public:
   /**
    * Down-samples a multi channel input buffer.
    * @param Buffer that holds the input buffer.
-   * @param output pointer to the memory in which to store the downsampled data.
+   * @param output pointer to the memory in which to store the down-sampled data.
    * @param requiredSamples the number of samples needed as output
    */
   void processBlock(Buffer<float> const& input, float** output, uint32_t requiredSamples)
@@ -557,7 +557,7 @@ public:
   /**
    * Down-samples a multi channel input buffer.
    * @param Buffer that holds the input buffer.
-   * @param output Buffer to hold the downsampled data.
+   * @param output Buffer to hold the down-sampled data.
    * @param requiredSamples the number of samples needed as output
    */
   void processBlock(Buffer<float> const& input, Buffer<float>& output, uint32_t requiredSamples)
@@ -736,7 +736,7 @@ public:
 
 protected:
   explicit TReSamplerPreAllocatedBase(uint32_t numChannels = 2,
-                                      double transitionBand = 2.0,
+                                      double transitionBand = 4.0,
                                       uint32_t fftSamplesPerBlock = 512)
     : numChannels{ numChannels }
     , transitionBand{ transitionBand }
@@ -757,7 +757,7 @@ protected:
   uint32_t numChannels = 2;
   uint32_t maxInputSamples = 256;
   uint32_t fftSamplesPerBlock = 512;
-  double transitionBand = 2.0;
+  double transitionBand = 4.0;
   uint32_t order = 1;
 };
 
@@ -777,7 +777,7 @@ public:
    */
   explicit TUpSamplerPreAllocated(uint32_t maxOrder = 5,
                                   uint32_t numChannels = 2,
-                                  double transitionBand = 2.0,
+                                  double transitionBand = 4.0,
                                   uint32_t fftSamplesPerBlock = 512)
     : TReSamplerPreAllocatedBase<TUpSampler<Float>>(numChannels, transitionBand, fftSamplesPerBlock)
   {
@@ -850,7 +850,7 @@ public:
    * @param input pointer to the input buffer.
    * @param numSamples the number of samples of each channel of the input
    * buffer.
-   * @return number of upsampled samples
+   * @return number of up-sampled samples
    */
   uint32_t processBlock(Float* const* input, uint32_t numSamples)
   {
@@ -860,7 +860,7 @@ public:
   /**
    * Up-samples a multi channel input buffer.
    * @param input Buffer that holds the input buffer.
-   * @return number of upsampled samples
+   * @return number of up-sampled samples
    */
   uint32_t processBlock(Buffer<Float> const& input)
   {
@@ -884,7 +884,7 @@ public:
    */
   explicit TDownSamplerPreAllocated(uint32_t maxOrder = 5,
                                     uint32_t numChannels = 2,
-                                    double transitionBand = 2.0,
+                                    double transitionBand = 4.0,
                                     uint32_t fftSamplesPerBlock = 512)
     : TReSamplerPreAllocatedBase<TDownSampler<Float>>(numChannels, transitionBand, fftSamplesPerBlock)
   {
@@ -894,7 +894,7 @@ public:
   /**
    * Down-samples a multi channel input buffer.
    * @param input pointer to the input buffers.
-   * @param output pointer to the memory in which to store the downsampled data.
+   * @param output pointer to the memory in which to store the down-sampled data.
    * @param requiredSamples the number of samples needed as output
    */
   void processBlock(Float* const* input, uint32_t numSamples, Float** output, uint32_t requiredSamples)
@@ -905,7 +905,7 @@ public:
   /**
    * Down-samples a multi channel input buffer.
    * @param input a Buffer that holds the input buffer.
-   * @param output pointer to the memory in which to store the downsampled data.
+   * @param output pointer to the memory in which to store the down-sampled data.
    * @param requiredSamples the number of samples needed as output
    */
   void processBlock(Buffer<Float> const& input, Float** output, uint32_t requiredSamples)
@@ -916,7 +916,7 @@ public:
   /**
    * Down-samples a multi channel input buffer.
    * @param input a Buffer that holds the input buffer.
-   * @param output a Buffer to hold the downsampled data.
+   * @param output a Buffer to hold the down-sampled data.
    * @param requiredSamples the number of samples needed as output
    */
   void processBlock(Buffer<Float> const& input, Buffer<Float>& output, uint32_t requiredSamples)
