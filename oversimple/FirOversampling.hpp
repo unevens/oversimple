@@ -158,17 +158,17 @@ public:
 
   /**
    * Up-samples a multi channel input buffer.
-   * @param input ScalarBuffer that holds the input buffer.
+   * @param input Buffer that holds the input buffer.
    * @return number of upsampled samples
    */
-  uint32_t processBlock(ScalarBuffer<double> const& input);
+  uint32_t processBlock(Buffer<double> const& input);
 
-  ScalarBuffer<double>& getOutputBuffer()
+  Buffer<double>& getOutputBuffer()
   {
     return output;
   }
 
-  ScalarBuffer<double> const& getOutputBuffer() const
+  Buffer<double> const& getOutputBuffer() const
   {
     return output;
   }
@@ -219,7 +219,7 @@ public:
 protected:
   void setup() override;
 
-  ScalarBuffer<double> output;
+  Buffer<double> output;
 };
 
 /**
@@ -258,20 +258,20 @@ public:
 
   /**
    * Down-samples a multi channel input buffer.
-   * @param input a ScalarBuffer that holds the input buffer.
+   * @param input a Buffer that holds the input buffer.
    * @param output pointer to the memory in which to store the downsampled data.
    * @param numOutputChannels number of channels of the output buffer
    * @param requiredSamples the number of samples needed as output
    */
-  void processBlock(ScalarBuffer<double> const& input, double** output, uint32_t requiredSamples);
+  void processBlock(Buffer<double> const& input, double** output, uint32_t requiredSamples);
 
   /**
    * Down-samples a multi channel input buffer.
-   * @param input a ScalarBuffer that holds the input buffer.
-   * @param output a ScalarBuffer to hold the downsampled data.
+   * @param input a Buffer that holds the input buffer.
+   * @param output a Buffer to hold the downsampled data.
    * @param requiredSamples the number of samples needed as output
    */
-  void processBlock(ScalarBuffer<double> const& input, ScalarBuffer<double>& output, uint32_t requiredSamples);
+  void processBlock(Buffer<double> const& input, Buffer<double>& output, uint32_t requiredSamples);
 
   /**
    * Allocates resources to process up to numInputSamples input samples and
@@ -320,7 +320,7 @@ public:
   }
 
 private:
-  ScalarBuffer<double> buffer;
+  Buffer<double> buffer;
   int bufferCounter = 0;
   uint32_t maxRequiredOutputLength;
 
@@ -333,7 +333,7 @@ protected:
  * Template version of UnbufferedReSampler.
  * @see UnbufferedReSampler
  */
-template<typename Scalar>
+template<typename Number>
 class TUpSampler final : public UpSampler
 {
 public:
@@ -354,12 +354,12 @@ public:
     : UpSampler(numChannels, transitionBand, fftSamplesPerBlock, oversamplingRate)
   {}
 
-  ScalarBuffer<Scalar>& getOutput()
+  Buffer<Number>& getOutput()
   {
     return output;
   }
 
-  ScalarBuffer<Scalar> const& getOutput() const
+  Buffer<Number> const& getOutput() const
   {
     return output;
   }
@@ -368,8 +368,8 @@ public:
 template<>
 class TUpSampler<float> final : public UpSampler
 {
-  ScalarBuffer<double> floatToDoubleBuffer;
-  ScalarBuffer<float> doubleToFloatBuffer;
+  Buffer<double> floatToDoubleBuffer;
+  Buffer<float> doubleToFloatBuffer;
 
 public:
   /**
@@ -417,10 +417,10 @@ public:
 
   /**
    * Up-samples a multi channel input buffer.
-   * @param input ScalarBuffer that holds the input buffer.
+   * @param input Buffer that holds the input buffer.
    * @return number of upsampled samples
    */
-  uint32_t processBlock(ScalarBuffer<float> const& input)
+  uint32_t processBlock(Buffer<float> const& input)
   {
     return processBlock(input.get(), input.getNumSamples());
   }
@@ -446,12 +446,12 @@ public:
     updateBuffers(numSamples);
   }
 
-  ScalarBuffer<float>& getOutput()
+  Buffer<float>& getOutput()
   {
     return doubleToFloatBuffer;
   }
 
-  ScalarBuffer<float> const& getOutput() const
+  Buffer<float> const& getOutput() const
   {
     return doubleToFloatBuffer;
   }
@@ -475,7 +475,7 @@ private:
  * Template version of BufferedReSampler.
  * @see BufferedReSampler
  */
-template<typename Scalar>
+template<typename Number>
 class TDownSampler : public DownSampler
 {
 public:
@@ -485,8 +485,8 @@ public:
 template<>
 class TDownSampler<float> : public DownSampler
 {
-  ScalarBuffer<double> floatToDoubleBuffer;
-  ScalarBuffer<double> doubleToFloatBuffer;
+  Buffer<double> floatToDoubleBuffer;
+  Buffer<double> doubleToFloatBuffer;
 
 public:
   /**
@@ -533,11 +533,11 @@ public:
 
   /**
    * Down-samples a multi channel input buffer.
-   * @param ScalarBuffer that holds the input buffer.
+   * @param Buffer that holds the input buffer.
    * @param output pointer to the memory in which to store the downsampled data.
    * @param requiredSamples the number of samples needed as output
    */
-  void processBlock(ScalarBuffer<float> const& input, float** output, uint32_t requiredSamples)
+  void processBlock(Buffer<float> const& input, float** output, uint32_t requiredSamples)
   {
     assert(floatToDoubleBuffer.getCapacity() >= input.getNumSamples());
     assert(doubleToFloatBuffer.getCapacity() >= requiredSamples);
@@ -554,11 +554,11 @@ public:
 
   /**
    * Down-samples a multi channel input buffer.
-   * @param ScalarBuffer that holds the input buffer.
-   * @param output ScalarBuffer to hold the downsampled data.
+   * @param Buffer that holds the input buffer.
+   * @param output Buffer to hold the downsampled data.
    * @param requiredSamples the number of samples needed as output
    */
-  void processBlock(ScalarBuffer<float> const& input, ScalarBuffer<float>& output, uint32_t requiredSamples)
+  void processBlock(Buffer<float> const& input, Buffer<float>& output, uint32_t requiredSamples)
   {
     processBlock(input, output.get(), requiredSamples);
   }
@@ -759,8 +759,8 @@ protected:
   uint32_t order = 1;
 };
 
-template<typename Scalar>
-class TUpSamplerPreAllocated final : public TReSamplerPreAllocatedBase<TUpSampler<Scalar>>
+template<typename Number>
+class TUpSamplerPreAllocated final : public TReSamplerPreAllocatedBase<TUpSampler<Number>>
 {
 public:
   /**
@@ -777,23 +777,23 @@ public:
                                   uint32_t numChannels = 2,
                                   double transitionBand = 2.0,
                                   uint32_t fftSamplesPerBlock = 512)
-    : TReSamplerPreAllocatedBase<TUpSampler<Scalar>>(numChannels, transitionBand, fftSamplesPerBlock)
+    : TReSamplerPreAllocatedBase<TUpSampler<Number>>(numChannels, transitionBand, fftSamplesPerBlock)
   {
     setMaxOrder(maxOrder);
   }
 
   /**
-   * @return a ScalarBuffer holding the output of the processing
+   * @return a Buffer holding the output of the processing
    */
-  ScalarBuffer<Scalar>& getOutput()
+  Buffer<Number>& getOutput()
   {
     return this->get().getOutput();
   }
 
   /**
-   * @return a const ScalarBuffer holding the output of the processing
+   * @return a const Buffer holding the output of the processing
    */
-  ScalarBuffer<Scalar> const& getOutput() const
+  Buffer<Number> const& getOutput() const
   {
     return this->get().getOutput();
   }
@@ -810,7 +810,7 @@ public:
       if (!reSampler) {
         auto const rate = static_cast<double>(1 << instanceOrder);
         reSampler =
-          std::make_unique<TUpSampler<Scalar>>(this->numChannels, this->transitionBand, this->fftSamplesPerBlock, rate);
+          std::make_unique<TUpSampler<Number>>(this->numChannels, this->transitionBand, this->fftSamplesPerBlock, rate);
         reSampler->prepareBuffers(this->maxInputSamples);
       }
       ++instanceOrder;
@@ -850,24 +850,24 @@ public:
    * buffer.
    * @return number of upsampled samples
    */
-  uint32_t processBlock(Scalar* const* input, uint32_t numSamples)
+  uint32_t processBlock(Number* const* input, uint32_t numSamples)
   {
     return this->get().processBlock(input, numSamples);
   }
 
   /**
    * Up-samples a multi channel input buffer.
-   * @param input ScalarBuffer that holds the input buffer.
+   * @param input Buffer that holds the input buffer.
    * @return number of upsampled samples
    */
-  uint32_t processBlock(ScalarBuffer<Scalar> const& input)
+  uint32_t processBlock(Buffer<Number> const& input)
   {
     return this->get().processBlock(input);
   }
 };
 
-template<typename Scalar>
-class TDownSamplerPreAllocated final : public TReSamplerPreAllocatedBase<TDownSampler<Scalar>>
+template<typename Number>
+class TDownSamplerPreAllocated final : public TReSamplerPreAllocatedBase<TDownSampler<Number>>
 {
 public:
   /**
@@ -884,7 +884,7 @@ public:
                                     uint32_t numChannels = 2,
                                     double transitionBand = 2.0,
                                     uint32_t fftSamplesPerBlock = 512)
-    : TReSamplerPreAllocatedBase<TDownSampler<Scalar>>(numChannels, transitionBand, fftSamplesPerBlock)
+    : TReSamplerPreAllocatedBase<TDownSampler<Number>>(numChannels, transitionBand, fftSamplesPerBlock)
   {
     setMaxOrder(maxOrder);
   }
@@ -895,29 +895,29 @@ public:
    * @param output pointer to the memory in which to store the downsampled data.
    * @param requiredSamples the number of samples needed as output
    */
-  void processBlock(Scalar* const* input, uint32_t numSamples, Scalar** output, uint32_t requiredSamples)
+  void processBlock(Number* const* input, uint32_t numSamples, Number** output, uint32_t requiredSamples)
   {
     return this->get().processBlock(input, numSamples, output, requiredSamples);
   }
 
   /**
    * Down-samples a multi channel input buffer.
-   * @param input a ScalarBuffer that holds the input buffer.
+   * @param input a Buffer that holds the input buffer.
    * @param output pointer to the memory in which to store the downsampled data.
    * @param requiredSamples the number of samples needed as output
    */
-  void processBlock(ScalarBuffer<Scalar> const& input, Scalar** output, uint32_t requiredSamples)
+  void processBlock(Buffer<Number> const& input, Number** output, uint32_t requiredSamples)
   {
     return this->get().processBlock(input, output, requiredSamples);
   }
 
   /**
    * Down-samples a multi channel input buffer.
-   * @param input a ScalarBuffer that holds the input buffer.
-   * @param output a ScalarBuffer to hold the downsampled data.
+   * @param input a Buffer that holds the input buffer.
+   * @param output a Buffer to hold the downsampled data.
    * @param requiredSamples the number of samples needed as output
    */
-  void processBlock(ScalarBuffer<Scalar> const& input, ScalarBuffer<Scalar>& output, uint32_t requiredSamples)
+  void processBlock(Buffer<Number> const& input, Buffer<Number>& output, uint32_t requiredSamples)
   {
     return this->get().processBlock(input, output, requiredSamples);
   }
@@ -933,7 +933,7 @@ public:
     for (auto& reSampler : this->reSamplers) {
       if (!reSampler) {
         auto const rate = static_cast<double>(1 << instanceOrder);
-        reSampler = std::make_unique<TDownSampler<Scalar>>(
+        reSampler = std::make_unique<TDownSampler<Number>>(
           this->numChannels, this->transitionBand, this->fftSamplesPerBlock, rate);
         reSampler->prepareBuffers(this->maxInputSamples, maxRequiredOutputSamples);
       }

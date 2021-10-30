@@ -29,14 +29,14 @@ inline void DEBUG_MESSAGE(char const* message)
 
 namespace oversimple::fir {
 
-uint32_t UpSampler::processBlock(ScalarBuffer<double> const& input)
+uint32_t UpSampler::processBlock(Buffer<double> const& input)
 {
   assert(input.getNumChannels() == numChannels);
   return processBlock(input.get(), input.getNumSamples());
 }
 
-void DownSampler::processBlock(ScalarBuffer<double> const& input,
-                               ScalarBuffer<double>& output,
+void DownSampler::processBlock(Buffer<double> const& input,
+                               Buffer<double>& output,
                                uint32_t requiredSamples)
 {
   assert(output.getNumChannels() == input.getNumChannels());
@@ -77,7 +77,6 @@ uint32_t UpSampler::processBlock(double* const* input, uint32_t numSamples)
 
 void DownSampler::processBlock(double* const* input, uint32_t numSamples, double** output, uint32_t requiredSamples)
 {
-
   int newBufferCounter = bufferCounter;
   if (numSamples <= fftSamplesPerBlock) {
     for (uint32_t c = 0; c < numChannels; ++c) {
@@ -153,7 +152,7 @@ void DownSampler::processBlock(double* const* input, uint32_t numSamples, double
   }
 }
 
-void DownSampler::processBlock(ScalarBuffer<double> const& input, double** output, uint32_t requiredSamples)
+void DownSampler::processBlock(Buffer<double> const& input, double** output, uint32_t requiredSamples)
 {
   processBlock(input.get(), input.getNumSamples(), output, requiredSamples);
 }

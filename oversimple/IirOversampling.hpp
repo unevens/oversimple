@@ -29,7 +29,7 @@ namespace {
 /**
  * A class implementing common functionality for the IIR resamplers.
  */
-template<typename Scalar,
+template<typename Number,
          int numCoefsStage0,
          int numCoefsStage1,
          int numCoefsStage2,
@@ -44,9 +44,9 @@ template<typename Scalar,
 class OversamplingChain
 {
 protected:
-  static constexpr bool VEC8_AVAILABLE = SimdTypes<Scalar>::VEC8_AVAILABLE;
-  static constexpr bool VEC4_AVAILABLE = SimdTypes<Scalar>::VEC4_AVAILABLE;
-  static constexpr bool VEC2_AVAILABLE = SimdTypes<Scalar>::VEC2_AVAILABLE;
+  static constexpr bool VEC8_AVAILABLE = SimdTypes<Number>::VEC8_AVAILABLE;
+  static constexpr bool VEC4_AVAILABLE = SimdTypes<Number>::VEC4_AVAILABLE;
+  static constexpr bool VEC2_AVAILABLE = SimdTypes<Number>::VEC2_AVAILABLE;
 
   template<class T>
   using aligned_vector = aligned_vector<T>;
@@ -75,7 +75,7 @@ protected:
   uint32_t maxOrder;
   uint32_t factor;
   uint32_t maxInputSamples;
-  InterleavedBuffer<Scalar> buffer[2];
+  InterleavedBuffer<Number> buffer[2];
 
   OversamplingChain(OversamplingDesigner designer_, uint32_t numChannels_, uint32_t orderToPreallocateFor = 1)
     : designer(std::move(designer_))
@@ -92,7 +92,7 @@ protected:
   void setupStages()
   {
     uint32_t num2, num4, num8;
-    avec::getNumOfVecBuffersUsedByInterleavedBuffer<Scalar>(numChannels, num2, num4, num8);
+    avec::getNumOfVecBuffersUsedByInterleavedBuffer<Number>(numChannels, num2, num4, num8);
     stage2_0.resize(num2);
     stage2_1.resize(num2);
     stage2_2.resize(num2);
@@ -197,7 +197,7 @@ protected:
     return designer;
   }
 
-  void applyStage0(InterleavedBuffer<Scalar>& output, InterleavedBuffer<Scalar> const& input, uint32_t numSamples)
+  void applyStage0(InterleavedBuffer<Number>& output, InterleavedBuffer<Number> const& input, uint32_t numSamples)
   {
     auto numChannelsToProcess = numChannels;
     if constexpr (VEC2_AVAILABLE) {
@@ -241,7 +241,7 @@ protected:
     }
   }
 
-  void applyStage1(InterleavedBuffer<Scalar>& output, InterleavedBuffer<Scalar> const& input, uint32_t numSamples)
+  void applyStage1(InterleavedBuffer<Number>& output, InterleavedBuffer<Number> const& input, uint32_t numSamples)
   {
     auto numChannelsToProcess = numChannels;
     if constexpr (VEC2_AVAILABLE) {
@@ -285,7 +285,7 @@ protected:
     }
   }
 
-  void applyStage2(InterleavedBuffer<Scalar>& output, InterleavedBuffer<Scalar> const& input, uint32_t numSamples)
+  void applyStage2(InterleavedBuffer<Number>& output, InterleavedBuffer<Number> const& input, uint32_t numSamples)
   {
     auto numChannelsToProcess = numChannels;
     if constexpr (VEC2_AVAILABLE) {
@@ -329,7 +329,7 @@ protected:
     }
   }
 
-  void applyStage3(InterleavedBuffer<Scalar>& output, InterleavedBuffer<Scalar> const& input, uint32_t numSamples)
+  void applyStage3(InterleavedBuffer<Number>& output, InterleavedBuffer<Number> const& input, uint32_t numSamples)
   {
     auto numChannelsToProcess = numChannels;
     if constexpr (VEC2_AVAILABLE) {
@@ -373,7 +373,7 @@ protected:
     }
   }
 
-  void applyStage4(InterleavedBuffer<Scalar>& output, InterleavedBuffer<Scalar> const& input, uint32_t numSamples)
+  void applyStage4(InterleavedBuffer<Number>& output, InterleavedBuffer<Number> const& input, uint32_t numSamples)
   {
     auto numChannelsToProcess = numChannels;
     if constexpr (VEC2_AVAILABLE) {
@@ -543,7 +543,7 @@ public:
 /**
  * DownSampler with IIR antialiasing filters.
  */
-template<typename Scalar,
+template<typename Number,
          int numCoefsStage0,
          int numCoefsStage1,
          int numCoefsStage2,
@@ -556,7 +556,7 @@ template<typename Scalar,
          template<int>
          class StageVec2>
 class TDownSampler
-  : public OversamplingChain<Scalar,
+  : public OversamplingChain<Number,
                              numCoefsStage0,
                              numCoefsStage1,
                              numCoefsStage2,
@@ -576,7 +576,7 @@ public:
    * @param orderToPreallocateFor the maximum order of oversampling for which to allocate resources for
    */
   TDownSampler(OversamplingDesigner const& designer, uint32_t numChannels, uint32_t orderToPreallocateFor = 1)
-    : OversamplingChain<Scalar,
+    : OversamplingChain<Number,
                         numCoefsStage0,
                         numCoefsStage1,
                         numCoefsStage2,
@@ -593,7 +593,7 @@ public:
    * @param numSamples the number of samples in each channel of the input
    * buffer
    */
-  void processBlock(InterleavedBuffer<Scalar> const& input, uint32_t numSamples)
+  void processBlock(InterleavedBuffer<Number> const& input, uint32_t numSamples)
   {
     assert(this->numChannels == input.getNumChannels());
     this->prepareBuffer(numSamples);
@@ -634,7 +634,7 @@ public:
   /**
    * @return an InterleavedBuffer holding the output
    */
-  InterleavedBuffer<Scalar>& getOutput()
+  InterleavedBuffer<Number>& getOutput()
   {
     return this->buffer[0];
   }
@@ -643,7 +643,7 @@ public:
 /**
  * UpSampler with IIR antialiasing filters.
  */
-template<typename Scalar,
+template<typename Number,
          int numCoefsStage0,
          int numCoefsStage1,
          int numCoefsStage2,
@@ -656,7 +656,7 @@ template<typename Scalar,
          template<int>
          class StageVec2>
 class TUpSampler
-  : public OversamplingChain<Scalar,
+  : public OversamplingChain<Number,
                              numCoefsStage0,
                              numCoefsStage1,
                              numCoefsStage2,
@@ -666,7 +666,7 @@ class TUpSampler
                              StageVec4,
                              StageVec2>
 {
-  using Chain = OversamplingChain<Scalar,
+  using Chain = OversamplingChain<Number,
                                   numCoefsStage0,
                                   numCoefsStage1,
                                   numCoefsStage2,
@@ -690,11 +690,11 @@ public:
   {}
   /**
    * Up-samples an already interleaved input.
-   * @param input an InterleavedBuffer<Scalar> holding the input samples
+   * @param input an InterleavedBuffer<Number> holding the input samples
    * @param numChannelsToProcess the number of channels to process. If negative,
    * all channels will be processed.
    */
-  void processBlock(InterleavedBuffer<Scalar> const& input)
+  void processBlock(InterleavedBuffer<Number> const& input)
   {
     auto const numInputSamples = input.getNumSamples();
 
@@ -741,7 +741,7 @@ public:
    * @param numInputSamples the number of samples in each channel of the input
    * buffer
    */
-  void processBlock(Scalar* const* inputs, uint32_t numInputSamples)
+  void processBlock(Number* const* inputs, uint32_t numInputSamples)
   {
     assert(numInputSamples <= this->maxInputSamples);
 
@@ -782,12 +782,12 @@ public:
   }
   /**
    * Up-samples the input.
-   * @param input a ScalarBuffer that holds the input samples
+   * @param input a Buffer that holds the input samples
    * @param output an InterleavedBuffer to hold the up-sampled samples
    * @param numChannelsToProcess the number of channels to process. If negative,
    * all channels will be processed.
    */
-  void processBlock(ScalarBuffer<Scalar> const& input)
+  void processBlock(Buffer<Number> const& input)
   {
     assert(input.getNumChannels() == this->numChannels);
     processBlock(input.get(), input.getNumSamples());
@@ -796,7 +796,7 @@ public:
   /**
    * @return an InterleavedBuffer holding the output
    */
-  InterleavedBuffer<Scalar>& getOutput()
+  InterleavedBuffer<Number>& getOutput()
   {
     return this->buffer[1];
   }
@@ -805,7 +805,7 @@ public:
 /**
  * Static class used to deduce the right SIMD implementation for the current architecture
  */
-template<typename Scalar>
+template<typename Number>
 class UpSamplerFactory final
 {
   template<int NC>
@@ -818,13 +818,13 @@ class UpSamplerFactory final
 public:
   template<int NC>
   using Stage8 = typename std::
-    conditional<std::is_same<Scalar, float>::value, hiir::Upsampler2x8Avx<NC>, FakeUpSamplerStage8Double<NC>>::type;
+    conditional<std::is_same<Number, float>::value, hiir::Upsampler2x8Avx<NC>, FakeUpSamplerStage8Double<NC>>::type;
   template<int NC>
   using Stage4 = typename std::
-    conditional<std::is_same<Scalar, float>::value, hiir::Upsampler2x4Sse<NC>, hiir::Upsampler2x4F64Avx<NC>>::type;
+    conditional<std::is_same<Number, float>::value, hiir::Upsampler2x4Sse<NC>, hiir::Upsampler2x4F64Avx<NC>>::type;
   template<int NC>
   using Stage2 = typename std::
-    conditional<std::is_same<Scalar, float>::value, FakeUpSamplerStage2Float<NC>, hiir::Upsampler2x2F64Sse2<NC>>::type;
+    conditional<std::is_same<Number, float>::value, FakeUpSamplerStage2Float<NC>, hiir::Upsampler2x2F64Sse2<NC>>::type;
 
 #elif AVEC_ARM
 
@@ -837,10 +837,10 @@ public:
   using Stage8 = FakeUpSamplerStage8Double<NC>;
   template<int NC>
   using Stage4 = typename std::
-    conditional<std::is_same<Scalar, float>::value, hiir::Upsampler2x4Neon<NC>, FakeUpSamplerStage4Double<NC>>::type;
+    conditional<std::is_same<Number, float>::value, hiir::Upsampler2x4Neon<NC>, FakeUpSamplerStage4Double<NC>>::type;
   template<int NC>
   using Stage2 = typename std::
-    conditional<std::is_same<Scalar, float>::value, FakeUpSamplerStage2Float<NC>, hiir::Upsampler2x2F64Neon<NC>>::type;
+    conditional<std::is_same<Number, float>::value, FakeUpSamplerStage2Float<NC>, hiir::Upsampler2x2F64Neon<NC>>::type;
 
 #else
 
@@ -849,13 +849,13 @@ public:
 #endif
 
 public:
-  using UpSampler = TUpSampler<Scalar, 11, 5, 3, 3, 2, Stage8, Stage4, Stage2>;
+  using UpSampler = TUpSampler<Number, 11, 5, 3, 3, 2, Stage8, Stage4, Stage2>;
 };
 
 /**
  * Static class used to deduce the right SIMD implementation for the current architecture
  */
-template<typename Scalar>
+template<typename Number>
 class DownSamplerFactory final
 {
   template<int NC>
@@ -868,14 +868,14 @@ class DownSamplerFactory final
 public:
   template<int NC>
   using Stage8 = typename std::
-    conditional<std::is_same<Scalar, float>::value, hiir::Downsampler2x8Avx<NC>, FakeDownsamplerStage8Double<NC>>::type;
+    conditional<std::is_same<Number, float>::value, hiir::Downsampler2x8Avx<NC>, FakeDownsamplerStage8Double<NC>>::type;
 
   template<int NC>
   using Stage4 = typename std::
-    conditional<std::is_same<Scalar, float>::value, hiir::Downsampler2x4Sse<NC>, hiir::Downsampler2x4F64Avx<NC>>::type;
+    conditional<std::is_same<Number, float>::value, hiir::Downsampler2x4Sse<NC>, hiir::Downsampler2x4F64Avx<NC>>::type;
 
   template<int NC>
-  using Stage2 = typename std::conditional<std::is_same<Scalar, float>::value,
+  using Stage2 = typename std::conditional<std::is_same<Number, float>::value,
                                            FakeDownsamplerStage2Float<NC>,
                                            hiir::Downsampler2x2F64Sse2<NC>>::type;
 
@@ -889,11 +889,11 @@ public:
   template<int NC>
   using Stage8 = FakeDownsamplerStage8Double<NC>;
   template<int NC>
-  using Stage4 = typename std::conditional<std::is_same<Scalar, float>::value,
+  using Stage4 = typename std::conditional<std::is_same<Number, float>::value,
                                            hiir::Downsampler2x4Neon<NC>,
                                            FakeDownsamplerStage4Double<NC>>::type;
   template<int NC>
-  using Stage2 = typename std::conditional<std::is_same<Scalar, float>::value,
+  using Stage2 = typename std::conditional<std::is_same<Number, float>::value,
                                            FakeDownsamplerStage2Float<NC>,
                                            hiir::Downsampler2x2F64Neon<NC>>::type;
 
@@ -904,7 +904,7 @@ public:
 #endif
 
 public:
-  using DownSampler = TDownSampler<Scalar, 11, 5, 3, 3, 2, Stage8, Stage4, Stage2>;
+  using DownSampler = TDownSampler<Number, 11, 5, 3, 3, 2, Stage8, Stage4, Stage2>;
 };
 
 } // namespace detail
@@ -913,12 +913,12 @@ public:
  * DownSampler with IIR antialiasing filters.
  * The filters are setup to achieve 140dB of attenuation and a transition band of 0.0443
  */
-template<typename Scalar>
-class DownSampler final : public detail::DownSamplerFactory<Scalar>::DownSampler
+template<typename Number>
+class DownSampler final : public detail::DownSamplerFactory<Number>::DownSampler
 {
 public:
   explicit DownSampler(uint32_t numChannels, uint32_t orderToPreallocateFor = 1)
-    : detail::DownSamplerFactory<Scalar>::DownSampler(detail::getOversamplingPreset(0),
+    : detail::DownSamplerFactory<Number>::DownSampler(detail::getOversamplingPreset(0),
                                                       numChannels,
                                                       orderToPreallocateFor)
   {}
@@ -928,12 +928,12 @@ public:
  * UpSampler with IIR antialiasing filters.
  * The filters are setup to achieve 140dB of attenuation and a transition band of 0.0443
  */
-template<typename Scalar>
-class UpSampler final : public detail::UpSamplerFactory<Scalar>::UpSampler
+template<typename Number>
+class UpSampler final : public detail::UpSamplerFactory<Number>::UpSampler
 {
 public:
   explicit UpSampler(uint32_t numChannels, uint32_t orderToPreallocateFor = 1)
-    : detail::UpSamplerFactory<Scalar>::UpSampler(detail::getOversamplingPreset(0), numChannels, orderToPreallocateFor)
+    : detail::UpSamplerFactory<Number>::UpSampler(detail::getOversamplingPreset(0), numChannels, orderToPreallocateFor)
   {}
 };
 
