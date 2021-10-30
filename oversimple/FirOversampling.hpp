@@ -411,7 +411,7 @@ public:
       }
     }
     auto const samples = UpSampler::processBlock(floatToDoubleBuffer.get(), numSamples);
-    copyScalarBuffer(output, doubleToFloatBuffer);
+    copyBuffer(output, doubleToFloatBuffer);
     return samples;
   }
 
@@ -520,8 +520,10 @@ public:
     assert(doubleToFloatBuffer.getCapacity() >= requiredSamples);
     floatToDoubleBuffer.setNumSamples(numSamples);
     doubleToFloatBuffer.setNumSamples(requiredSamples);
-    for (uint32_t c = 0; c < numChannels; ++c) {
-      std::copy(&input[c][0], &input[c][0] + numSamples, &floatToDoubleBuffer[c][0]);
+    if (numSamples > 0) {
+      for (uint32_t c = 0; c < numChannels; ++c) {
+        std::copy(&input[c][0], &input[c][0] + numSamples, &floatToDoubleBuffer[c][0]);
+      }
     }
     DownSampler::processBlock(floatToDoubleBuffer.get(), numSamples, doubleToFloatBuffer.get(), requiredSamples);
     for (uint32_t c = 0; c < numChannels; ++c) {
@@ -541,7 +543,7 @@ public:
   {
     assert(floatToDoubleBuffer.getCapacity() >= input.getNumSamples());
     assert(doubleToFloatBuffer.getCapacity() >= requiredSamples);
-    copyScalarBuffer(input, floatToDoubleBuffer);
+    copyBuffer(input, floatToDoubleBuffer);
     doubleToFloatBuffer.setNumSamples(requiredSamples);
     DownSampler::processBlock(
       floatToDoubleBuffer.get(), floatToDoubleBuffer.getNumSamples(), doubleToFloatBuffer.get(), requiredSamples);
