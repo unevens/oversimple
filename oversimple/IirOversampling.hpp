@@ -73,7 +73,6 @@ protected:
   uint32_t numChannels;
   uint32_t order;
   uint32_t maxOrder;
-  uint32_t factor;
   uint32_t maxInputSamples;
   InterleavedBuffer<Number> buffer[2];
 
@@ -83,7 +82,6 @@ protected:
     , maxInputSamples(256)
     , order(1)
     , maxOrder(orderToPreallocateFor)
-    , factor(2)
   {
     assert(designer.getStages().size() == 5);
     setupStages();
@@ -182,12 +180,12 @@ protected:
   void setupBuffer()
   {
     auto const maxFactor = 1 << maxOrder;
+    auto const factor = 1 << order;
     auto const maxNumOutSamples = maxInputSamples * maxFactor;
-    auto const numOutSamples = maxInputSamples * maxFactor;
+    auto const numOutSamples = maxInputSamples * factor;
     for (auto& b : buffer) {
       b.setNumChannels(numChannels);
       b.reserve(maxNumOutSamples);
-      b.setNumSamples(maxNumOutSamples);
       b.setNumSamples(numOutSamples);
     }
   }
@@ -437,7 +435,6 @@ public:
       return false;
     }
     order = value;
-    factor = 1 << order;
     return true;
   }
 
@@ -590,13 +587,13 @@ public:
   /**
    * Down-samples the input.
    * @param input an InterleavedBuffer holding the input
-   * @param numSamples the number of samples in each channel of the input
-   * buffer
    */
-  void processBlock(InterleavedBuffer<Number> const& input, uint32_t numSamples)
+  void processBlock(InterleavedBuffer<Number> const& input)
   {
     assert(this->numChannels == input.getNumChannels());
-    this->prepareBuffer(numSamples);
+    auto const numSamples = input.getNumSamples();
+    assert(numSamples <= this->maxInputSamples);
+
     auto& output = this->buffer[0];
     auto& temp = this->buffer[1];
 
@@ -691,8 +688,6 @@ public:
   /**
    * Up-samples an already interleaved input.
    * @param input an InterleavedBuffer<Number> holding the input samples
-   * @param numChannelsToProcess the number of channels to process. If negative,
-   * all channels will be processed.
    */
   void processBlock(InterleavedBuffer<Number> const& input)
   {
@@ -783,9 +778,6 @@ public:
   /**
    * Up-samples the input.
    * @param input a Buffer that holds the input samples
-   * @param output an InterleavedBuffer to hold the up-sampled samples
-   * @param numChannelsToProcess the number of channels to process. If negative,
-   * all channels will be processed.
    */
   void processBlock(Buffer<Number> const& input)
   {

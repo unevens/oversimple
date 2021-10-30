@@ -16,7 +16,7 @@ limitations under the License.
 
 #include "oversimple/FirOversampling.hpp"
 #include "oversimple/IirOversampling.hpp"
-#include "oversimple/Oversampling.hpp"
+//#include "oversimple/Oversampling.hpp"
 
 #include <cmath>
 #include <iomanip>
@@ -157,7 +157,7 @@ void testIirOversampling(int numChannels, int order, int numSamples)
        << (typeid(Number) == typeid(float) ? "single" : "double") << " precision\n";
 
   cout << "group delay at DC is " << groupDelay << "\n";
-  auto const offset = 20 * groupDelay;
+  auto const offset = 20 * (uint32_t)std::ceil(groupDelay);
   auto const samplesPerBlock = offset + numSamples;
 
   auto in = Buffer<Number>(numChannels, samplesPerBlock);
@@ -176,8 +176,8 @@ void testIirOversampling(int numChannels, int order, int numSamples)
   CHECK_MEMORY;
   upSampling.processBlock(in);
   CHECK_MEMORY;
-  auto& upSampled = upSampling.getOutput();
-  downSampling.processBlock(upSampled, factor * samplesPerBlock);
+  auto const& upSampled = upSampling.getOutput();
+  downSampling.processBlock(upSampled);
   CHECK_MEMORY;
   auto& output = downSampling.getOutput();
 
