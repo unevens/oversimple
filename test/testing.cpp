@@ -43,20 +43,6 @@ limitations under the License.
 using namespace oversimple;
 using namespace std;
 
-std::string n2s(double x)
-{
-  stringstream stream;
-  stream << fixed << showpos << setprecision(6) << x;
-  return stream.str();
-}
-
-std::string i2s(int x)
-{
-  stringstream stream;
-  stream << setw(4) << setfill(' ') << x;
-  return stream.str();
-}
-
 template<typename Float>
 void testFirOversampling(int numChannels,
                          int numSamples,
