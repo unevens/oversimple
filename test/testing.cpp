@@ -70,10 +70,8 @@ void testFirOversampling(int numChannels,
        << " and transitionBand = " << transitionBand << "%. with "
        << (std::is_same_v<Float, float> ? "single" : "double") << " precision"
        << "\n";
-  auto firUpSampler =
-    fir::TUpSamplerPreAllocated<Float>(oversamplingOrder, 1, transitionBand, fftSamplesPerBlock);
-  auto firDownSampler =
-    fir::TDownSamplerPreAllocated<Float>(oversamplingOrder, 1, transitionBand, fftSamplesPerBlock);
+  auto firUpSampler = fir::TUpSamplerPreAllocated<Float>(oversamplingOrder, 1, transitionBand, fftSamplesPerBlock);
+  auto firDownSampler = fir::TDownSamplerPreAllocated<Float>(oversamplingOrder, 1, transitionBand, fftSamplesPerBlock);
   firUpSampler.setNumChannels(numChannels);
   firUpSampler.setOrder(oversamplingOrder);
   firUpSampler.prepareBuffers(numSamples);
@@ -171,8 +169,8 @@ void testIirOversampling(int numChannels, int order, int numSamples)
   assert(upSamplingOk);
   bool const downSamplingOk = downSampling.setOrder(order);
   assert(downSamplingOk);
-  upSampling.prepareBuffer(samplesPerBlock);
-  downSampling.prepareBuffer(samplesPerBlock * (1 << order));
+  upSampling.prepareBuffers(samplesPerBlock);
+  downSampling.prepareBuffers(samplesPerBlock);
   CHECK_MEMORY;
   upSampling.processBlock(in);
   CHECK_MEMORY;
@@ -187,7 +185,7 @@ void testIirOversampling(int numChannels, int order, int numSamples)
       double signalPower = 0.0;
       for (int s = from; s < to; ++s) {
         double out = *output.at(c, s + offset);
-//        cout << s << " | " << in[c][s] << " | " << out << "\n";
+        //        cout << s << " | " << in[c][s] << " | " << out << "\n";
         double diff = in[c][s] - out;
         signalPower += in[c][s] * in[c][s];
         noisePower += diff * diff;

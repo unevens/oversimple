@@ -73,13 +73,13 @@ protected:
   uint32_t numChannels;
   uint32_t order;
   uint32_t maxOrder;
-  uint32_t maxInputSamples;
+  uint32_t maxDownSampledSamples;
   InterleavedBuffer<Float> buffer[2];
 
   OversamplingChain(OversamplingDesigner designer_, uint32_t numChannels_, uint32_t orderToPreallocateFor = 1)
     : designer(std::move(designer_))
     , numChannels(numChannels_)
-    , maxInputSamples(256)
+    , maxDownSampledSamples(256)
     , order(1)
     , maxOrder(orderToPreallocateFor)
   {
@@ -181,12 +181,12 @@ protected:
   {
     auto const maxFactor = 1 << maxOrder;
     auto const factor = 1 << order;
-    auto const maxNumOutSamples = maxInputSamples * maxFactor;
-    auto const numOutSamples = maxInputSamples * factor;
+    auto const maxNumUpSampledSamples = maxDownSampledSamples * maxFactor;
+    auto const numUpSampledSamples = maxDownSampledSamples * factor;
     for (auto& b : buffer) {
       b.setNumChannels(numChannels);
-      b.reserve(maxNumOutSamples);
-      b.setNumSamples(numOutSamples);
+      b.reserve(maxNumUpSampledSamples);
+      b.setNumSamples(numUpSampledSamples);
     }
   }
 
@@ -455,11 +455,12 @@ public:
 
   /**
    * Prepares the internal buffers to receive the specified amount of samples.
-   * @maxInputSamples_ the maximum amount of samples that can be processed by a single processing call
+   * @maxInputSamplesDownSampled the maximum amount of samples that can be processed by a single processing call of the
+   * UpSampler. The DownSampler can process the corresponding amount of up-sampled samples.
    */
-  void prepareBuffer(uint32_t maxInputSamples_)
+  void prepareBuffers(uint32_t maxInputSamplesDownSampled)
   {
-    maxInputSamples = maxInputSamples_;
+    maxDownSampledSamples = maxInputSamplesDownSampled;
     setupBuffer();
   }
 
@@ -592,7 +593,7 @@ public:
   {
     assert(this->numChannels == input.getNumChannels());
     auto const numSamples = input.getNumSamples();
-    assert(numSamples <= this->maxInputSamples);
+    assert(numSamples <= this->maxDownSampledSamples * (1 << this->order));
 
     auto& output = this->buffer[0];
     auto& temp = this->buffer[1];
@@ -694,7 +695,7 @@ public:
     auto const numInputSamples = input.getNumSamples();
 
     assert(input.getNumChannels() == this->numChannels);
-    assert(numInputSamples <= this->maxInputSamples);
+    assert(numInputSamples <= this->maxDownSampledSamples);
 
     auto& output = this->buffer[1];
     auto& temp = this->buffer[0];
@@ -738,7 +739,7 @@ public:
    */
   void processBlock(Float* const* inputs, uint32_t numInputSamples)
   {
-    assert(numInputSamples <= this->maxInputSamples);
+    assert(numInputSamples <= this->maxDownSampledSamples);
 
     switch (this->order) {
       case 1: {
@@ -881,9 +882,8 @@ public:
   template<int NC>
   using Stage8 = FakeDownsamplerStage8Double<NC>;
   template<int NC>
-  using Stage4 = typename std::conditional<std::is_same<Float, float>::value,
-                                           hiir::Downsampler2x4Neon<NC>,
-                                           FakeDownsamplerStage4Double<NC>>::type;
+  using Stage4 = typename std::
+    conditional<std::is_same<Float, float>::value, hiir::Downsampler2x4Neon<NC>, FakeDownsamplerStage4Double<NC>>::type;
   template<int NC>
   using Stage2 = typename std::conditional<std::is_same<Float, float>::value,
                                            FakeDownsamplerStage2Float<NC>,
@@ -911,8 +911,8 @@ class DownSampler final : public detail::DownSamplerFactory<Float>::DownSampler
 public:
   explicit DownSampler(uint32_t numChannels, uint32_t orderToPreallocateFor = 1)
     : detail::DownSamplerFactory<Float>::DownSampler(detail::getOversamplingPreset(0),
-                                                      numChannels,
-                                                      orderToPreallocateFor)
+                                                     numChannels,
+                                                     orderToPreallocateFor)
   {}
 };
 
