@@ -4,6 +4,7 @@
 # see test/CMakeLists.txt for an example
 
 cmake_minimum_required(VERSION 3.14.0)
+project(Oversimple)
 
 # on MacOS, by default unplug will build an universal binary. you can set oversimple_override_macos_arch to the architecture
 # you want to build by uncommenting one of the next two lines. It can be useful because Compiler Explorer does not support
