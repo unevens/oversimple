@@ -333,7 +333,7 @@ protected:
  * Template version of UnbufferedReSampler.
  * @see UnbufferedReSampler
  */
-template<typename Number>
+template<typename Float>
 class TUpSampler final : public UpSampler
 {
 public:
@@ -354,12 +354,12 @@ public:
     : UpSampler(numChannels, transitionBand, fftSamplesPerBlock, oversamplingRate)
   {}
 
-  Buffer<Number>& getOutput()
+  Buffer<Float>& getOutput()
   {
     return output;
   }
 
-  Buffer<Number> const& getOutput() const
+  Buffer<Float> const& getOutput() const
   {
     return output;
   }
@@ -475,7 +475,7 @@ private:
  * Template version of BufferedReSampler.
  * @see BufferedReSampler
  */
-template<typename Number>
+template<typename Float>
 class TDownSampler : public DownSampler
 {
 public:
@@ -759,8 +759,8 @@ protected:
   uint32_t order = 1;
 };
 
-template<typename Number>
-class TUpSamplerPreAllocated final : public TReSamplerPreAllocatedBase<TUpSampler<Number>>
+template<typename Float>
+class TUpSamplerPreAllocated final : public TReSamplerPreAllocatedBase<TUpSampler<Float>>
 {
 public:
   /**
@@ -777,7 +777,7 @@ public:
                                   uint32_t numChannels = 2,
                                   double transitionBand = 2.0,
                                   uint32_t fftSamplesPerBlock = 512)
-    : TReSamplerPreAllocatedBase<TUpSampler<Number>>(numChannels, transitionBand, fftSamplesPerBlock)
+    : TReSamplerPreAllocatedBase<TUpSampler<Float>>(numChannels, transitionBand, fftSamplesPerBlock)
   {
     setMaxOrder(maxOrder);
   }
@@ -785,7 +785,7 @@ public:
   /**
    * @return a Buffer holding the output of the processing
    */
-  Buffer<Number>& getOutput()
+  Buffer<Float>& getOutput()
   {
     return this->get().getOutput();
   }
@@ -793,7 +793,7 @@ public:
   /**
    * @return a const Buffer holding the output of the processing
    */
-  Buffer<Number> const& getOutput() const
+  Buffer<Float> const& getOutput() const
   {
     return this->get().getOutput();
   }
@@ -810,7 +810,7 @@ public:
       if (!reSampler) {
         auto const rate = static_cast<double>(1 << instanceOrder);
         reSampler =
-          std::make_unique<TUpSampler<Number>>(this->numChannels, this->transitionBand, this->fftSamplesPerBlock, rate);
+          std::make_unique<TUpSampler<Float>>(this->numChannels, this->transitionBand, this->fftSamplesPerBlock, rate);
         reSampler->prepareBuffers(this->maxInputSamples);
       }
       ++instanceOrder;
@@ -850,7 +850,7 @@ public:
    * buffer.
    * @return number of upsampled samples
    */
-  uint32_t processBlock(Number* const* input, uint32_t numSamples)
+  uint32_t processBlock(Float* const* input, uint32_t numSamples)
   {
     return this->get().processBlock(input, numSamples);
   }
@@ -860,14 +860,14 @@ public:
    * @param input Buffer that holds the input buffer.
    * @return number of upsampled samples
    */
-  uint32_t processBlock(Buffer<Number> const& input)
+  uint32_t processBlock(Buffer<Float> const& input)
   {
     return this->get().processBlock(input);
   }
 };
 
-template<typename Number>
-class TDownSamplerPreAllocated final : public TReSamplerPreAllocatedBase<TDownSampler<Number>>
+template<typename Float>
+class TDownSamplerPreAllocated final : public TReSamplerPreAllocatedBase<TDownSampler<Float>>
 {
 public:
   /**
@@ -884,7 +884,7 @@ public:
                                     uint32_t numChannels = 2,
                                     double transitionBand = 2.0,
                                     uint32_t fftSamplesPerBlock = 512)
-    : TReSamplerPreAllocatedBase<TDownSampler<Number>>(numChannels, transitionBand, fftSamplesPerBlock)
+    : TReSamplerPreAllocatedBase<TDownSampler<Float>>(numChannels, transitionBand, fftSamplesPerBlock)
   {
     setMaxOrder(maxOrder);
   }
@@ -895,7 +895,7 @@ public:
    * @param output pointer to the memory in which to store the downsampled data.
    * @param requiredSamples the number of samples needed as output
    */
-  void processBlock(Number* const* input, uint32_t numSamples, Number** output, uint32_t requiredSamples)
+  void processBlock(Float* const* input, uint32_t numSamples, Float** output, uint32_t requiredSamples)
   {
     return this->get().processBlock(input, numSamples, output, requiredSamples);
   }
@@ -906,7 +906,7 @@ public:
    * @param output pointer to the memory in which to store the downsampled data.
    * @param requiredSamples the number of samples needed as output
    */
-  void processBlock(Buffer<Number> const& input, Number** output, uint32_t requiredSamples)
+  void processBlock(Buffer<Float> const& input, Float** output, uint32_t requiredSamples)
   {
     return this->get().processBlock(input, output, requiredSamples);
   }
@@ -917,7 +917,7 @@ public:
    * @param output a Buffer to hold the downsampled data.
    * @param requiredSamples the number of samples needed as output
    */
-  void processBlock(Buffer<Number> const& input, Buffer<Number>& output, uint32_t requiredSamples)
+  void processBlock(Buffer<Float> const& input, Buffer<Float>& output, uint32_t requiredSamples)
   {
     return this->get().processBlock(input, output, requiredSamples);
   }
@@ -933,7 +933,7 @@ public:
     for (auto& reSampler : this->reSamplers) {
       if (!reSampler) {
         auto const rate = static_cast<double>(1 << instanceOrder);
-        reSampler = std::make_unique<TDownSampler<Number>>(
+        reSampler = std::make_unique<TDownSampler<Float>>(
           this->numChannels, this->transitionBand, this->fftSamplesPerBlock, rate);
         reSampler->prepareBuffers(this->maxInputSamples, maxRequiredOutputSamples);
       }

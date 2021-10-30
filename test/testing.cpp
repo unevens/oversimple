@@ -57,7 +57,7 @@ std::string i2s(int x)
   return stream.str();
 }
 
-template<typename Number>
+template<typename Float>
 void testFirOversampling(int numChannels,
                          int numSamples,
                          int fftSamplesPerBlock,
@@ -68,12 +68,12 @@ void testFirOversampling(int numChannels,
        << " channels and " << numSamples << " samples per block"
        << " and " << fftSamplesPerBlock << " samples per fft block "
        << " and transitionBand = " << transitionBand << "%. with "
-       << (std::is_same_v<Number, float> ? "single" : "double") << " precision"
+       << (std::is_same_v<Float, float> ? "single" : "double") << " precision"
        << "\n";
   auto firUpSampler =
-    fir::TUpSamplerPreAllocated<Number>(oversamplingOrder, 1, transitionBand, fftSamplesPerBlock);
+    fir::TUpSamplerPreAllocated<Float>(oversamplingOrder, 1, transitionBand, fftSamplesPerBlock);
   auto firDownSampler =
-    fir::TDownSamplerPreAllocated<Number>(oversamplingOrder, 1, transitionBand, fftSamplesPerBlock);
+    fir::TDownSamplerPreAllocated<Float>(oversamplingOrder, 1, transitionBand, fftSamplesPerBlock);
   firUpSampler.setNumChannels(numChannels);
   firUpSampler.setOrder(oversamplingOrder);
   firUpSampler.prepareBuffers(numSamples);
@@ -89,16 +89,16 @@ void testFirOversampling(int numChannels,
   cout << "latency  = " << latency << "\n";
   auto const numBuffers = latency / numSamples + 2 * std::max(1, fftSamplesPerBlock / numSamples);
   auto const totSamples = numSamples * numBuffers;
-  Buffer<Number> input(numChannels, totSamples);
-  Buffer<Number> inputCopy(numChannels, totSamples);
-  Buffer<Number> output(numChannels, totSamples);
+  Buffer<Float> input(numChannels, totSamples);
+  Buffer<Float> inputCopy(numChannels, totSamples);
+  Buffer<Float> output(numChannels, totSamples);
   input.fill(0.0);
   inputCopy.fill(0.0);
   output.fill(0.0);
 
   for (int c = 0; c < numChannels; ++c) {
     for (int i = 0; i < inputCopy[c].size(); ++i) {
-      inputCopy[c][i] = input[c][i] = sin(2.0 * M_PI * 0.125 * (Number)i);
+      inputCopy[c][i] = input[c][i] = sin(2.0 * M_PI * 0.125 * (Float)i);
     }
   }
 
@@ -141,11 +141,11 @@ void testFirOversampling(int numChannels,
        << " channels and " << numSamples << " samples per block"
        << " and " << fftSamplesPerBlock << " samples per fft block "
        << " and transitionBand = " << transitionBand << "%. with "
-       << (std::is_same_v<Number, float> ? "single" : "double") << " precision"
+       << (std::is_same_v<Float, float> ? "single" : "double") << " precision"
        << "\n";
 }
 
-template<typename Number>
+template<typename Float>
 void testIirOversampling(int numChannels, int order, int numSamples)
 {
   auto const preset = iir::detail::getOversamplingPreset(0);
@@ -154,18 +154,18 @@ void testIirOversampling(int numChannels, int order, int numSamples)
   int const factor = (int)std::pow(2, order);
   cout << "beginning to test " << factor << "x "
        << "IirOversampling with " << numChannels << "channels and "
-       << (typeid(Number) == typeid(float) ? "single" : "double") << " precision\n";
+       << (typeid(Float) == typeid(float) ? "single" : "double") << " precision\n";
 
   cout << "group delay at DC is " << groupDelay << "\n";
   auto const offset = 20 * (uint32_t)std::ceil(groupDelay);
   auto const samplesPerBlock = offset + numSamples;
 
-  auto in = Buffer<Number>(numChannels, samplesPerBlock);
+  auto in = Buffer<Float>(numChannels, samplesPerBlock);
   in.fill(1.0);
   // Oversampling test
-  auto upSampling = iir::UpSampler<Number>(1, order);
+  auto upSampling = iir::UpSampler<Float>(1, order);
   upSampling.setNumChannels(numChannels);
-  auto downSampling = iir::DownSampler<Number>(1, order);
+  auto downSampling = iir::DownSampler<Float>(1, order);
   downSampling.setNumChannels(numChannels);
   bool const upSamplingOk = upSampling.setOrder(order);
   assert(upSamplingOk);
@@ -203,7 +203,7 @@ void testIirOversampling(int numChannels, int order, int numSamples)
 
   cout << "completed testing " << factor << "x "
        << "IirOversampling with " << numChannels << "channels and "
-       << (typeid(Number) == typeid(float) ? "single" : "double") << " precision\n";
+       << (typeid(Float) == typeid(float) ? "single" : "double") << " precision\n";
 }
 
 int main()
