@@ -411,7 +411,80 @@ void testOversampling(uint64_t order, uint64_t numSamples)
         for (int i = from; i < to; ++i) {
           double in = input[c][i];
           double out = outputPlain[c][i + latency];
-          cout << in << " | " << out << "\n";
+          //          cout << in << " | " << out << "\n";
+          double diff = in - out;
+          signalPower += in * in;
+          noisePower += diff * diff;
+        }
+
+        cout << text << ": channel " << c << " snr = " << 10.0 * log10(signalPower / noisePower) << " dB\n";
+      }
+    };
+
+    measureSnr(0, settings.fftBlockSize, "snr first block");
+    measureSnr(settings.fftBlockSize, totSamples - latency, "snr after first block");
+  }
+
+  {
+    cout << "\n";
+    settings.upSampleInputBufferType = BufferType::interleaved;
+    settings.downSampleInputBufferType = settings.upSampleOutputBufferType = BufferType::plain;
+    settings.downSampleOutputBufferType = BufferType::interleaved;
+    cout << "up-sampler input type = "
+         << "interleaved"
+         << "\n";
+    cout << "up-sampler output and down-sampler input type = "
+         << "interleaved"
+         << "\n";
+    cout << "down-sampler output type = "
+         << "interleaved"
+         << "\n";
+    auto oversampling = Oversampling<Float>{ settings };
+    oversampling.prepareBuffers(numSamples);
+    auto const latency = oversampling.getLatency();
+    cout << "latency = " << latency << "\n";
+    cout << "up-sampling latency = " << oversampling.getUpSamplingLatency() << "\n";
+    cout << "down-sampling latency = " << oversampling.getDownSamplingLatency() << "\n";
+    auto const numBuffers = latency / numSamples + 2 * std::max(settings.fftBlockSize / numSamples, 1UL);
+    auto const totSamples = numSamples * numBuffers;
+    Buffer<Float> input(settings.numUpSampledChannels, totSamples);
+
+    for (uint64_t c = 0; c < settings.numUpSampledChannels; ++c) {
+      for (uint64_t i = 0; i < input[c].size(); ++i) {
+        input[c][i] = sin(2.0 * M_PI * 0.125 * (Float)i);
+      }
+    }
+    InterleavedBuffer<Float> inputInterleaved(settings.numUpSampledChannels, numSamples);
+    auto inPtr = input.get();
+    Buffer<Float> outputPlain(settings.numDownSampledChannels, totSamples);
+
+    auto out = outputPlain.get();
+    for (auto i = 0; i < numBuffers; ++i) {
+      inputInterleaved.interleave(inPtr, settings.numUpSampledChannels, numSamples);
+      auto const numUpSampledSamples = oversampling.upSample(inputInterleaved);
+      auto const& upSampled = oversampling.getUpSampleOutput();
+      assert(upSampled.getNumChannels() == settings.numUpSampledChannels);
+      assert(upSampled.getNumSamples() == numUpSampledSamples);
+      CHECK_MEMORY;
+      oversampling.downSample(upSampled.get(), numUpSampledSamples, numSamples);
+      CHECK_MEMORY;
+      // cout << "numUpSampledSamples = " << numUpSampledSamples << "\n";
+      oversampling.getDownSampleOutputInterleaved().deinterleave(out, settings.numDownSampledChannels, numSamples);
+      for (auto c = 0; c < settings.numDownSampledChannels; ++c) {
+        out[c] += numSamples;
+      }
+      for (auto c = 0; c < settings.numUpSampledChannels; ++c) {
+        inPtr[c] += numSamples;
+      }
+    }
+    auto const measureSnr = [&](int from, int to, const char* text) {
+      for (int c = 0; c < settings.numDownSampledChannels; ++c) {
+        double noisePower = 0.0;
+        double signalPower = 0.0;
+        for (int i = from; i < to; ++i) {
+          double in = input[c][i];
+          double out = outputPlain[c][i + latency];
+          //          cout << in << " | " << out << "\n";
           double diff = in - out;
           signalPower += in * in;
           noisePower += diff * diff;
