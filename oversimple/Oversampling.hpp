@@ -296,7 +296,7 @@ public:
       firDownSampler.processBlock(input, numInputSamples, output, numOutputSamples);
     }
     else {
-      assert(numOutputSamples == numInputSamples * (1 << settings.order));
+      assert(numOutputSamples * (1 << settings.order) == numInputSamples);
       assert(downSampleBufferInterleaved.getCapacity() >= numInputSamples);
       downSampleBufferInterleaved.setNumSamples(numInputSamples);
       bool const ok = downSampleBufferInterleaved.interleave(input, settings.numDownSampledChannels, numInputSamples);
@@ -318,7 +318,7 @@ public:
       firDownSampler.processBlock(downSamplePlainInputBuffer, output, numOutputSamples);
     }
     else {
-      assert(numOutputSamples == input.getNumSamples() * (1 << settings.order));
+      assert(numOutputSamples * (1 << settings.order) == input.getNumSamples());
       iirDownSampler.processBlock(input);
       iirDownSampler.getOutput().deinterleave(output, settings.numDownSampledChannels, numOutputSamples);
     }
@@ -339,7 +339,7 @@ public:
       assert(ok);
     }
     else {
-      assert(numOutputSamples == numInputSamples * (1 << settings.order));
+      assert(numOutputSamples * (1 << settings.order) == numInputSamples);
       assert(downSampleBufferInterleaved.getCapacity() >= numOutputSamples);
       downSampleBufferInterleaved.setNumSamples(numInputSamples);
       bool const ok = downSampleBufferInterleaved.interleave(input, settings.numDownSampledChannels, numInputSamples);
@@ -365,7 +365,7 @@ public:
       assert(ok);
     }
     else {
-      assert(numOutputSamples == input.getNumSamples() * (1 << settings.order));
+      assert(numOutputSamples * (1 << settings.order) == input.getNumSamples());
       iirDownSampler.processBlock(input);
     }
   }

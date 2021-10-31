@@ -191,13 +191,13 @@ void testIirOversampling(uint64_t numChannels, uint64_t order, uint64_t numSampl
 }
 
 template<typename Float>
-void testOversampling(uint64_t order, uint64_t numSamples)
+void testOversampling(uint64_t order, uint64_t numSamples, bool linearPhase)
 {
 
   OversamplingSettings settings;
   settings.maxOrder = order;
   settings.order = order;
-  settings.numUpSampledChannels = 4;
+  settings.numUpSampledChannels = 2;
   settings.numDownSampledChannels = 2;
   cout << "\n";
   cout << "\n";
@@ -205,7 +205,7 @@ void testOversampling(uint64_t order, uint64_t numSamples)
 
   cout << "linear phase"
        << "\n";
-  settings.isUsingLinearPhase = true;
+  settings.isUsingLinearPhase = linearPhase;
   {
     cout << "\n";
     settings.upSampleInputBufferType = BufferType::plain;
@@ -235,7 +235,7 @@ void testOversampling(uint64_t order, uint64_t numSamples)
 
     for (uint64_t c = 0; c < settings.numUpSampledChannels; ++c) {
       for (uint64_t i = 0; i < input[c].size(); ++i) {
-        input[c][i] = sin(2.0 * M_PI * 0.125 * (Float)i);
+        input[c][i] = linearPhase ? sin(2.0 * M_PI * 0.125 * (Float)i) : 1.0;
       }
     }
 
@@ -308,7 +308,7 @@ void testOversampling(uint64_t order, uint64_t numSamples)
 
     for (uint64_t c = 0; c < settings.numUpSampledChannels; ++c) {
       for (uint64_t i = 0; i < input[c].size(); ++i) {
-        input[c][i] = sin(2.0 * M_PI * 0.125 * (Float)i);
+        input[c][i] = linearPhase ? sin(2.0 * M_PI * 0.125 * (Float)i) : 1.0;
       }
     }
 
@@ -378,7 +378,7 @@ void testOversampling(uint64_t order, uint64_t numSamples)
 
     for (uint64_t c = 0; c < settings.numUpSampledChannels; ++c) {
       for (uint64_t i = 0; i < input[c].size(); ++i) {
-        input[c][i] = sin(2.0 * M_PI * 0.125 * (Float)i);
+        input[c][i] = linearPhase ? sin(2.0 * M_PI * 0.125 * (Float)i) : 1.0;
       }
     }
     InterleavedBuffer<Float> inputInterleaved(settings.numUpSampledChannels, numSamples);
@@ -451,7 +451,7 @@ void testOversampling(uint64_t order, uint64_t numSamples)
 
     for (uint64_t c = 0; c < settings.numUpSampledChannels; ++c) {
       for (uint64_t i = 0; i < input[c].size(); ++i) {
-        input[c][i] = sin(2.0 * M_PI * 0.125 * (Float)i);
+        input[c][i] = linearPhase ? sin(2.0 * M_PI * 0.125 * (Float)i) : 1.0;
       }
     }
     InterleavedBuffer<Float> inputInterleaved(settings.numUpSampledChannels, numSamples);
@@ -520,14 +520,16 @@ int main()
     cout << "NO SIMD INSTRUCTIONS AVAILABLE\n";
   }
 
-  //  testIirOversampling<double>(2, 4, 1024);
-  //  testIirOversampling<float>(2, 4, 1024);
-  //  testFirOversampling<float>(2, 128, 1024, 4, 4.0);
-  //  testFirOversampling<float>(2, 1024, 512, 4, 4.0);
-  //  testFirOversampling<double>(2, 128, 1024, 4, 4.0);
-  //  testFirOversampling<double>(2, 1024, 512, 4, 4.0);
+  testIirOversampling<double>(2, 4, 1024);
+  testIirOversampling<float>(2, 4, 1024);
+  testFirOversampling<float>(2, 128, 1024, 4, 4.0);
+  testFirOversampling<float>(2, 1024, 512, 4, 4.0);
+  testFirOversampling<double>(2, 128, 1024, 4, 4.0);
+  testFirOversampling<double>(2, 1024, 512, 4, 4.0);
 
-  testOversampling<float>(2, 1024);
-
+  testOversampling<float>(4, 1024, false);
+  testOversampling<float>(4, 1024, true);
+  testOversampling<double>(4, 1024, false);
+  testOversampling<double>(4, 1024, true);
   return 0;
 }
