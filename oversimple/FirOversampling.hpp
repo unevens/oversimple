@@ -114,7 +114,7 @@ protected:
   void resetBase();
 
   double oversamplingRate = 1.0;
-  uint32_t numChannels = 2;
+  uint32_t numChannels;
   uint32_t fftSamplesPerBlock = 512;
   double transitionBand = 4.0;
   std::vector<std::unique_ptr<r8b::CDSPResampler24>> reSamplers;
@@ -149,7 +149,6 @@ public:
   /**
    * Up-samples a multi channel input buffer.
    * @param input pointer to the input buffer.
-   * @param numChannels number of channels of the input buffer
    * @param numSamples the number of samples of each channel of the input
    * buffer.
    * @return number of up-sampled samples
@@ -735,7 +734,7 @@ public:
   }
 
 protected:
-  explicit TReSamplerPreAllocatedBase(uint32_t numChannels = 2,
+  explicit TReSamplerPreAllocatedBase(uint32_t numChannels,
                                       double transitionBand = 4.0,
                                       uint32_t fftSamplesPerBlock = 512)
     : numChannels{ numChannels }
@@ -754,7 +753,7 @@ protected:
   }
 
   std::vector<std::unique_ptr<ReSampler>> reSamplers;
-  uint32_t numChannels = 2;
+  uint32_t numChannels;
   uint32_t maxInputSamples = 256;
   uint32_t fftSamplesPerBlock = 512;
   double transitionBand = 4.0;
@@ -767,16 +766,16 @@ class TUpSamplerPreAllocated final : public TReSamplerPreAllocatedBase<TUpSample
 public:
   /**
    * Constructor.
-   * @param maxOrder the maximum order of oversampling to allocate resources for
    * @param numChannels the number of channels the processor will be ready to
    * work with.
+   * @param maxOrder the maximum order of oversampling to allocate resources for
    * @param transitionBand value the antialiasing filter transition band, in
    * percentage of the sample rate.
    * @param fftSamplesPerBlock the number of samples that will be processed
    * by each fft call.
    */
-  explicit TUpSamplerPreAllocated(uint32_t maxOrder = 5,
-                                  uint32_t numChannels = 2,
+  explicit TUpSamplerPreAllocated(uint32_t maxOrder,
+                                  uint32_t numChannels,
                                   double transitionBand = 4.0,
                                   uint32_t fftSamplesPerBlock = 512)
     : TReSamplerPreAllocatedBase<TUpSampler<Float>>(numChannels, transitionBand, fftSamplesPerBlock)
@@ -874,16 +873,16 @@ class TDownSamplerPreAllocated final : public TReSamplerPreAllocatedBase<TDownSa
 public:
   /**
    * Constructor.
-   * @param maxOrder the maximum order of oversampling to allocate resources for
    * @param numChannels the number of channels the processor will be ready to
    * work with.
+   * @param maxOrder the maximum order of oversampling to allocate resources for
    * @param transitionBand value the antialiasing filter transition band, in
    * percentage of the sample rate.
    * @param fftSamplesPerBlock the number of samples that will be processed
    * by each fft call.
    */
-  explicit TDownSamplerPreAllocated(uint32_t maxOrder = 5,
-                                    uint32_t numChannels = 2,
+  explicit TDownSamplerPreAllocated(uint32_t maxOrder,
+                                    uint32_t numChannels,
                                     double transitionBand = 4.0,
                                     uint32_t fftSamplesPerBlock = 512)
     : TReSamplerPreAllocatedBase<TDownSampler<Float>>(numChannels, transitionBand, fftSamplesPerBlock)
