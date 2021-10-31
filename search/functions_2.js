@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['iiroversamplingdesigner_103',['IirOversamplingDesigner',['../classoversimple_1_1_iir_oversampling_designer.html#a4558134a6f1a033ab9a745ef501e47db',1,'oversimple::IirOversamplingDesigner']]]
+  ['oversampling_136',['Oversampling',['../classoversimple_1_1_oversampling.html#a1cc31d130f8586f70ddf902a7af7f979',1,'oversimple::Oversampling']]],
+  ['oversamplingdesigner_137',['OversamplingDesigner',['../classoversimple_1_1iir_1_1detail_1_1_oversampling_designer.html#a635ae51d034768351b3874b27d81aabb',1,'oversimple::iir::detail::OversamplingDesigner']]]
 ];

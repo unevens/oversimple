@@ -1,8 +1,8 @@
 var indexSectionsWithContent =
 {
-  0: "dfgimoprstuv",
-  1: "dfiostuv",
-  2: "fgimprst",
+  0: "dfgoprstu",
+  1: "dfortu",
+  2: "dgoprstu",
   3: "o"
 };
 

@@ -1,11 +1,14 @@
 var searchData=
 [
-  ['scalartoscalardownsampler_36',['ScalarToScalarDownsampler',['../structoversimple_1_1_oversampling_1_1_scalar_to_scalar_downsampler.html',1,'oversimple::Oversampling']]],
-  ['scalartoscalarupsampler_37',['ScalarToScalarUpsampler',['../classoversimple_1_1_oversampling_1_1_scalar_to_scalar_upsampler.html',1,'oversimple::Oversampling']]],
-  ['scalartovecupsampler_38',['ScalarToVecUpsampler',['../classoversimple_1_1_oversampling_1_1_scalar_to_vec_upsampler.html',1,'oversimple::Oversampling']]],
-  ['setmaxsamplesperblock_39',['setMaxSamplesPerBlock',['../classoversimple_1_1_fir_resampler_base.html#ab44e70edcd5909c0fcf42feaabe6ae99',1,'oversimple::FirResamplerBase']]],
-  ['setnumchannels_40',['setNumChannels',['../classoversimple_1_1_fir_resampler_base.html#a3fbcf26b8021da49c920cb1d6b3381ce',1,'oversimple::FirResamplerBase::setNumChannels()'],['../classoversimple_1_1_iir_oversampler.html#af9fc99df8c006349c571c7e6c57e2030',1,'oversimple::IirOversampler::setNumChannels()']]],
-  ['setorder_41',['setOrder',['../classoversimple_1_1_iir_oversampler.html#afe1465c5ece02aede47a710276ed5e00',1,'oversimple::IirOversampler']]],
-  ['setrate_42',['setRate',['../classoversimple_1_1_fir_resampler_base.html#a67e78f86740919e064e47914529510ec',1,'oversimple::FirResamplerBase::setRate()'],['../classoversimple_1_1_fir_downsampler.html#ac1e6bb1a23c91be5be39e88ae08234a2',1,'oversimple::FirDownsampler::setRate()'],['../classoversimple_1_1_t_fir_downsampler.html#ae4d32d43108f0726a27fa9ff7eb09bda',1,'oversimple::TFirDownsampler::setRate()']]],
-  ['settransitionband_43',['setTransitionBand',['../classoversimple_1_1_fir_resampler_base.html#a9edec09410b0ffb224fafb4ed8cd4515',1,'oversimple::FirResamplerBase']]]
+  ['upsample_67',['upSample',['../classoversimple_1_1_oversampling.html#a6d973aa32daa027eaab6e47a3b493680',1,'oversimple::Oversampling::upSample(Float *const *input, uint32_t numSamples)'],['../classoversimple_1_1_oversampling.html#aac35bffcce9cca267ae9f34ee323b6c0',1,'oversimple::Oversampling::upSample(InterleavedBuffer&lt; Float &gt; const &amp;input)']]],
+  ['upsampler_68',['UpSampler',['../classoversimple_1_1iir_1_1_up_sampler.html',1,'oversimple::iir::UpSampler&lt; Float &gt;'],['../classoversimple_1_1fir_1_1_up_sampler.html',1,'oversimple::fir::UpSampler'],['../classoversimple_1_1fir_1_1_up_sampler.html#afd2f58fbd036475d6228a151c4fbb53f',1,'oversimple::fir::UpSampler::UpSampler()']]],
+  ['upsampler2x16avx_69',['Upsampler2x16Avx',['../classhiir_1_1_upsampler2x16_avx.html',1,'hiir']]],
+  ['upsampler2x2f64neon_70',['Upsampler2x2F64Neon',['../classhiir_1_1_upsampler2x2_f64_neon.html',1,'hiir']]],
+  ['upsampler2x2f64sse2_71',['Upsampler2x2F64Sse2',['../classhiir_1_1_upsampler2x2_f64_sse2.html',1,'hiir']]],
+  ['upsampler2x4f64avx_72',['Upsampler2x4F64Avx',['../classhiir_1_1_upsampler2x4_f64_avx.html',1,'hiir']]],
+  ['upsampler2x4neon_73',['Upsampler2x4Neon',['../classhiir_1_1_upsampler2x4_neon.html',1,'hiir']]],
+  ['upsampler2x4sse_74',['Upsampler2x4Sse',['../classhiir_1_1_upsampler2x4_sse.html',1,'hiir']]],
+  ['upsampler2x8avx_75',['Upsampler2x8Avx',['../classhiir_1_1_upsampler2x8_avx.html',1,'hiir']]],
+  ['upsampler2x8f64avx_76',['Upsampler2x8F64Avx',['../classhiir_1_1_upsampler2x8_f64_avx.html',1,'hiir']]],
+  ['upsamplerfactory_77',['UpSamplerFactory',['../classoversimple_1_1iir_1_1detail_1_1_up_sampler_factory.html',1,'oversimple::iir::detail']]]
 ];

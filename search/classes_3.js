@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['oversampling_69',['Oversampling',['../classoversimple_1_1_oversampling.html',1,'oversimple']]],
-  ['oversamplingsettings_70',['OversamplingSettings',['../structoversimple_1_1_oversampling_settings.html',1,'oversimple']]]
+  ['resamplerbase_92',['ReSamplerBase',['../classoversimple_1_1fir_1_1_re_sampler_base.html',1,'oversimple::fir']]]
 ];

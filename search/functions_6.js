@@ -1,8 +1,7 @@
 var searchData=
 [
-  ['setmaxsamplesperblock_110',['setMaxSamplesPerBlock',['../classoversimple_1_1_fir_resampler_base.html#ab44e70edcd5909c0fcf42feaabe6ae99',1,'oversimple::FirResamplerBase']]],
-  ['setnumchannels_111',['setNumChannels',['../classoversimple_1_1_fir_resampler_base.html#a3fbcf26b8021da49c920cb1d6b3381ce',1,'oversimple::FirResamplerBase::setNumChannels()'],['../classoversimple_1_1_iir_oversampler.html#af9fc99df8c006349c571c7e6c57e2030',1,'oversimple::IirOversampler::setNumChannels()']]],
-  ['setorder_112',['setOrder',['../classoversimple_1_1_iir_oversampler.html#afe1465c5ece02aede47a710276ed5e00',1,'oversimple::IirOversampler']]],
-  ['setrate_113',['setRate',['../classoversimple_1_1_fir_resampler_base.html#a67e78f86740919e064e47914529510ec',1,'oversimple::FirResamplerBase::setRate()'],['../classoversimple_1_1_fir_downsampler.html#ac1e6bb1a23c91be5be39e88ae08234a2',1,'oversimple::FirDownsampler::setRate()'],['../classoversimple_1_1_t_fir_downsampler.html#ae4d32d43108f0726a27fa9ff7eb09bda',1,'oversimple::TFirDownsampler::setRate()']]],
-  ['settransitionband_114',['setTransitionBand',['../classoversimple_1_1_fir_resampler_base.html#a9edec09410b0ffb224fafb4ed8cd4515',1,'oversimple::FirResamplerBase']]]
+  ['tdownsampler_157',['TDownSampler',['../classoversimple_1_1fir_1_1_t_down_sampler_3_01float_01_4.html#a5d49833292bde936a96fbe051cb218b7',1,'oversimple::fir::TDownSampler&lt; float &gt;::TDownSampler()'],['../classoversimple_1_1iir_1_1detail_1_1_t_down_sampler.html#aad7238fa58f58f8d1b320b24e312a9f3',1,'oversimple::iir::detail::TDownSampler::TDownSampler()']]],
+  ['tdownsamplerpreallocated_158',['TDownSamplerPreAllocated',['../classoversimple_1_1fir_1_1_t_down_sampler_pre_allocated.html#a2130a79b55d7e318015a9a0e6b1715e7',1,'oversimple::fir::TDownSamplerPreAllocated']]],
+  ['tupsampler_159',['TUpSampler',['../classoversimple_1_1fir_1_1_t_up_sampler.html#a4f8bb6e91490a432cbe08be6c2ae014f',1,'oversimple::fir::TUpSampler::TUpSampler()'],['../classoversimple_1_1fir_1_1_t_up_sampler_3_01float_01_4.html#a606429cf5332e5a10c48aa672be13928',1,'oversimple::fir::TUpSampler&lt; float &gt;::TUpSampler()'],['../classoversimple_1_1iir_1_1detail_1_1_t_up_sampler.html#aeee77b8bdd1efad74e67aab64b66d893',1,'oversimple::iir::detail::TUpSampler::TUpSampler()']]],
+  ['tupsamplerpreallocated_160',['TUpSamplerPreAllocated',['../classoversimple_1_1fir_1_1_t_up_sampler_pre_allocated.html#a5db82c1e12b102cdfef4b9fc624fdbca',1,'oversimple::fir::TUpSamplerPreAllocated']]]
 ];

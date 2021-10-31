@@ -1,6 +1,5 @@
 var searchData=
 [
-  ['firbufferedresampler_86',['FirBufferedResampler',['../classoversimple_1_1_fir_buffered_resampler.html#a1a9925240450ac6bfcd38ad9f0cda7d5',1,'oversimple::FirBufferedResampler']]],
-  ['firdownsampler_87',['FirDownsampler',['../classoversimple_1_1_fir_downsampler.html#aa9bf27373789c8a3d2f0830a0477cee3',1,'oversimple::FirDownsampler']]],
-  ['firunbufferedresampler_88',['FirUnbufferedResampler',['../classoversimple_1_1_fir_unbuffered_resampler.html#a6bb202d94f69f2dcacaab16a8cb6d5ad',1,'oversimple::FirUnbufferedResampler']]]
+  ['downsample_112',['downSample',['../classoversimple_1_1_oversampling.html#abe3e3ec1daf5069d84dfaa3b10e2c308',1,'oversimple::Oversampling::downSample(Float *const *input, uint32_t numInputSamples, Float **output, uint32_t numOutputSamples)'],['../classoversimple_1_1_oversampling.html#a77fdff3ebdc6f4bd30fadde262283e2d',1,'oversimple::Oversampling::downSample(InterleavedBuffer&lt; Float &gt; const &amp;input, Float **output, uint32_t numOutputSamples)'],['../classoversimple_1_1_oversampling.html#ac3ebc65b44339b0bac5170af70ed3272',1,'oversimple::Oversampling::downSample(Float *const *input, uint32_t numInputSamples, uint32_t numOutputSamples)'],['../classoversimple_1_1_oversampling.html#a3dee403e648ebff703f78e996ca938b5',1,'oversimple::Oversampling::downSample(InterleavedBuffer&lt; Float &gt; const &amp;input, uint32_t numOutputSamples)']]],
+  ['downsampler_113',['DownSampler',['../classoversimple_1_1fir_1_1_down_sampler.html#ae0ee08bd31448fe7942dcba3fca95d07',1,'oversimple::fir::DownSampler']]]
 ];
