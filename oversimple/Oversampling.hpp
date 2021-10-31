@@ -233,7 +233,7 @@ public:
       input.deinterleave(upSamplePlainBuffer);
       auto const numUpSampledSamples = firUpSampler.processBlock(upSamplePlainBuffer);
       if (settings.upSampleOutputBufferType == BufferType::interleaved) {
-        assert(firUpSampler.getOutput() == numUpSampledSamples);
+        assert(firUpSampler.getOutput().getNumSamples() == numUpSampledSamples);
         assert(upSampleOutputInterleaved.getCapacity() >= numUpSampledSamples);
         upSampleOutputInterleaved.setNumSamples(numUpSampledSamples);
         upSampleOutputInterleaved.interleave(firUpSampler.getOutput());
@@ -241,9 +241,9 @@ public:
       return numUpSampledSamples;
     }
     else {
-      auto const numUpSampledSamples = iirUpSampler.processBlock(input);
+      iirUpSampler.processBlock(input);
+      auto const numUpSampledSamples = iirUpSampler.getOutput().getNumSamples();
       if (settings.upSampleOutputBufferType == BufferType::plain) {
-        assert(numUpSampledSamples == iirUpSampler.getOutput().getNumSamples());
         assert(upSamplePlainBuffer.getCapacity() >= numUpSampledSamples);
         upSamplePlainBuffer.setNumSamples(numUpSampledSamples);
         iirUpSampler.getOutput().deinterleave(upSamplePlainBuffer);
@@ -317,7 +317,7 @@ public:
     else {
       assert(numOutputSamples == input.getNumSamples() * (1 << settings.order));
       iirDownSampler.processBlock(input);
-      iirDownSampler.getOutput().deinterleave(output, numOutputSamples);
+      iirDownSampler.getOutput().deinterleave(output, settings.numDownSampledChannels, numOutputSamples);
     }
   }
 
@@ -367,7 +367,7 @@ public:
     if (settings.isUsingLinearPhase)
       return downSampleBufferInterleaved;
     else
-      iirDownSampler.getOutput();
+      return iirDownSampler.getOutput();
   }
 
 private:
@@ -435,7 +435,7 @@ private:
              settings.downSampleInputBufferType == BufferType::interleaved)
     {
       downSampleBufferInterleaved.setNumChannels(0);
-      downSamplePlainInputBuffer.setNumChannels(0);
+      downSamplePlainInputBuffer.setNumChannels(settings.numDownSampledChannels);
       downSamplePlainOutputBuffer.setNumChannels(settings.numDownSampledChannels);
     }
     else if (settings.downSampleOutputBufferType == BufferType::plain &&
