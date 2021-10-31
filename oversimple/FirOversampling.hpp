@@ -624,6 +624,7 @@ public:
       order = value;
       return true;
     }
+    assert(false);
     return false;
   }
 

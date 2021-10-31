@@ -54,6 +54,7 @@ public:
     , firDownSampler{ settings.numDownSampledChannels, settings.maxOrder }
   {
     setup();
+    setOrder(settings.order);
   }
 
   void setMaxOrder(uint32_t value)
@@ -202,26 +203,39 @@ public:
     if (settings.isUsingLinearPhase) {
       auto const numUpSampledSamples = firUpSampler.processBlock(input, numSamples);
       if (settings.upSampleOutputBufferType == BufferType::interleaved) {
+        assert(firUpSampler.getOutput().getNumSamples() == numUpSampledSamples);
+        assert(upSampleOutputInterleaved.getCapacity() >= numUpSampledSamples);
+        upSampleOutputInterleaved.setNumSamples(numUpSampledSamples);
         upSampleOutputInterleaved.interleave(firUpSampler.getOutput());
       }
       return numUpSampledSamples;
     }
     else {
       iirUpSampler.processBlock(input, numSamples);
+      auto const numUpSampledSamples = numSamples * getOversamplingRate();
       if (settings.upSampleOutputBufferType == BufferType::plain) {
+        assert(numUpSampledSamples == iirUpSampler.getOutput().getNumSamples());
+        assert(upSamplePlainBuffer.getCapacity() >= numUpSampledSamples);
+        upSamplePlainBuffer.setNumSamples(numUpSampledSamples);
         iirUpSampler.getOutput().deinterleave(upSamplePlainBuffer);
       }
-      return numSamples * getOversamplingRate();
+      return numUpSampledSamples;
     }
   }
 
   uint32_t upSample(InterleavedBuffer<Float> const& input)
   {
     assert(settings.upSampleInputBufferType == BufferType::interleaved);
+    assert(input.getNumChannels() == settings.numUpSampledChannels);
     if (settings.isUsingLinearPhase) {
+      assert(upSamplePlainBuffer.getCapacity() >= input.getNumSamples());
+      upSamplePlainBuffer.setNumSamples(input.getNumSamples());
       input.deinterleave(upSamplePlainBuffer);
       auto const numUpSampledSamples = firUpSampler.processBlock(upSamplePlainBuffer);
       if (settings.upSampleOutputBufferType == BufferType::interleaved) {
+        assert(firUpSampler.getOutput() == numUpSampledSamples);
+        assert(upSampleOutputInterleaved.getCapacity() >= numUpSampledSamples);
+        upSampleOutputInterleaved.setNumSamples(numUpSampledSamples);
         upSampleOutputInterleaved.interleave(firUpSampler.getOutput());
       }
       return numUpSampledSamples;
@@ -229,6 +243,9 @@ public:
     else {
       auto const numUpSampledSamples = iirUpSampler.processBlock(input);
       if (settings.upSampleOutputBufferType == BufferType::plain) {
+        assert(numUpSampledSamples == iirUpSampler.getOutput().getNumSamples());
+        assert(upSamplePlainBuffer.getCapacity() >= numUpSampledSamples);
+        upSamplePlainBuffer.setNumSamples(numUpSampledSamples);
         iirUpSampler.getOutput().deinterleave(upSamplePlainBuffer);
       }
       return numUpSampledSamples;
@@ -239,7 +256,7 @@ public:
   {
     assert(settings.upSampleOutputBufferType == BufferType::interleaved);
     if (settings.isUsingLinearPhase)
-      return firUpSampler.getOutput();
+      return upSampleOutputInterleaved;
     else
       return iirUpSampler.getOutput();
   }
@@ -256,7 +273,7 @@ public:
   {
     assert(settings.upSampleOutputBufferType == BufferType::interleaved);
     if (settings.isUsingLinearPhase)
-      return firUpSampler.getOutput();
+      return upSampleOutputInterleaved;
     else
       return iirUpSampler.getOutput();
   }
@@ -265,9 +282,8 @@ public:
   {
     assert(settings.upSampleOutputBufferType == BufferType::plain);
     if (settings.isUsingLinearPhase)
-      return upSampleOutputInterleaved;
-    else
-      return upSamplePlainBuffer;
+      return firUpSampler.getOutput();
+    return upSamplePlainBuffer;
   }
 
   void downSample(Float* const* input, uint32_t numInputSamples, Float** output, uint32_t numOutputSamples)
@@ -279,6 +295,7 @@ public:
     }
     else {
       assert(numOutputSamples == numInputSamples * (1 << settings.order));
+      assert(downSampleBufferInterleaved.getCapacity() >= numInputSamples);
       downSampleBufferInterleaved.setNumSamples(numInputSamples);
       downSampleBufferInterleaved.interleave(input, settings.numDownSampledChannels, numInputSamples);
       iirDownSampler.processBlock(downSampleBufferInterleaved);
@@ -291,9 +308,11 @@ public:
     assert(settings.downSampleOutputBufferType == BufferType::plain);
     assert(settings.downSampleInputBufferType == BufferType::interleaved);
     if (settings.isUsingLinearPhase) {
-      downSamplePlainOutputBuffer.setNumSamples(input.getNumSamples());
-      input.deinterleave(downSamplePlainOutputBuffer);
-      firDownSampler.processBlock(downSamplePlainOutputBuffer, output, numOutputSamples);
+      auto const numInputSamples = input.getNumSamples();
+      assert(downSamplePlainInputBuffer.getCapacity() >= numInputSamples);
+      downSamplePlainInputBuffer.setNumSamples(numInputSamples);
+      input.deinterleave(downSamplePlainInputBuffer);
+      firDownSampler.processBlock(downSamplePlainInputBuffer, output, numOutputSamples);
     }
     else {
       assert(numOutputSamples == input.getNumSamples() * (1 << settings.order));
@@ -307,13 +326,16 @@ public:
     assert(settings.downSampleOutputBufferType == BufferType::interleaved);
     assert(settings.downSampleInputBufferType == BufferType::plain);
     if (settings.isUsingLinearPhase) {
+      assert(downSamplePlainOutputBuffer.getCapacity() >= numOutputSamples);
+      assert(downSampleBufferInterleaved.getCapacity() >= numOutputSamples);
       downSamplePlainOutputBuffer.setNumSamples(numOutputSamples);
-      firDownSampler.processBlock(input, numInputSamples, downSamplePlainOutputBuffer.get(), numOutputSamples);
       downSampleBufferInterleaved.setNumSamples(numOutputSamples);
+      firDownSampler.processBlock(input, numInputSamples, downSamplePlainOutputBuffer.get(), numOutputSamples);
       downSampleBufferInterleaved.interleave(downSamplePlainOutputBuffer, numOutputSamples);
     }
     else {
       assert(numOutputSamples == numInputSamples * (1 << settings.order));
+      assert(downSampleBufferInterleaved.getCapacity() >= numOutputSamples);
       downSampleBufferInterleaved.setNumSamples(numInputSamples);
       downSampleBufferInterleaved.interleave(input, numInputSamples);
       iirDownSampler.processBlock(downSampleBufferInterleaved);
@@ -325,7 +347,10 @@ public:
     assert(settings.downSampleOutputBufferType == BufferType::interleaved);
     assert(settings.downSampleInputBufferType == BufferType::interleaved);
     if (settings.isUsingLinearPhase) {
+      assert(downSamplePlainInputBuffer.getCapacity() >= input.getNumSamples());
+      assert(downSamplePlainOutputBuffer.getCapacity() >= numOutputSamples);
       downSamplePlainInputBuffer.setNumSamples(input.getNumSamples());
+      downSamplePlainOutputBuffer.setNumSamples(numOutputSamples);
       input.deinterleave(downSamplePlainInputBuffer);
       firDownSampler.processBlock(downSamplePlainInputBuffer, downSamplePlainOutputBuffer, numOutputSamples);
       downSampleBufferInterleaved.interleave(downSamplePlainOutputBuffer, numOutputSamples);
