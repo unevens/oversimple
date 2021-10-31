@@ -94,8 +94,7 @@ public:
   /**
    * @return the maximum number of samples that can be produced by a
    * processBlock call, assuming it is never called with more samples than those
-   * passed to prepareBuffers. If prepareBuffers has not been called, then no
-   * more samples than fftSamplesPerBlock should be passed to processBlock.
+   * passed to prepareBuffers.
    */
   uint32_t getMaxNumOutputSamples() const
   {

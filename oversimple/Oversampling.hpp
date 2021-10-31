@@ -20,12 +20,20 @@ limitations under the License.
 
 namespace oversimple {
 
+/**
+ * enumeration used to refer to either a Buffer object, which is a plain buffer, meaning that the samples of each
+ * channels are contiguously stored; or an InterleavedBuffer object, in which the samples of all channels are
+ * interleaved.
+ * */
 enum class BufferType
 {
   interleaved,
   plain
 };
 
+/*
+ * A struct that contains all settings needed to specify the behaviour of an Oversampling object.
+ * */
 struct OversamplingSettings final
 {
   uint32_t maxOrder = 5;
@@ -46,6 +54,10 @@ template<class Float>
 class Oversampling final
 {
 public:
+  /**
+   * Constructor
+   * @param settings the settings to initialize the object with.
+   * */
   explicit Oversampling(OversamplingSettings settings)
     : settings{ settings }
     , iirUpSampler{ settings.numUpSampledChannels, settings.maxOrder }
@@ -57,6 +69,10 @@ public:
     setOrder(settings.order);
   }
 
+  /**
+   * Sets the maximum order of oversampling supported, and allocates the necessary resources
+   * @param value the maximum order of oversampling
+   */
   void setMaxOrder(uint32_t value)
   {
     if (settings.maxOrder != value) {
@@ -65,6 +81,10 @@ public:
     }
   }
 
+  /**
+   * Prepare the up-samplers to work with the supplied number of channels.
+   * @param numChannels the new number of channels to prepare the up-samplers for.
+   */
   void setNumChannelsToUpSample(uint32_t numChannels)
   {
     if (settings.numUpSampledChannels != numChannels) {
@@ -73,6 +93,10 @@ public:
     }
   }
 
+  /**
+   * Prepare the down-samplers to work with the supplied number of channels.
+   * @param numChannels the new number of channels to prepare the down-samplers for.
+   */
   void setNumChannelsToDownSample(uint32_t numChannels)
   {
     if (settings.numDownSampledChannels != numChannels) {
@@ -81,14 +105,23 @@ public:
     }
   }
 
-  void prepareBuffers(uint32_t maxNumInputSamples_)
+  /**
+   * Allocates resources to process up to maxNumInputSamples input.
+   * @param maxNumInputSamples the expected maximum number input samples
+   */
+  void prepareBuffers(uint32_t maxNumInputSamples)
   {
-    if (settings.maxNumInputSamples != maxNumInputSamples_) {
-      settings.maxNumInputSamples = maxNumInputSamples_;
+    if (settings.maxNumInputSamples != maxNumInputSamples) {
+      settings.maxNumInputSamples = maxNumInputSamples;
       prepareInternalBuffers();
     }
   }
 
+  /**
+   * Sets the number of samples that are processed by each fft call. It only affects the FIR re-samplers used when
+   * linear phase is enabled.
+   * @param value the new number of samples that will be processed by each fft call.
+   */
   void setFirFftBlockSize(uint32_t value)
   {
     if (settings.fftBlockSize != value) {
@@ -97,6 +130,12 @@ public:
     }
   }
 
+  /**
+   * Sets the antialiasing fir filter transition band. Only affects the behaviour of the object when linear phase is
+   * enabled.
+   * @param value the new antialiasing filter transition band, in percentage of
+   * the sample rate.
+   */
   void setFirTransitionBand(double transitionBand)
   {
     if (settings.firTransitionBand != transitionBand) {
@@ -105,6 +144,10 @@ public:
     }
   }
 
+  /**
+   * Sets whether the object shoul use the linear phase FIR re-samplers or the minimum-phase IIR re-samplers.
+   * @param useLinearPhase true to enable linear phase, false to disable it.
+   * */
   void setUseLinearPhase(bool useLinearPhase)
   {
     if (!settings.isUsingLinearPhase != useLinearPhase) {
@@ -113,8 +156,14 @@ public:
     }
   }
 
+  /**
+   * Sets the order of oversampling to be used. It must be less or equal to the maximum order set
+   * @value the order to set
+   * @return true if the order was set correctly, false otherwise
+   */
   void setOrder(uint32_t order)
   {
+    assert(order > 0 && order <= 5);
     settings.order = order;
     firUpSampler.setOrder(order);
     iirUpSampler.setOrder(order);
@@ -122,6 +171,9 @@ public:
     iirDownSampler.setOrder(order);
   }
 
+  /**
+   * Resets the state of the processor, clearing the buffers.
+   */
   void reset()
   {
     if (settings.isUsingLinearPhase) {
@@ -134,6 +186,10 @@ public:
     }
   }
 
+  /**
+   * @return the number of input samples to the up-sampling call needed before a first output sample is
+   * produced by the up-sampling call.
+   */
   uint32_t getUpSamplingLatency()
   {
     if (settings.isUsingLinearPhase) {
@@ -144,6 +200,10 @@ public:
     return 0;
   }
 
+  /**
+   * @return the number of input samples to the down-sampling call needed before a first output sample is
+   * produced by the down-sampling call.
+   */
   uint32_t getDownSamplingLatency()
   {
     if (settings.isUsingLinearPhase) {
@@ -154,6 +214,10 @@ public:
     return 0;
   }
 
+  /**
+   * @return the number of input samples to the up-sampling call needed before a first output sample is
+   * produced by the down-sampling call.
+   */
   uint32_t getLatency()
   {
     if (settings.isUsingLinearPhase) {
@@ -162,6 +226,11 @@ public:
     return 0;
   }
 
+  /**
+   * @return the maximum number of samples that can be produced by a
+   * processBlock call, assuming it is never called with more samples than those
+   * passed to prepareBuffers.
+   */
   uint32_t getMaxNumOutputSamples()
   {
     if (settings.isUsingLinearPhase) {
@@ -172,31 +241,54 @@ public:
     return settings.maxNumInputSamples * getOversamplingRate();
   }
 
+  /**
+   * @return the oversampling order currently in use.
+   */
   uint32_t getOversamplingOrder() const
   {
     return settings.order;
   }
 
+  /**
+   * @return the oversampling rate currently in use.
+   */
   uint32_t getOversamplingRate() const
   {
     return 1 << settings.order;
   }
 
+  /**
+   * Sets the type of output for the up-sampling.
+   * @param bufferType the type of output for the up-sampling.
+   */
   void setUpSampledOutputBufferType(BufferType bufferType)
   {
     settings.upSampleOutputBufferType = bufferType;
   }
 
+  /**
+   * Sets the type of output for the down-sampling.
+   * @param bufferType the type of output for the down-sampling.
+   */
   void setDownSampledOutputBufferType(BufferType bufferType)
   {
     settings.downSampleOutputBufferType = bufferType;
   }
 
+  /**
+   * Sets the type of input for the down-sampling.
+   * @param bufferType the type of input for the down-sampling.
+   */
   void setDownSampledInputBufferType(BufferType bufferType)
   {
     settings.downSampleInputBufferType = bufferType;
   }
 
+  /**
+   * Up-samples the input to a buffer owned by the object.
+   * @param input pointer to the input buffers
+   * @param numSamples the number of samples in each channel of the input buffer
+   */
   uint32_t upSample(Float* const* input, uint32_t numSamples)
   {
     assert(settings.upSampleInputBufferType == BufferType::plain);
@@ -224,6 +316,10 @@ public:
     }
   }
 
+  /**
+   * Up-samples the input to a buffer owned by the object.
+   * @param input pointer to the input buffers
+   */
   uint32_t upSample(InterleavedBuffer<Float> const& input)
   {
     assert(settings.upSampleInputBufferType == BufferType::interleaved);
@@ -254,6 +350,9 @@ public:
     }
   }
 
+  /**
+   * @return an interleaved buffer that holds the output of the up-sampling.
+   */
   InterleavedBuffer<Float>& getUpSampleOutputInterleaved()
   {
     assert(settings.upSampleOutputBufferType == BufferType::interleaved);
@@ -263,6 +362,9 @@ public:
       return iirUpSampler.getOutput();
   }
 
+  /**
+   * @return a buffer that holds the output of the up-sampling.
+   */
   Buffer<Float>& getUpSampleOutput()
   {
     assert(settings.upSampleOutputBufferType == BufferType::plain);
@@ -271,6 +373,9 @@ public:
     return upSamplePlainBuffer;
   }
 
+  /**
+   * @return a const interleaved buffer that holds the output of the up-sampling.
+   */
   InterleavedBuffer<Float> const& getUpSampleOutputInterleaved() const
   {
     assert(settings.upSampleOutputBufferType == BufferType::interleaved);
@@ -280,6 +385,9 @@ public:
       return iirUpSampler.getOutput();
   }
 
+  /**
+   * @return a const buffer that holds the output of the up-sampling.
+   */
   Buffer<Float> const& getUpSampleOutput() const
   {
     assert(settings.upSampleOutputBufferType == BufferType::plain);
@@ -288,6 +396,14 @@ public:
     return upSamplePlainBuffer;
   }
 
+  /**
+   * Down-samples the input.
+   * @param input pointer to the input buffer.
+   * @param numInputSamples the number of samples of each channel of the input
+   * buffer.
+   * @param output pointer to the memory in which to store the down-sampled data.
+   * @param numOutputSamples the number of samples needed as output
+   */
   void downSample(Float* const* input, uint32_t numInputSamples, Float** output, uint32_t numOutputSamples)
   {
     assert(settings.downSampleOutputBufferType == BufferType::plain);
@@ -306,6 +422,12 @@ public:
     }
   }
 
+  /**
+   * Down-samples the input.
+   * @param input an interleaved buffer holding the input.
+   * @param output pointer to the memory in which to store the down-sampled data.
+   * @param numOutputSamples the number of samples needed as output
+   */
   void downSample(InterleavedBuffer<Float> const& input, Float** output, uint32_t numOutputSamples)
   {
     assert(settings.downSampleOutputBufferType == BufferType::plain);
@@ -324,6 +446,13 @@ public:
     }
   }
 
+  /**
+   * Down-samples the input to an InterleavedBuffer owned by the object.
+   * @param input pointer to the input buffer.
+   * @param numInputSamples the number of samples of each channel of the input
+   * buffer.
+   * @param numOutputSamples the number of samples needed as output
+   */
   void downSample(Float* const* input, uint32_t numInputSamples, uint32_t numOutputSamples)
   {
     assert(settings.downSampleOutputBufferType == BufferType::interleaved);
@@ -348,6 +477,11 @@ public:
     }
   }
 
+  /**
+   * Down-samples the input to an InterleavedBuffer owned by the object.
+   * @param input an interleaved buffer holding the input.
+   * @param numOutputSamples the number of samples needed as output
+   */
   void downSample(InterleavedBuffer<Float> const& input, uint32_t numOutputSamples)
   {
     assert(settings.downSampleOutputBufferType == BufferType::interleaved);
@@ -370,7 +504,22 @@ public:
     }
   }
 
+  /**
+   * @return an interleaved buffer that holds the output of the down-sampling.
+   */
   InterleavedBuffer<Float>& getDownSampleOutputInterleaved()
+  {
+    assert(settings.downSampleOutputBufferType == BufferType::interleaved);
+    if (settings.isUsingLinearPhase)
+      return downSampleBufferInterleaved;
+    else
+      return iirDownSampler.getOutput();
+  }
+
+  /**
+   * @return a const interleaved buffer that holds the output of the down-sampling.
+   */
+  InterleavedBuffer<Float> const& getDownSampleOutputInterleaved() const
   {
     assert(settings.downSampleOutputBufferType == BufferType::interleaved);
     if (settings.isUsingLinearPhase)
