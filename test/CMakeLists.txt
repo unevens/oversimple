@@ -8,20 +8,22 @@ set(CMAKE_CXX_STANDARD 17)
 add_executable(iir-design iir-design.cpp)
 target_link_libraries(iir-design oversimple)
 
-add_executable(ovr-test testing.cpp)
-target_link_libraries(ovr-test oversimple)
+add_executable(oversimple-test testing.cpp)
+target_link_libraries(oversimple-test oversimple)
 
 if (WIN32)
 
     set(architecture "/arch:AVX") # comment out this line to build for SSE2
     target_compile_options(oversimple PUBLIC ${architecture})
 
-elseif (APPLE)
+else()
 
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
     set(CMAKE_LINKER_FLAGS_DEBUG "${CMAKE_LINKER_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
 
-else ()
+endif ()
+
+if (NOT APPLE)
 
     set(architecture "-march=native") # replace this line to build for a specific architecture
     target_compile_options(oversimple PUBLIC ${architecture})
