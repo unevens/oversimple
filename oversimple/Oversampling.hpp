@@ -70,6 +70,14 @@ public:
   }
 
   /**
+   * @return the current settings of the object
+   */
+  OversamplingSettings const& getSettings() const
+  {
+    return settings;
+  }
+
+  /**
    * Sets the maximum order of oversampling supported, and allocates the necessary resources
    * @param value the maximum order of oversampling
    */
