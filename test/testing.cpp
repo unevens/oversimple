@@ -71,7 +71,7 @@ void testFirOversampling(uint64_t numChannels,
   cout << "NumSamplesBeforeUpSamplingStarts = " << upSampleLatency << "\n";
   cout << "NumSamplesBeforeDownSamplingStarts  = " << downSampleLatency << "\n";
   cout << "latency  = " << latency << "\n";
-  auto const numBuffers = latency / numSamples + 2 * std::max(fftSamplesPerBlock / numSamples, 1UL);
+  auto const numBuffers = latency / numSamples + 2 * std::max(fftSamplesPerBlock / numSamples, (uint64_t)1);
   auto const totSamples = numSamples * numBuffers;
   Buffer<Float> input(numChannels, totSamples);
   Buffer<Float> output(numChannels, totSamples);
@@ -226,7 +226,7 @@ void testOversampling(uint64_t order, uint64_t numSamples, bool linearPhase)
     cout << "latency = " << latency << "\n";
     cout << "up-sampling latency = " << oversampling.getUpSamplingLatency() << "\n";
     cout << "down-sampling latency = " << oversampling.getDownSamplingLatency() << "\n";
-    auto const numBuffers = latency / numSamples + 2 * std::max(settings.fftBlockSize / numSamples, 1UL);
+    auto const numBuffers = latency / numSamples + 2 * std::max(settings.fftBlockSize / numSamples, (uint64_t)1);
     auto const totSamples = numSamples * numBuffers;
     Buffer<Float> input(settings.numUpSampledChannels, totSamples);
     Buffer<Float> output(settings.numDownSampledChannels, totSamples);
@@ -299,7 +299,7 @@ void testOversampling(uint64_t order, uint64_t numSamples, bool linearPhase)
     cout << "latency = " << latency << "\n";
     cout << "up-sampling latency = " << oversampling.getUpSamplingLatency() << "\n";
     cout << "down-sampling latency = " << oversampling.getDownSamplingLatency() << "\n";
-    auto const numBuffers = latency / numSamples + 2 * std::max(settings.fftBlockSize / numSamples, 1UL);
+    auto const numBuffers = latency / numSamples + 2 * std::max(settings.fftBlockSize / numSamples, (uint64_t)1);
     auto const totSamples = numSamples * numBuffers;
     Buffer<Float> input(settings.numUpSampledChannels, totSamples);
     Buffer<Float> output(settings.numDownSampledChannels, totSamples);
@@ -372,7 +372,7 @@ void testOversampling(uint64_t order, uint64_t numSamples, bool linearPhase)
     cout << "latency = " << latency << "\n";
     cout << "up-sampling latency = " << oversampling.getUpSamplingLatency() << "\n";
     cout << "down-sampling latency = " << oversampling.getDownSamplingLatency() << "\n";
-    auto const numBuffers = latency / numSamples + 2 * std::max(settings.fftBlockSize / numSamples, 1UL);
+    auto const numBuffers = latency / numSamples + 2 * std::max(settings.fftBlockSize / numSamples, (uint64_t)1);
     auto const totSamples = numSamples * numBuffers;
     Buffer<Float> input(settings.numUpSampledChannels, totSamples);
 
@@ -445,7 +445,7 @@ void testOversampling(uint64_t order, uint64_t numSamples, bool linearPhase)
     cout << "latency = " << latency << "\n";
     cout << "up-sampling latency = " << oversampling.getUpSamplingLatency() << "\n";
     cout << "down-sampling latency = " << oversampling.getDownSamplingLatency() << "\n";
-    auto const numBuffers = latency / numSamples + 2 * std::max(settings.fftBlockSize / numSamples, 1UL);
+    auto const numBuffers = latency / numSamples + 2 * std::max(settings.fftBlockSize / numSamples, (uint64_t)1);
     auto const totSamples = numSamples * numBuffers;
     Buffer<Float> input(settings.numUpSampledChannels, totSamples);
 
