@@ -220,7 +220,7 @@ void testOversampling(uint64_t order, uint64_t numSamples, bool linearPhase)
     cout << "down-sampler output type = "
          << "plain"
          << "\n";
-    auto oversampling = Oversampling<Float>{ settings };
+    auto oversampling = Oversampling{ settings };
     oversampling.prepareBuffers(numSamples);
     auto const latency = oversampling.getLatency();
     cout << "latency = " << latency << "\n";
@@ -243,7 +243,7 @@ void testOversampling(uint64_t order, uint64_t numSamples, bool linearPhase)
     auto out = output.get();
     for (auto i = 0; i < numBuffers; ++i) {
       auto const numUpSampledSamples = oversampling.upSample(in, numSamples);
-      auto const& upSampled = oversampling.getUpSampleOutput();
+      auto const& upSampled = oversampling.getUpSampleOutput<Float>();
       assert(upSampled.getNumChannels() == settings.numUpSampledChannels);
       assert(upSampled.getNumSamples() == numUpSampledSamples);
       CHECK_MEMORY;
@@ -293,7 +293,7 @@ void testOversampling(uint64_t order, uint64_t numSamples, bool linearPhase)
     cout << "down-sampler output type = "
          << "plain"
          << "\n";
-    auto oversampling = Oversampling<Float>{ settings };
+    auto oversampling = Oversampling{ settings };
     oversampling.prepareBuffers(numSamples);
     auto const latency = oversampling.getLatency();
     cout << "latency = " << latency << "\n";
@@ -316,7 +316,7 @@ void testOversampling(uint64_t order, uint64_t numSamples, bool linearPhase)
     auto out = output.get();
     for (auto i = 0; i < numBuffers; ++i) {
       auto const numUpSampledSamples = oversampling.upSample(in, numSamples);
-      auto const& upSampled = oversampling.getUpSampleOutputInterleaved();
+      auto const& upSampled = oversampling.getUpSampleOutputInterleaved<Float>();
       assert(upSampled.getNumChannels() == settings.numUpSampledChannels);
       assert(upSampled.getNumSamples() == numUpSampledSamples);
       CHECK_MEMORY;
@@ -366,7 +366,7 @@ void testOversampling(uint64_t order, uint64_t numSamples, bool linearPhase)
     cout << "down-sampler output type = "
          << "interleaved"
          << "\n";
-    auto oversampling = Oversampling<Float>{ settings };
+    auto oversampling = Oversampling{ settings };
     oversampling.prepareBuffers(numSamples);
     auto const latency = oversampling.getLatency();
     cout << "latency = " << latency << "\n";
@@ -389,14 +389,14 @@ void testOversampling(uint64_t order, uint64_t numSamples, bool linearPhase)
     for (auto i = 0; i < numBuffers; ++i) {
       inputInterleaved.interleave(inPtr, settings.numUpSampledChannels, numSamples);
       auto const numUpSampledSamples = oversampling.upSample(inputInterleaved);
-      auto const& upSampled = oversampling.getUpSampleOutputInterleaved();
+      auto const& upSampled = oversampling.getUpSampleOutputInterleaved<Float>();
       assert(upSampled.getNumChannels() == settings.numUpSampledChannels);
       assert(upSampled.getNumSamples() == numUpSampledSamples);
       CHECK_MEMORY;
       oversampling.downSample(upSampled, numSamples);
       CHECK_MEMORY;
       // cout << "numUpSampledSamples = " << numUpSampledSamples << "\n";
-      oversampling.getDownSampleOutputInterleaved().deinterleave(out, settings.numDownSampledChannels, numSamples);
+      oversampling.getDownSampleOutputInterleaved<Float>().deinterleave(out, settings.numDownSampledChannels, numSamples);
       for (auto c = 0; c < settings.numDownSampledChannels; ++c) {
         out[c] += numSamples;
       }
@@ -439,7 +439,7 @@ void testOversampling(uint64_t order, uint64_t numSamples, bool linearPhase)
     cout << "down-sampler output type = "
          << "interleaved"
          << "\n";
-    auto oversampling = Oversampling<Float>{ settings };
+    auto oversampling = Oversampling{ settings };
     oversampling.prepareBuffers(numSamples);
     auto const latency = oversampling.getLatency();
     cout << "latency = " << latency << "\n";
@@ -462,14 +462,14 @@ void testOversampling(uint64_t order, uint64_t numSamples, bool linearPhase)
     for (auto i = 0; i < numBuffers; ++i) {
       inputInterleaved.interleave(inPtr, settings.numUpSampledChannels, numSamples);
       auto const numUpSampledSamples = oversampling.upSample(inputInterleaved);
-      auto const& upSampled = oversampling.getUpSampleOutput();
+      auto const& upSampled = oversampling.getUpSampleOutput<Float>();
       assert(upSampled.getNumChannels() == settings.numUpSampledChannels);
       assert(upSampled.getNumSamples() == numUpSampledSamples);
       CHECK_MEMORY;
       oversampling.downSample(upSampled.get(), numUpSampledSamples, numSamples);
       CHECK_MEMORY;
       // cout << "numUpSampledSamples = " << numUpSampledSamples << "\n";
-      oversampling.getDownSampleOutputInterleaved().deinterleave(out, settings.numDownSampledChannels, numSamples);
+      oversampling.getDownSampleOutputInterleaved<Float>().deinterleave(out, settings.numDownSampledChannels, numSamples);
       for (auto c = 0; c < settings.numDownSampledChannels; ++c) {
         out[c] += numSamples;
       }

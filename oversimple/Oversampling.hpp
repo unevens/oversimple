@@ -50,15 +50,18 @@ struct OversamplingSettings final
   double firTransitionBand = 4.0;
 };
 
+/*
+ * A class that wraps the FIR and IIR re-samplers and supports both plain and interleaved buffers and inputs/outputs.
+ * */
 template<class Float>
-class Oversampling final
+class TOversampling final
 {
 public:
   /**
    * Constructor
    * @param settings the settings to initialize the object with.
    * */
-  explicit Oversampling(OversamplingSettings settings)
+  explicit TOversampling(OversamplingSettings settings)
     : settings{ settings }
     , iirUpSampler{ settings.numUpSampledChannels, settings.maxOrder }
     , iirDownSampler{ settings.numDownSampledChannels, settings.maxOrder }
@@ -633,5 +636,364 @@ private:
   InterleavedBuffer<Float> upSampleOutputInterleaved;
   Buffer<Float> upSamplePlainBuffer;
 };
+
+/*
+ * A class that wraps a TOversampling<float> and a TOversampling<double>
+ * */
+class Oversampling final
+{
+public:
+  /**
+   * Constructor
+   * @param settings the settings to initialize the object with.
+   * */
+  explicit Oversampling(OversamplingSettings settings)
+    : oversampling32{ settings }
+    , oversampling64{ settings }
+  {}
+
+  /**
+   * @return the current settings of the object
+   */
+  OversamplingSettings const& getSettings() const
+  {
+    return oversampling32.getSettings();
+  }
+
+  /**
+   * Sets the maximum order of oversampling supported, and allocates the necessary resources
+   * @param value the maximum order of oversampling
+   */
+  void setMaxOrder(uint32_t value)
+  {
+    oversampling32.setMaxOrder(value);
+    oversampling64.setMaxOrder(value);
+  }
+
+  /**
+   * Prepare the up-samplers to work with the supplied number of channels.
+   * @param numChannels the new number of channels to prepare the up-samplers for.
+   */
+  void setNumChannelsToUpSample(uint32_t numChannels)
+  {
+    oversampling32.setNumChannelsToUpSample(numChannels);
+    oversampling64.setNumChannelsToUpSample(numChannels);
+  }
+
+  /**
+   * Prepare the down-samplers to work with the supplied number of channels.
+   * @param numChannels the new number of channels to prepare the down-samplers for.
+   */
+  void setNumChannelsToDownSample(uint32_t numChannels)
+  {
+    oversampling32.setNumChannelsToDownSample(numChannels);
+    oversampling64.setNumChannelsToDownSample(numChannels);
+  }
+
+  /**
+   * Allocates resources to process up to maxNumInputSamples input.
+   * @param maxNumInputSamples the expected maximum number input samples
+   */
+  void prepareBuffers(uint32_t maxNumInputSamples)
+  {
+    oversampling32.prepareBuffers(maxNumInputSamples);
+    oversampling64.prepareBuffers(maxNumInputSamples);
+  }
+
+  /**
+   * Sets the number of samples that are processed by each fft call. It only affects the FIR re-samplers used when
+   * linear phase is enabled.
+   * @param value the new number of samples that will be processed by each fft call.
+   */
+  void setFirFftBlockSize(uint32_t value)
+  {
+    oversampling32.setFirFftBlockSize(value);
+    oversampling64.setFirFftBlockSize(value);
+  }
+
+  /**
+   * Sets the antialiasing fir filter transition band. Only affects the behaviour of the object when linear phase is
+   * enabled.
+   * @param value the new antialiasing filter transition band, in percentage of
+   * the sample rate.
+   */
+  void setFirTransitionBand(double transitionBand)
+  {
+    oversampling32.setFirTransitionBand(transitionBand);
+    oversampling64.setFirTransitionBand(transitionBand);
+  }
+
+  /**
+   * Sets whether the object shoul use the linear phase FIR re-samplers or the minimum-phase IIR re-samplers.
+   * @param useLinearPhase true to enable linear phase, false to disable it.
+   * */
+  void setUseLinearPhase(bool useLinearPhase)
+  {
+    oversampling32.setUseLinearPhase(useLinearPhase);
+    oversampling64.setUseLinearPhase(useLinearPhase);
+  }
+
+  /**
+   * Sets the order of oversampling to be used. It must be less or equal to the maximum order set
+   * @value the order to set
+   * @return true if the order was set correctly, false otherwise
+   */
+  void setOrder(uint32_t order)
+  {
+    oversampling32.setUseLinearPhase(order);
+    oversampling64.setUseLinearPhase(order);
+  }
+
+  /**
+   * Resets the state of the processor, clearing the buffers.
+   */
+  void reset()
+  {
+    oversampling32.reset();
+    oversampling64.reset();
+  }
+
+  /**
+   * @return the number of input samples to the up-sampling call needed before a first output sample is
+   * produced by the up-sampling call.
+   */
+  uint32_t getUpSamplingLatency()
+  {
+    return oversampling32.getUpSamplingLatency();
+  }
+
+  /**
+   * @return the number of input samples to the down-sampling call needed before a first output sample is
+   * produced by the down-sampling call.
+   */
+  uint32_t getDownSamplingLatency()
+  {
+    return oversampling32.getDownSamplingLatency();
+  }
+
+  /**
+   * @return the number of input samples to the up-sampling call needed before a first output sample is
+   * produced by the down-sampling call.
+   */
+  uint32_t getLatency()
+  {
+    return oversampling32.getLatency();
+  }
+
+  /**
+   * @return the maximum number of samples that can be produced by a
+   * processBlock call, assuming it is never called with more samples than those
+   * passed to prepareBuffers.
+   */
+  uint32_t getMaxNumOutputSamples()
+  {
+    return oversampling32.getMaxNumOutputSamples();
+  }
+
+  /**
+   * @return the oversampling order currently in use.
+   */
+  uint32_t getOversamplingOrder() const
+  {
+    return oversampling32.getOversamplingOrder();
+  }
+
+  /**
+   * @return the oversampling rate currently in use.
+   */
+  uint32_t getOversamplingRate() const
+  {
+    return oversampling32.getOversamplingRate();
+  }
+
+  /**
+   * Sets the type of output for the up-sampling.
+   * @param bufferType the type of output for the up-sampling.
+   */
+  void setUpSampledOutputBufferType(BufferType bufferType)
+  {
+    oversampling32.setUpSampledOutputBufferType(bufferType);
+    oversampling64.setUpSampledOutputBufferType(bufferType);
+  }
+
+  /**
+   * Sets the type of output for the down-sampling.
+   * @param bufferType the type of output for the down-sampling.
+   */
+  void setDownSampledOutputBufferType(BufferType bufferType)
+  {
+    oversampling32.setDownSampledOutputBufferType(bufferType);
+    oversampling64.setDownSampledOutputBufferType(bufferType);
+  }
+
+  /**
+   * Sets the type of input for the down-sampling.
+   * @param bufferType the type of input for the down-sampling.
+   */
+  void setDownSampledInputBufferType(BufferType bufferType)
+  {
+    oversampling32.setDownSampledInputBufferType(bufferType);
+    oversampling64.setDownSampledInputBufferType(bufferType);
+  }
+
+  /**
+   * Up-samples the input to a buffer owned by the object.
+   * @param input pointer to the input buffers
+   * @param numSamples the number of samples in each channel of the input buffer
+   */
+  template<class Float>
+  uint32_t upSample(Float* const* input, uint32_t numSamples)
+  {
+    return get<Float>().upSample(input, numSamples);
+  }
+
+  /**
+   * Up-samples the input to a buffer owned by the object.
+   * @param input pointer to the input buffers
+   */
+  template<class Float>
+  uint32_t upSample(InterleavedBuffer<Float> const& input)
+  {
+    return get<Float>().upSample(input);
+  }
+
+  /**
+   * @return an interleaved buffer that holds the output of the up-sampling.
+   */
+  template<class Float>
+  InterleavedBuffer<Float>& getUpSampleOutputInterleaved()
+  {
+    return get<Float>().getUpSampleOutputInterleaved();
+  }
+
+  /**
+   * @return a buffer that holds the output of the up-sampling.
+   */
+  template<class Float>
+  Buffer<Float>& getUpSampleOutput()
+  {
+    return get<Float>().getUpSampleOutput();
+  }
+
+  /**
+   * @return a const interleaved buffer that holds the output of the up-sampling.
+   */
+  template<class Float>
+  InterleavedBuffer<Float> const& getUpSampleOutputInterleaved() const
+  {
+    return get<Float>().getUpSampleOutputInterleaved();
+  }
+
+  /**
+   * @return a const buffer that holds the output of the up-sampling.
+   */
+  template<class Float>
+  Buffer<Float> const& getUpSampleOutput() const
+  {
+    return get<Float>().getUpSampleOutput();
+  }
+
+  /**
+   * Down-samples the input.
+   * @param input pointer to the input buffer.
+   * @param numInputSamples the number of samples of each channel of the input
+   * buffer.
+   * @param output pointer to the memory in which to store the down-sampled data.
+   * @param numOutputSamples the number of samples needed as output
+   */
+  template<class Float>
+  void downSample(Float* const* input, uint32_t numInputSamples, Float** output, uint32_t numOutputSamples)
+  {
+    get<Float>().downSample(input, numInputSamples, output, numOutputSamples);
+  }
+
+  /**
+   * Down-samples the input.
+   * @param input an interleaved buffer holding the input.
+   * @param output pointer to the memory in which to store the down-sampled data.
+   * @param numOutputSamples the number of samples needed as output
+   */
+  template<class Float>
+  void downSample(InterleavedBuffer<Float> const& input, Float** output, uint32_t numOutputSamples)
+  {
+    get<Float>().downSample(input, output, numOutputSamples);
+  }
+
+  /**
+   * Down-samples the input to an InterleavedBuffer owned by the object.
+   * @param input pointer to the input buffer.
+   * @param numInputSamples the number of samples of each channel of the input
+   * buffer.
+   * @param numOutputSamples the number of samples needed as output
+   */
+  template<class Float>
+  void downSample(Float* const* input, uint32_t numInputSamples, uint32_t numOutputSamples)
+  {
+    get<Float>().downSample(input, numInputSamples, numOutputSamples);
+  }
+
+  /**
+   * Down-samples the input to an InterleavedBuffer owned by the object.
+   * @param input an interleaved buffer holding the input.
+   * @param numOutputSamples the number of samples needed as output
+   */
+  template<class Float>
+  void downSample(InterleavedBuffer<Float> const& input, uint32_t numOutputSamples)
+  {
+    get<Float>().downSample(input, numOutputSamples);
+  }
+
+  /**
+   * @return an interleaved buffer that holds the output of the down-sampling.
+   */
+  template<class Float>
+  InterleavedBuffer<Float>& getDownSampleOutputInterleaved()
+  {
+    return get<Float>().getDownSampleOutputInterleaved();
+  }
+
+  /**
+   * @return a const interleaved buffer that holds the output of the down-sampling.
+   */
+  template<class Float>
+  InterleavedBuffer<Float> const& getDownSampleOutputInterleaved() const
+  {
+    return get<Float>().getDownSampleOutputInterleaved();
+  }
+
+private:
+  template<class Float>
+  oversimple::TOversampling<Float>& get();
+
+  template<class Float>
+  oversimple::TOversampling<Float> const& get() const;
+
+  oversimple::TOversampling<float> oversampling32;
+  oversimple::TOversampling<double> oversampling64;
+};
+
+template<>
+oversimple::TOversampling<float>& Oversampling::get()
+{
+  return oversampling32;
+}
+
+template<>
+oversimple::TOversampling<double>& Oversampling::get()
+{
+  return oversampling64;
+}
+
+template<>
+oversimple::TOversampling<float> const& Oversampling::get() const
+{
+  return oversampling32;
+}
+
+template<>
+oversimple::TOversampling<double> const& Oversampling::get() const
+{
+  return oversampling64;
+}
 
 } // namespace oversimple
