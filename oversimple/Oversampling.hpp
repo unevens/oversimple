@@ -973,25 +973,25 @@ private:
 };
 
 template<>
-oversimple::TOversampling<float>& Oversampling::get()
+inline oversimple::TOversampling<float>& Oversampling::get()
 {
   return oversampling32;
 }
 
 template<>
-oversimple::TOversampling<double>& Oversampling::get()
+inline oversimple::TOversampling<double>& Oversampling::get()
 {
   return oversampling64;
 }
 
 template<>
-oversimple::TOversampling<float> const& Oversampling::get() const
+inline oversimple::TOversampling<float> const& Oversampling::get() const
 {
   return oversampling32;
 }
 
 template<>
-oversimple::TOversampling<double> const& Oversampling::get() const
+inline oversimple::TOversampling<double> const& Oversampling::get() const
 {
   return oversampling64;
 }
