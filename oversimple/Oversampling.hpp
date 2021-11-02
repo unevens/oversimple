@@ -786,8 +786,8 @@ public:
    */
   void setOrder(uint32_t order)
   {
-    oversampling32.setUseLinearPhase(order);
-    oversampling64.setUseLinearPhase(order);
+    oversampling32.setOrder(order);
+    oversampling64.setOrder(order);
   }
 
   /**
