@@ -168,6 +168,14 @@ public:
   }
 
   /**
+   * @return true if linear phase is enabled, false otherwise
+   */
+  bool isUsingLinearPhase() const
+  {
+    return settings.isUsingLinearPhase;
+  }
+
+  /**
    * Sets the order of oversampling to be used. It must be less or equal to the maximum order set
    * @value the order to set
    * @return true if the order was set correctly, false otherwise
@@ -777,6 +785,14 @@ public:
   {
     oversampling32.setUseLinearPhase(useLinearPhase);
     oversampling64.setUseLinearPhase(useLinearPhase);
+  }
+
+  /**
+   * @return true if linear phase is enabled, false otherwise
+   */
+  bool isUsingLinearPhase() const
+  {
+    return oversampling32.isUsingLinearPhase();
   }
 
   /**
