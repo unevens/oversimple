@@ -25,7 +25,6 @@ namespace oversimple::iir {
 
 namespace detail {
 
-namespace {
 /**
  * A class implementing common functionality for the IIR resamplers.
  */
@@ -535,8 +534,6 @@ public:
     }
   }
 };
-
-} // namespace
 
 /**
  * DownSampler with IIR antialiasing filters.
