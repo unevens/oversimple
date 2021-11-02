@@ -206,7 +206,7 @@ void ReSamplerBase::setFftSamplesPerBlock(uint32_t value)
   setup();
 }
 
-void ReSamplerBase::setTransitionBand(uint32_t value)
+void ReSamplerBase::setTransitionBand(double value)
 {
   transitionBand = value;
   setup();

@@ -74,7 +74,7 @@ public:
    * @param value the new antialiasing filter transition band, in percentage of
    * the sample rate.
    */
-  void setTransitionBand(uint32_t value);
+  void setTransitionBand(double value);
 
   /**
    * @return value the antialiasing filter transition band, in percentage of the
@@ -668,7 +668,7 @@ public:
    * @param value the new antialiasing filter transition band, in percentage of
    * the sample rate.
    */
-  void setTransitionBand(uint32_t value)
+  void setTransitionBand(double value)
   {
     transitionBand = value;
     for (auto& reSampler : reSamplers) {
