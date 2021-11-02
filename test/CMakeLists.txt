@@ -21,11 +21,10 @@ else()
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
     set(CMAKE_LINKER_FLAGS_DEBUG "${CMAKE_LINKER_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
 
-endif ()
-
 if (NOT APPLE)
 
     set(architecture "-march=native") # replace this line to build for a specific architecture
     target_compile_options(oversimple PUBLIC ${architecture})
 
+endif ()
 endif ()
