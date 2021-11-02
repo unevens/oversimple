@@ -715,6 +715,20 @@ public:
   }
 
   /**
+   * Gets the number of input samples needed before a first output sample is
+   * produced, when the oversampling order is set to the supplied value.
+   * @param order the order for which to compute the latency
+   * @return the latency for the specified order
+   */
+  uint32_t getNumSamplesBeforeOutputStarts(uint32_t order)
+  {
+    if (order == 0)
+      return 0;
+    aassert(order <= reSamplers.size());
+    return reSamplers[order - 1].getNumSamplesBeforeOutputStarts();
+  }
+
+  /**
    * @return the maximum number of samples that can be produced by a
    * processBlock call, assuming it is never called with more samples than those
    * passed to prepareBuffers. If prepareBuffers has not been called, then no
