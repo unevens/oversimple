@@ -724,8 +724,8 @@ public:
   {
     if (order == 0)
       return 0;
-    aassert(order <= reSamplers.size());
-    return reSamplers[order - 1].getNumSamplesBeforeOutputStarts();
+    assert(order <= reSamplers.size());
+    return reSamplers[order - 1]->getNumSamplesBeforeOutputStarts();
   }
 
   /**
