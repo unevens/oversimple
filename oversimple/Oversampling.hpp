@@ -827,6 +827,39 @@ public:
   }
 
   /**
+   * Gets the number of input samples to the up-sampling call needed before a first output sample is
+   * produced by the up-sampling call, when the oversampling order is set to the supplied value.
+   * @param order the order for which to compute the latency
+   * @return the latency for the specified order
+   */
+  uint32_t getUpSamplingLatency(uint32_t order)
+  {
+    return oversampling32.getUpSamplingLatency(order);
+  }
+
+  /**
+   * Gets the number of input samples to the down-sampling call needed before a first output sample is
+   * produced by the down-sampling call, when the oversampling order is set to the supplied value.
+   * @param order the order for which to compute the latency
+   * @return the latency for the specified order
+   */
+  uint32_t getDownSamplingLatency(uint32_t order)
+  {
+    return oversampling32.getDownSamplingLatency(order);
+  }
+
+  /**
+   * Gets the number of input samples to the up-sampling call needed before a first output sample is
+   * produced by the down-sampling call, when the oversampling order is set to the supplied value.
+   * @param order the order for which to compute the latency
+   * @return the latency for the specified order
+   */
+  uint32_t getLatency(uint32_t order)
+  {
+    return oversampling32.getLatency(order);
+  }
+
+  /**
    * @return the maximum number of samples that can be produced by a
    * processBlock call, assuming it is never called with more samples than those
    * passed to prepareBuffers.
