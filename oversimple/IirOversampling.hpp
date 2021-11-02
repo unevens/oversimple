@@ -593,7 +593,8 @@ public:
   {
     assert(this->numChannels == input.getNumChannels());
     auto const numSamples = input.getNumSamples();
-    assert(numSamples <= this->maxDownSampledSamples * (1 << this->order));
+    auto const numUpSampledSamples = this->maxDownSampledSamples * (1 << this->order);
+    assert(numSamples <= numUpSampledSamples);
 
     auto& output = this->buffer[0];
     auto& temp = this->buffer[1];
@@ -700,6 +701,12 @@ public:
     auto& output = this->buffer[1];
     auto& temp = this->buffer[0];
 
+    auto const numUpSampledSamples = this->maxDownSampledSamples * (1 << this->order);
+    assert(output.getCapacity() >= numUpSampledSamples);
+    assert(temp.getCapacity() >= numUpSampledSamples);
+    temp.setNumSamples(numUpSampledSamples);
+    output.setNumSamples(numUpSampledSamples);
+
     switch (this->order) {
       case 1: {
         this->applyStage0(output, input, numInputSamples);
@@ -740,6 +747,12 @@ public:
   void processBlock(Float* const* inputs, uint32_t numInputSamples)
   {
     assert(numInputSamples <= this->maxDownSampledSamples);
+
+    auto const numUpSampledSamples = this->maxDownSampledSamples * (1 << this->order);
+    assert(this->buffer[0].getCapacity() >= numUpSampledSamples);
+    assert(this->buffer[1].getCapacity() >= numUpSampledSamples);
+    this->buffer[0].setNumSamples(numUpSampledSamples);
+    this->buffer[1].setNumSamples(numUpSampledSamples);
 
     switch (this->order) {
       case 1: {
