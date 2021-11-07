@@ -275,6 +275,7 @@ uint32_t ReSamplerBase::getNumSamplesBeforeOutputStarts()
     assert(false);
     return 0;
   }
+  reSamplers[0]->clear();
   return reSamplers[0]->getInLenBeforeOutStart();
 }
 

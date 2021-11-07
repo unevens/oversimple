@@ -225,8 +225,8 @@ public:
    */
   uint32_t getDownSamplingLatency()
   {
-    if (settings.isUsingLinearPhase) {
-      if (settings.numDownSampledChannels > 0) {
+    if (settings.numDownSampledChannels > 0) {
+      if (settings.isUsingLinearPhase) {
         return firDownSampler.getNumSamplesBeforeOutputStarts();
       }
     }
@@ -247,13 +247,15 @@ public:
 
   /**
    * Gets the number of input samples to the up-sampling call needed before a first output sample is
-   * produced by the up-sampling call, when the oversampling order is set to the supplied value.
+   * produced by the up-sampling call, when the oversampling order and linear phase are set accordingly to the supplied
+   * values.
    * @param order the order for which to compute the latency
-   * @return the latency for the specified order
+   * @param linearPhase the order for which to compute the latency
+   * @return the latency for the specified order and linear phase
    */
-  uint32_t getUpSamplingLatency(uint32_t order)
+  uint32_t getUpSamplingLatency(uint32_t order, bool linearPhase)
   {
-    if (settings.isUsingLinearPhase) {
+    if (linearPhase) {
       if (settings.numUpSampledChannels > 0) {
         return firUpSampler.getNumSamplesBeforeOutputStarts(order);
       }
@@ -263,13 +265,15 @@ public:
 
   /**
    * Gets the number of input samples to the down-sampling call needed before a first output sample is
-   * produced by the down-sampling call, when the oversampling order is set to the supplied value.
+   * produced by the down-sampling call, when the oversampling order and linear phase are set accordingly to the
+   * supplied values.
    * @param order the order for which to compute the latency
-   * @return the latency for the specified order
+   * @param linearPhase the order for which to compute the latency
+   * @return the latency for the specified order and linear phase
    */
-  uint32_t getDownSamplingLatency(uint32_t order)
+  uint32_t getDownSamplingLatency(uint32_t order, bool linearPhase)
   {
-    if (settings.isUsingLinearPhase) {
+    if (linearPhase) {
       if (settings.numDownSampledChannels > 0) {
         return firDownSampler.getNumSamplesBeforeOutputStarts(order);
       }
@@ -279,14 +283,16 @@ public:
 
   /**
    * Gets the number of input samples to the up-sampling call needed before a first output sample is
-   * produced by the down-sampling call, when the oversampling order is set to the supplied value.
+   * produced by the down-sampling call, when the oversampling order and linear phase are set accordingly to the
+   * supplied values.
    * @param order the order for which to compute the latency
-   * @return the latency for the specified order
+   * @param linearPhase the order for which to compute the latency
+   * @return the latency for the specified order and linear phase
    */
-  uint32_t getLatency(uint32_t order)
+  uint32_t getLatency(uint32_t order, bool linearPhase)
   {
-    if (settings.isUsingLinearPhase) {
-      return getUpSamplingLatency(order) + getDownSamplingLatency(order) / getOversamplingRate();
+    if (linearPhase) {
+      return getUpSamplingLatency(order, linearPhase) + getDownSamplingLatency(order, linearPhase) / (1 << order);
     }
     return 0;
   }
@@ -844,35 +850,41 @@ public:
 
   /**
    * Gets the number of input samples to the up-sampling call needed before a first output sample is
-   * produced by the up-sampling call, when the oversampling order is set to the supplied value.
+   * produced by the up-sampling call, when the oversampling order and linear phase are set accordingly to the supplied
+   * values.
    * @param order the order for which to compute the latency
-   * @return the latency for the specified order
+   * @param linearPhase the order for which to compute the latency
+   * @return the latency for the specified order and linear phase
    */
-  uint32_t getUpSamplingLatency(uint32_t order)
+  uint32_t getUpSamplingLatency(uint32_t order, bool linearPhase)
   {
-    return oversampling32.getUpSamplingLatency(order);
+    return oversampling32.getUpSamplingLatency(order, linearPhase);
   }
 
   /**
    * Gets the number of input samples to the down-sampling call needed before a first output sample is
-   * produced by the down-sampling call, when the oversampling order is set to the supplied value.
+   * produced by the down-sampling call, when the oversampling order and linear phase are set accordingly to the
+   * supplied values.
    * @param order the order for which to compute the latency
-   * @return the latency for the specified order
+   * @param linearPhase the order for which to compute the latency
+   * @return the latency for the specified order and linear phase
    */
-  uint32_t getDownSamplingLatency(uint32_t order)
+  uint32_t getDownSamplingLatency(uint32_t order, bool linearPhase)
   {
-    return oversampling32.getDownSamplingLatency(order);
+    return oversampling32.getDownSamplingLatency(order, linearPhase);
   }
 
   /**
    * Gets the number of input samples to the up-sampling call needed before a first output sample is
-   * produced by the down-sampling call, when the oversampling order is set to the supplied value.
+   * produced by the down-sampling call, when the oversampling order and linear phase are set accordingly to the
+   * supplied values.
    * @param order the order for which to compute the latency
-   * @return the latency for the specified order
+   * @param linearPhase the order for which to compute the latency
+   * @return the latency for the specified order and linear phase
    */
-  uint32_t getLatency(uint32_t order)
+  uint32_t getLatency(uint32_t order, bool linearPhase)
   {
-    return oversampling32.getLatency(order);
+    return oversampling32.getLatency(order, linearPhase);
   }
 
   /**
