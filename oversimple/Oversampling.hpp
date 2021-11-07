@@ -161,7 +161,7 @@ public:
    * */
   void setUseLinearPhase(bool useLinearPhase)
   {
-    if (!settings.isUsingLinearPhase != useLinearPhase) {
+    if (settings.isUsingLinearPhase != useLinearPhase) {
       settings.isUsingLinearPhase = useLinearPhase;
       reset();
     }
