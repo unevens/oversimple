@@ -736,7 +736,7 @@ public:
    */
   uint32_t getMaxNumOutputSamples() const
   {
-    return get().getMaxNumOutputSamples();
+    return reSamplers.back()->getMaxNumOutputSamples();
   }
 
   /**
