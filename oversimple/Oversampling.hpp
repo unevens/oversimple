@@ -698,7 +698,6 @@ private:
       }
       return;
     }
-    auto const numChannels = std::min(settings.numUpSampledChannels, settings.numDownSampledChannels);
     auto const computeLatency = [&] {
       uint32_t latency = 0;
       auto input = Buffer<Float>(settings.numUpSampledChannels, settings.maxNumInputSamples);
