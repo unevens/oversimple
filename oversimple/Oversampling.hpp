@@ -211,12 +211,7 @@ public:
    */
   uint32_t getUpSamplingLatency()
   {
-    if (settings.isUsingLinearPhase) {
-      if (settings.numUpSampledChannels > 0) {
-        return firUpSampler.getNumSamplesBeforeOutputStarts();
-      }
-    }
-    return 0;
+    return getUpSamplingLatency(settings.order, settings.isUsingLinearPhase);
   }
 
   /**
@@ -225,12 +220,7 @@ public:
    */
   uint32_t getDownSamplingLatency()
   {
-    if (settings.numDownSampledChannels > 0) {
-      if (settings.isUsingLinearPhase) {
-        return firDownSampler.getNumSamplesBeforeOutputStarts();
-      }
-    }
-    return 0;
+    return getDownSamplingLatency(settings.order, settings.isUsingLinearPhase);
   }
 
   /**
@@ -239,10 +229,7 @@ public:
    */
   uint32_t getLatency()
   {
-    if (settings.isUsingLinearPhase) {
-      return getUpSamplingLatency() + getDownSamplingLatency() / getOversamplingRate();
-    }
-    return 0;
+    return getLatency(settings.order, settings.isUsingLinearPhase);
   }
 
   /**
@@ -291,8 +278,11 @@ public:
    */
   uint32_t getLatency(uint32_t order, bool linearPhase)
   {
+    assert(order <= settings.maxOrder);
+    if (order == 0)
+      return 0;
     if (linearPhase) {
-      return getUpSamplingLatency(order, linearPhase) + getDownSamplingLatency(order, linearPhase) / (1 << order);
+      return latencies[order - 1];
     }
     return 0;
   }
@@ -620,6 +610,7 @@ private:
 
     setupInputOutputBuffers();
     prepareInternalBuffers();
+    computeLatencies();
   }
 
   void prepareInternalBuffers()
@@ -683,6 +674,41 @@ private:
     }
   }
 
+  void computeLatencies()
+  {
+    prepareBuffers(settings.maxNumInputSamples);
+    auto const computeLatency = [&] {
+      uint32_t latency = 0;
+      for (;;) {
+        auto input = Buffer<Float>(settings.numUpSampledChannels, settings.maxNumInputSamples);
+        input.fill(1.0);
+        firUpSampler.processBlock(input);
+        auto const& upSampled = firUpSampler.getOutput();
+        firDownSampler.processBlock(upSampled, input, input.getNumSamples());
+        auto const& channel = input[0];
+        auto const itToFirstSample =
+          std::find_if(channel.begin(), channel.end(), [](Float const& element) { return element != 0.0; });
+        if (itToFirstSample != channel.end()) {
+          auto const indexOfFirstSample = std::distance(channel.begin(), itToFirstSample);
+          latency += indexOfFirstSample;
+          return latency;
+        }
+        else {
+          latency += (uint32_t)channel.size();
+        }
+      }
+    };
+    auto const wasLinearPhase = settings.isUsingLinearPhase;
+    auto const previousOrder = settings.order;
+    setUseLinearPhase(true);
+    for (uint32_t order = 1; order <= settings.maxOrder; ++order) {
+      setOrder(order);
+      latencies[order - 1] = computeLatency();
+    }
+    setUseLinearPhase(wasLinearPhase);
+    setOrder(previousOrder);
+  }
+
   OversamplingSettings settings;
 
   fir::TUpSamplerPreAllocated<Float> firUpSampler;
@@ -695,6 +721,8 @@ private:
   Buffer<Float> downSamplePlainInputBuffer;
   InterleavedBuffer<Float> upSampleOutputInterleaved;
   Buffer<Float> upSamplePlainBuffer;
+
+  std::array<uint32_t, 5> latencies;
 };
 
 /*
