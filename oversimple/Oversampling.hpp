@@ -677,8 +677,7 @@ private:
   void computeLatencies()
   {
     prepareBuffers(settings.maxNumInputSamples);
-    if (settings.numUpSampledChannels == 0 && settings.numDownSampledChannels==0)
-    {
+    if (settings.numUpSampledChannels == 0 && settings.numDownSampledChannels == 0) {
       for (uint32_t order = 1; order <= settings.maxOrder; ++order) {
         setOrder(order);
         latencies[order - 1] = 0;
@@ -702,13 +701,16 @@ private:
     auto const numChannels = std::min(settings.numUpSampledChannels, settings.numDownSampledChannels);
     auto const computeLatency = [&] {
       uint32_t latency = 0;
+      auto input = Buffer<Float>(settings.numUpSampledChannels, settings.maxNumInputSamples);
+      auto output = Buffer<Float>(settings.numDownSampledChannels, settings.maxNumInputSamples);
+      input.fill(1.0);
       for (;;) {
-        auto input = Buffer<Float>(numChannels, settings.maxNumInputSamples);
-        input.fill(1.0);
+        output.fill(0.0);
         firUpSampler.processBlock(input);
-        auto const& upSampled = firUpSampler.getOutput();
-        firDownSampler.processBlock(upSampled, input, input.getNumSamples());
-        auto const& channel = input[0];
+        auto upSampledCopy = firUpSampler.getOutput();
+        upSampledCopy.setNumChannels(settings.numDownSampledChannels);
+        firDownSampler.processBlock(upSampledCopy, output, output.getNumSamples());
+        auto const& channel = output[0];
         auto const itToFirstSample =
           std::find_if(channel.begin(), channel.end(), [](Float const& element) { return element != 0.0; });
         if (itToFirstSample != channel.end()) {
