@@ -677,10 +677,33 @@ private:
   void computeLatencies()
   {
     prepareBuffers(settings.maxNumInputSamples);
+    if (settings.numUpSampledChannels == 0 && settings.numDownSampledChannels==0)
+    {
+      for (uint32_t order = 1; order <= settings.maxOrder; ++order) {
+        setOrder(order);
+        latencies[order - 1] = 0;
+      }
+      return;
+    }
+    if (settings.numUpSampledChannels == 0) {
+      for (uint32_t order = 1; order <= settings.maxOrder; ++order) {
+        setOrder(order);
+        latencies[order - 1] = (uint64_t)((double)getDownSamplingLatency(order, true) / ((double)(1 << order)));
+      }
+      return;
+    }
+    if (settings.numDownSampledChannels == 0) {
+      for (uint32_t order = 1; order <= settings.maxOrder; ++order) {
+        setOrder(order);
+        latencies[order - 1] = getUpSamplingLatency(order, true);
+      }
+      return;
+    }
+    auto const numChannels = std::min(settings.numUpSampledChannels, settings.numDownSampledChannels);
     auto const computeLatency = [&] {
       uint32_t latency = 0;
       for (;;) {
-        auto input = Buffer<Float>(settings.numUpSampledChannels, settings.maxNumInputSamples);
+        auto input = Buffer<Float>(numChannels, settings.maxNumInputSamples);
         input.fill(1.0);
         firUpSampler.processBlock(input);
         auto const& upSampled = firUpSampler.getOutput();
