@@ -4,5 +4,5 @@
 /test/out
 /test/build
 /doc
-/test/cmake-build-debug/
-/test/cmake-build-release/
+cmake-build-release
+cmake-build-debug
