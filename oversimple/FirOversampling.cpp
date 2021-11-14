@@ -224,8 +224,13 @@ void ReSamplerBase::prepareBuffersBase(uint32_t numSamples)
   maxInputLength = numSamples;
   auto const quot = maxInputLength / fftSamplesPerBlock;
   auto const rem = maxInputLength % fftSamplesPerBlock;
-  auto const maxReSamplerOutputLength = (uint32_t)reSamplers[0]->getMaxOutLen((int)fftSamplesPerBlock);
-  maxOutputLength = (quot + (rem > 0 ? 1 : 0)) * maxReSamplerOutputLength;
+  if (!reSamplers.empty()) {
+    auto const maxReSamplerOutputLength = (uint32_t)reSamplers[0]->getMaxOutLen((int)fftSamplesPerBlock);
+    maxOutputLength = (quot + (rem > 0 ? 1 : 0)) * maxReSamplerOutputLength;
+  }
+  else {
+    maxOutputLength = fftSamplesPerBlock * oversamplingRate;
+  }
 }
 
 void DownSampler::prepareBuffers(uint32_t numInputSamples, uint32_t requiredOutputSamples)
