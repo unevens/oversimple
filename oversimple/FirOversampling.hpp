@@ -114,7 +114,7 @@ protected:
 
   double oversamplingRate = 1.0;
   uint32_t numChannels;
-  uint32_t fftSamplesPerBlock = 512;
+  uint32_t fftSamplesPerBlock = 1024;
   double transitionBand = 4.0;
   std::vector<std::unique_ptr<r8b::CDSPResampler24>> reSamplers;
   uint32_t maxOutputLength = 0;
@@ -750,7 +750,7 @@ public:
 protected:
   explicit TReSamplerPreAllocatedBase(uint32_t numChannels,
                                       double transitionBand = 4.0,
-                                      uint32_t fftSamplesPerBlock = 512)
+                                      uint32_t fftSamplesPerBlock = 1024)
     : numChannels{ numChannels }
     , transitionBand{ transitionBand }
     , fftSamplesPerBlock{ fftSamplesPerBlock }
@@ -769,7 +769,7 @@ protected:
   std::vector<std::unique_ptr<ReSampler>> reSamplers;
   uint32_t numChannels;
   uint32_t maxInputSamples = 256;
-  uint32_t fftSamplesPerBlock = 512;
+  uint32_t fftSamplesPerBlock = 1024;
   double transitionBand = 4.0;
   uint32_t order = 1;
 };
@@ -791,7 +791,7 @@ public:
   explicit TUpSamplerPreAllocated(uint32_t maxOrder,
                                   uint32_t numChannels,
                                   double transitionBand = 4.0,
-                                  uint32_t fftSamplesPerBlock = 512)
+                                  uint32_t fftSamplesPerBlock = 1024)
     : TReSamplerPreAllocatedBase<TUpSampler<Float>>(numChannels, transitionBand, fftSamplesPerBlock)
   {
     setMaxOrder(maxOrder);
@@ -898,7 +898,7 @@ public:
   explicit TDownSamplerPreAllocated(uint32_t maxOrder,
                                     uint32_t numChannels,
                                     double transitionBand = 4.0,
-                                    uint32_t fftSamplesPerBlock = 512)
+                                    uint32_t fftSamplesPerBlock = 1024)
     : TReSamplerPreAllocatedBase<TDownSampler<Float>>(numChannels, transitionBand, fftSamplesPerBlock)
   {
     setMaxOrder(maxOrder);

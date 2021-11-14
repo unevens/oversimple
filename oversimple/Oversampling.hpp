@@ -46,7 +46,7 @@ struct OversamplingSettings final
   BufferType downSampleInputBufferType = BufferType::plain;
   uint32_t order = 1;
   bool isUsingLinearPhase = false;
-  uint32_t fftBlockSize = 512;
+  uint32_t fftBlockSize = 1024;
   double firTransitionBand = 4.0;
 };
 
