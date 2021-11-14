@@ -17,16 +17,6 @@ limitations under the License.
 #include "oversimple/FirOversampling.hpp"
 #include <algorithm>
 
-// macro to send debug messages using Visual Studio
-#if (defined _DEBUG)
-inline void DEBUG_MESSAGE(char const* message)
-{
-  OutputDebugStringA(message);
-}
-#else
-#define DEBUG_MESSAGE(x) /*nothing*/
-#endif
-
 namespace oversimple::fir {
 
 uint32_t UpSampler::processBlock(Buffer<double> const& input)
