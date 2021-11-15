@@ -63,10 +63,10 @@ public:
    * */
   explicit TOversampling(OversamplingSettings settings)
     : settings{ settings }
-    , iirUpSampler{ settings.numUpSampledChannels, settings.maxOrder }
-    , iirDownSampler{ settings.numDownSampledChannels, settings.maxOrder }
     , firUpSampler{ settings.numUpSampledChannels, settings.maxOrder }
     , firDownSampler{ settings.numDownSampledChannels, settings.maxOrder }
+    , iirUpSampler{ settings.numUpSampledChannels, settings.maxOrder }
+    , iirDownSampler{ settings.numDownSampledChannels, settings.maxOrder }
   {
     setup();
     setOrder(settings.order);
