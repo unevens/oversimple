@@ -1,30 +1,26 @@
-cmake_minimum_required(VERSION 3.0.0)
+cmake_minimum_required(VERSION 3.16)
+project(oversimple-tests CXX)
 
-project(oversimple-tests)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
+# Driven by the run-tests.sh script per-arch. The script invokes cmake with
+# CMAKE_OSX_ARCHITECTURES set explicitly (e.g. "arm64" or "x86_64") so the
+# build dir is single-arch and tests can actually run via `arch -<slice>`.
 add_subdirectory("${CMAKE_SOURCE_DIR}/../" "${PROJECT_BINARY_DIR}/oversimple")
-set(CMAKE_CXX_STANDARD 17)
 
 add_executable(iir-design iir-design.cpp)
 target_link_libraries(iir-design oversimple)
 
 add_executable(oversimple-test testing.cpp)
 target_link_libraries(oversimple-test oversimple)
+target_include_directories(oversimple-test PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
 
-if (WIN32)
+if(UNIX AND NOT APPLE)
+  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
+  set(CMAKE_LINKER_FLAGS_DEBUG "${CMAKE_LINKER_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
+endif()
 
-    set(architecture "/arch:AVX") # comment out this line to build for SSE2
-    target_compile_options(oversimple PUBLIC ${architecture})
-
-else()
-
-    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
-    set(CMAKE_LINKER_FLAGS_DEBUG "${CMAKE_LINKER_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
-
-if (NOT APPLE)
-
-    set(architecture "-march=native") # replace this line to build for a specific architecture
-    target_compile_options(oversimple PUBLIC ${architecture})
-
-endif ()
-endif ()
+enable_testing()
+add_test(NAME oversimple-test COMMAND oversimple-test)

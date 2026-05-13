@@ -24,6 +24,27 @@ To use PFFFT with double precision, define `R8B_PFFFT_DOUBLE=1` in `r8brain/r8bc
 
 - `pthread` on *nix (only r8brain).
 
+## Tests
+
+```bash
+$ cd test
+$ ./run-tests.sh
+```
+
+builds and runs the doctest-based test suite for every architecture this host
+supports. On Apple Silicon that's both `arm64` and `x86_64` (via Rosetta);
+on Intel and Linux it's just the host arch.
+
+The suite measures round-trip SNR per channel for each oversampler (FIR
+linear-phase, IIR minimum-phase, the `Oversampling` wrapper) and asserts
+against conservative per-test thresholds (≥60 dB steady-state for FIR
+sine and `Oversampling` linear-phase sine, ≥60 dB IIR DC convergence,
+permissive first-block thresholds during FIR warm-up). The previous
+test only printed SNR to stdout without asserting — a 50 dB regression
+would have been invisible.
+
+Both float and double precisions are tested for every (test, arch) pair.
+
 ## Documentation
 
 The documentation, available at https://unevens.github.io/oversimple/, can be generated with [Doxygen](http://doxygen.nl/) running
